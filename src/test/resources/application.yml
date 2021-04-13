@@ -1,0 +1,59 @@
+server:
+  port: ${SERVER_PORT:8090}
+spring:
+  profiles:
+    active:
+      - test
+    include:
+      - dev
+  application:
+    name: eu-interop-federation-gateway
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog.yml
+  main:
+    allow-bean-definition-overriding: true
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /swagger
+efgs:
+  dbencryption:
+    initVector: Ho^RDYDuGt0Ki`\x
+    password: G&B3zSk|fNE!.Pa9+Xv2kUYRx2zp|@=|
+  trustAnchor:
+    keyStorePath: keystore/efgs-ta.jks
+    keyStorePass: 3fgs-p4ssw0rd
+    certificateAlias: efgs_trust_anchor
+  callback:
+    locklimit: 1800000
+    keyStorePath: keystore/efgs-cb-client.jks
+    keyStorePass: 3fgs-p4ssw0rd
+    keyStorePrivateKeyAlias: efgs_callback_key
+    keyStoreCertificateAlias: efgs_callback_cert
+    execute-interval: 300000
+    task-lock-timeout: 300
+    proxy-host: ${https.proxyHost:}
+    proxy-port: ${https.proxyPort:-1}
+    proxy-user: ${https.proxyUser:}
+    proxy-password: ${https.proxyPassword:}
+    timeout: 10000
+    core-thread-pool-size: 0
+    max-retries: 5
+    retry-wait: 300
+  content-negotiation:
+    protobuf-version: 1.0
+    json-version: 1.0
+  upload-settings:
+    maximum-upload-batch-size: 5000
+  download-settings:
+    locklimit: 1800000
+    max-age-in-days: 14
+  cert-auth:
+    header-fields:
+      thumbprint: X-SSL-Client-SHA256
+      distinguished-name: X-SSL-Client-DN
+  batching:
+    timeinterval: 300000
+    doclimit: 5000
