@@ -18,10 +18,10 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.filter;
+package eu.europa.ec.dgc.gateway.filter;
 
-import eu.dgc.gateway.service.CertificateService;
-import eu.dgc.gateway.config.DgcConfigProperties;
+import eu.europa.ec.dgc.gateway.service.CertificateService;
+import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.dgc.gateway.utils.DgcMdc;
 import java.io.IOException;
 import java.math.BigInteger;

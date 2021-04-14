@@ -18,11 +18,13 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.entity;
+package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -62,6 +64,7 @@ public class TrustedPartyEntity {
      * Type of the certificate (Authentication, Signing, Issuer, Client, DID, CSCA)
      */
     @Column(name = "certificate_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     CertificateType certificateType;
 
     /**

@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.filter;
+package eu.europa.ec.dgc.gateway.filter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

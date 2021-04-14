@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.config;
+package eu.europa.ec.dgc.gateway.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

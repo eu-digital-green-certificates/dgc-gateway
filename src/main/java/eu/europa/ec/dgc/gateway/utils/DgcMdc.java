@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.utils;
+package eu.europa.ec.dgc.gateway.utils;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;

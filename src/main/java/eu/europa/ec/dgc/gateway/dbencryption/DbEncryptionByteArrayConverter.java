@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.dbencryption;
+package eu.europa.ec.dgc.gateway.dbencryption;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -27,12 +27,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.persistence.AttributeConverter;
 import javax.persistence.PersistenceException;
 
-public class DbEncryptionStringConverter implements AttributeConverter<String, String> {
+public class DbEncryptionByteArrayConverter implements AttributeConverter<byte[], String> {
 
   @Override
-  public String convertToDatabaseColumn(String s) {
+  public String convertToDatabaseColumn(byte[] s) {
     try {
-      return DbEncryptionService.getInstance().encryptString(s);
+      return DbEncryptionService.getInstance().encryptByteArray(s);
     } catch (InvalidAlgorithmParameterException | InvalidKeyException 
             | BadPaddingException | IllegalBlockSizeException e) {
       throw new PersistenceException(e);
@@ -40,9 +40,9 @@ public class DbEncryptionStringConverter implements AttributeConverter<String, S
   }
 
   @Override
-  public String convertToEntityAttribute(String s) {
+  public byte[] convertToEntityAttribute(String s) {
     try {
-      return DbEncryptionService.getInstance().decryptString(s);
+      return DbEncryptionService.getInstance().decryptByteArray(s);
     } catch (InvalidAlgorithmParameterException | InvalidKeyException 
             | BadPaddingException | IllegalBlockSizeException e) {
       throw new PersistenceException(e);

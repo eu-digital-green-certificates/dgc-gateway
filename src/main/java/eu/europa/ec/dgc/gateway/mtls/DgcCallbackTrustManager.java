@@ -18,10 +18,10 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.mtls;
+package eu.europa.ec.dgc.gateway.mtls;
 
-import eu.dgc.gateway.service.CertificateService;
-import eu.dgc.gateway.utils.CertificateUtils;
+import eu.europa.ec.dgc.gateway.service.CertificateService;
+import eu.europa.ec.dgc.gateway.utils.CertificateUtils;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;

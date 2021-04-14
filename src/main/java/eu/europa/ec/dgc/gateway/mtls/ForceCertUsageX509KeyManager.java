@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.mtls;
+package eu.europa.ec.dgc.gateway.mtls;
 
 import java.net.Socket;
 import java.security.Principal;

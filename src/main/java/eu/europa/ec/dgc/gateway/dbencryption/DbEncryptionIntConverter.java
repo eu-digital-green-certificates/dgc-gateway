@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.dbencryption;
+package eu.europa.ec.dgc.gateway.dbencryption;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -27,12 +27,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.persistence.AttributeConverter;
 import javax.persistence.PersistenceException;
 
-public class DbEncryptionReportTypeConverter implements AttributeConverter<DiagnosisKeyPayload.ReportType, String> {
+public class DbEncryptionIntConverter implements AttributeConverter<Integer, String> {
 
   @Override
-  public String convertToDatabaseColumn(DiagnosisKeyPayload.ReportType s) {
+  public String convertToDatabaseColumn(Integer s) {
     try {
-      return DbEncryptionService.getInstance().encryptString(s.name());
+      return DbEncryptionService.getInstance().encryptInteger(s);
     } catch (InvalidAlgorithmParameterException | InvalidKeyException 
             | BadPaddingException | IllegalBlockSizeException e) {
       throw new PersistenceException(e);
@@ -40,9 +40,9 @@ public class DbEncryptionReportTypeConverter implements AttributeConverter<Diagn
   }
 
   @Override
-  public DiagnosisKeyPayload.ReportType convertToEntityAttribute(String s) {
+  public Integer convertToEntityAttribute(String s) {
     try {
-      return DiagnosisKeyPayload.ReportType.valueOf(DbEncryptionService.getInstance().decryptString(s));
+      return DbEncryptionService.getInstance().decryptInteger(s);
     } catch (InvalidAlgorithmParameterException | InvalidKeyException 
             | BadPaddingException | IllegalBlockSizeException e) {
       throw new PersistenceException(e);

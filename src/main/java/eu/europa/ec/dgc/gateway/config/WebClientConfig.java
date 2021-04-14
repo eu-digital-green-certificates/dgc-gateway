@@ -18,14 +18,12 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.config;
+package eu.europa.ec.dgc.gateway.config;
 
-import eu.dgc.gateway.mtls.DgcCallbackTrustManager;
-import eu.dgc.gateway.mtls.ForceCertUsageX509KeyManager;
-import io.netty.channel.ChannelOption;
+import eu.europa.ec.dgc.gateway.mtls.DgcCallbackTrustManager;
+import eu.europa.ec.dgc.gateway.mtls.ForceCertUsageX509KeyManager;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -34,8 +32,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

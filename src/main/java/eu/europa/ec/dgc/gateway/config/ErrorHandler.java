@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.config;
+package eu.europa.ec.dgc.gateway.config;
 
 import javax.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;

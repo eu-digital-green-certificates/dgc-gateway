@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.config;
+package eu.europa.ec.dgc.gateway.config;
 
 import java.io.File;
 import java.io.FileInputStream;

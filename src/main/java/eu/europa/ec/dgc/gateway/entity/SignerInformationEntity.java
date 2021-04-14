@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.entity;
+package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
 import javax.persistence.Basic;

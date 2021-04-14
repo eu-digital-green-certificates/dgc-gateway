@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.dgc.gateway.dbencryption;
+package eu.europa.ec.dgc.gateway.dbencryption;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
