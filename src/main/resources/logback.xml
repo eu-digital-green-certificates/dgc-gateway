@@ -17,9 +17,9 @@
   </appender>
 
   <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${catalina.base:-.}/logs/efgs.log</file>
+    <file>${catalina.base:-.}/logs/dgcg.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${catalina.base:-.}/logs/efgs-%d{yyyy-MM-dd}.log</fileNamePattern>
+      <fileNamePattern>${catalina.base:-.}/logs/dgcg-%d{yyyy-MM-dd}.log</fileNamePattern>
       <maxHistory>90</maxHistory>
     </rollingPolicy>
     <append>true</append>
