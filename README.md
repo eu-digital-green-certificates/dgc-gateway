@@ -19,9 +19,11 @@
 
 - [ ] TODO
 
+<!-- 
 ## Status
+-->
 
-![ci](https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-master.yml/badge.svg)
+<!-- ![ci](https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-master.yml/badge.svg) -->
 
 ## Development
 
