@@ -42,63 +42,63 @@ public class TrustedPartyEntity {
     private Long id;
 
     /**
-     * Timestamp of the Record
+     * Timestamp of the Record.
      */
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
     /**
      * ISO 3166 Alpha-2 Country Code
-     * (plus code "EU" for administrative European Union entries)
+     * (plus code "EU" for administrative European Union entries).
      */
     @Column(name = "country", nullable = false, length = 2)
     private String country;
 
     /**
-     * SHA-256 Thumbprint of the certificate (hex encoded)
+     * SHA-256 Thumbprint of the certificate (hex encoded).
      */
     @Column(name = "thumbprint", nullable = false, length = 64)
     private String thumbprint;
 
     /**
-     * Type of the certificate (Authentication, Signing, Issuer, Client, DID, CSCA)
+     * Type of the certificate (Authentication, Signing, Issuer, Client, DID, CSCA).
      */
     @Column(name = "certificate_type", nullable = false)
     @Enumerated(EnumType.STRING)
     CertificateType certificateType;
 
     /**
-     * Base64 encoded certificate raw data
+     * Base64 encoded certificate raw data.
      */
     @Column(name = "raw_data", nullable = false, length = 4096)
     String rawData;
 
     /**
-     * Signature of the TrustAnchor
+     * Signature of the TrustAnchor.
      */
     @Column(name = "signature", nullable = false, length = 1000)
     String signature;
 
     public enum CertificateType {
         /**
-         * Certificate which the member state is using to authenticate at DGC Gateway (NBTLS)
+         * Certificate which the member state is using to authenticate at DGC Gateway (NBTLS).
          */
         AUTHENTICATION,
 
         /**
-         * Certificate which the member state is using to sign the uploaded information (NBUS)
+         * Certificate which the member state is using to sign the uploaded information (NBUS).
          */
         SIGNING,
 
         /**
          * Certificate which the member state is using to provide
-         * decentralized information for interoperability (NBISS)
+         * decentralized information for interoperability (NBISS).
          */
         ISSUER,
 
         /**
          * Certificate which the member state is using to connect the
-         * decentralized endpoints provided by the DID document (NBCL)
+         * decentralized endpoints provided by the DID document (NBCL).
          */
         CLIENT,
 
@@ -108,7 +108,7 @@ public class TrustedPartyEntity {
         DID,
 
         /**
-         * Country Signing Certificate Authority certificate (NBCSCA)
+         * Country Signing Certificate Authority certificate (NBCSCA).
          */
         CSCA
     }

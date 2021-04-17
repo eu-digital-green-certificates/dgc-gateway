@@ -18,14 +18,18 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.filter;
+package eu.europa.ec.dgc.gateway.repository;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface CertificateAuthenticationRequired {
+public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity, Long> {
+
+    Optional<TrustedPartyEntity> getFirstByThumbprintAndCountryAndCertificateType(
+        String thumbprint, String country, TrustedPartyEntity.CertificateType type);
+
+    Optional<TrustedPartyEntity> getFirstByThumbprintAndCertificateType(
+        String thumbprint, TrustedPartyEntity.CertificateType type);
+
 }

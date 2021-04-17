@@ -38,81 +38,59 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class DgcKeyStore {
 
-  private final DgcConfigProperties dgcConfigProperties;
+    private final DgcConfigProperties dgcConfigProperties;
 
-  /**
-   * Creates a KeyStore instance with keys for DGC TrustAnchor.
-   *
-   * @return KeyStore Instance
-   * @throws KeyStoreException if no implementation for the specified type found
-   * @throws IOException if there is an I/O or format problem with the keystore data
-   * @throws CertificateException if any of the certificates in the keystore could not be loaded
-   * @throws NoSuchAlgorithmException if the algorithm used to check the integrity of the keystore cannot be found
-   */
-  @Bean
-  public KeyStore trustAnchorKeyStore() throws KeyStoreException, IOException,
-    CertificateException, NoSuchAlgorithmException {
-    KeyStore keyStore = KeyStore.getInstance("JKS");
+    /**
+     * Creates a KeyStore instance with keys for DGC TrustAnchor.
+     *
+     * @return KeyStore Instance
+     * @throws KeyStoreException        if no implementation for the specified type found
+     * @throws IOException              if there is an I/O or format problem with the keystore data
+     * @throws CertificateException     if any of the certificates in the keystore could not be loaded
+     * @throws NoSuchAlgorithmException if the algorithm used to check the integrity of the keystore cannot be found
+     */
+    @Bean
+    public KeyStore trustAnchorKeyStore() throws KeyStoreException, IOException,
+        CertificateException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStore.getInstance("JKS");
 
-    loadKeyStore(
-      keyStore,
-      dgcConfigProperties.getTrustAnchor().getKeyStorePath(),
-      dgcConfigProperties.getTrustAnchor().getKeyStorePass().toCharArray());
+        loadKeyStore(
+            keyStore,
+            dgcConfigProperties.getTrustAnchor().getKeyStorePath(),
+            dgcConfigProperties.getTrustAnchor().getKeyStorePass().toCharArray());
 
-    return keyStore;
-  }
-
-  /**
-   * Creates a KeyStore instance with keys for DGC Callback feature.
-   *
-   * @return KeyStore Instance
-   * @throws KeyStoreException if no implementation for the specified type found
-   * @throws IOException if there is an I/O or format problem with the keystore data
-   * @throws CertificateException if any of the certificates in the keystore could not be loaded
-   * @throws NoSuchAlgorithmException if the algorithm used to check the integrity of the keystore cannot be found
-   */
-  @Bean
-  public KeyStore callbackKeyStore() throws KeyStoreException, IOException,
-    CertificateException, NoSuchAlgorithmException {
-    KeyStore keyStore = KeyStore.getInstance("JKS");
-
-    loadKeyStore(
-      keyStore,
-      dgcConfigProperties.getCallback().getKeyStorePath(),
-      dgcConfigProperties.getCallback().getKeyStorePass().toCharArray());
-
-    return keyStore;
-  }
-
-  private void loadKeyStore(KeyStore keyStore, String path, char[] password)
-    throws CertificateException, NoSuchAlgorithmException, IOException {
-
-    InputStream fileStream;
-
-    if (path.startsWith("classpath:")) {
-      String resourcePath = path.substring(10);
-      fileStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
-    } else {
-      File file = new File(path);
-      fileStream = file.exists() ? getStream(path) : null;
+        return keyStore;
     }
 
-    if (fileStream != null && fileStream.available() > 0) {
-      keyStore.load(fileStream, password);
-      fileStream.close();
-    } else {
-      keyStore.load(null);
-      log.info("Could not find Keystore {}", path);
+    private void loadKeyStore(KeyStore keyStore, String path, char[] password)
+        throws CertificateException, NoSuchAlgorithmException, IOException {
+
+        InputStream fileStream;
+
+        if (path.startsWith("classpath:")) {
+            String resourcePath = path.substring(10);
+            fileStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
+        } else {
+            File file = new File(path);
+            fileStream = file.exists() ? getStream(path) : null;
+        }
+
+        if (fileStream != null && fileStream.available() > 0) {
+            keyStore.load(fileStream, password);
+            fileStream.close();
+        } else {
+            keyStore.load(null);
+            log.info("Could not find Keystore {}", path);
+        }
+
     }
 
-  }
-
-  private InputStream getStream(String path) {
-    try {
-      return new FileInputStream(path);
-    } catch (IOException e) {
-      log.info("Could not find Keystore {}", path);
+    private InputStream getStream(String path) {
+        try {
+            return new FileInputStream(path);
+        } catch (IOException e) {
+            log.info("Could not find Keystore {}", path);
+        }
+        return null;
     }
-    return null;
-  }
 }

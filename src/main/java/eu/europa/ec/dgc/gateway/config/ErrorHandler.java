@@ -20,9 +20,8 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import javax.validation.ConstraintViolationException;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -40,46 +39,40 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class ErrorHandler extends ResponseEntityExceptionHandler {
 
-  /**
-   * Handles {@link ConstraintViolationException} when a validation failed.
-   *
-   * @param e the thrown {@link ConstraintViolationException}
-   * @return A ResponseEntity with a ErrorMessage inside.
-   */
-  @ExceptionHandler(ConstraintViolationException.class)
-  public ResponseEntity<ErrorMessageBody> handleException(ConstraintViolationException e) {
-    log.error(e.getMessage());
-    return ResponseEntity
-      .status(HttpStatus.BAD_REQUEST)
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(new ErrorMessageBody(e.getMessage()));
-  }
-
-  /**
-   * Global Exception Handler to wrap exceptions into a readable JSON Object.
-   *
-   * @param e the thrown exception
-   * @return ResponseEntity with readable data.
-   */
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorMessageBody> handleException(Exception e) {
-    if (e instanceof ResponseStatusException) {
-      return ResponseEntity
-        .status(((ResponseStatusException) e).getStatus())
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(new ErrorMessageBody(((ResponseStatusException) e).getReason()));
-    } else {
-      log.error("Uncatched exception", e);
-      return ResponseEntity
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(new ErrorMessageBody("Internal Server Error."));
+    /**
+     * Handles {@link ConstraintViolationException} when a validation failed.
+     *
+     * @param e the thrown {@link ConstraintViolationException}
+     * @return A ResponseEntity with a ErrorMessage inside.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ProblemReportDto> handleException(ConstraintViolationException e) {
+        log.error(e.getMessage());
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(new ProblemReportDto("", "Validation Error", "", e.getMessage()));
     }
-  }
 
-  @AllArgsConstructor
-  @Getter
-  private static class ErrorMessageBody {
-    private final String message;
-  }
+    /**
+     * Global Exception Handler to wrap exceptions into a readable JSON Object.
+     *
+     * @param e the thrown exception
+     * @return ResponseEntity with readable data.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemReportDto> handleException(Exception e) {
+        if (e instanceof ResponseStatusException) {
+            return ResponseEntity
+                .status(((ResponseStatusException) e).getStatus())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ProblemReportDto("co", "prob", "val", "det"));
+        } else {
+            log.error("Uncatched exception", e);
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ProblemReportDto("0x500", "Internal Server Error", "", ""));
+        }
+    }
 }

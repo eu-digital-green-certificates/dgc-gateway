@@ -29,24 +29,24 @@ import javax.persistence.PersistenceException;
 
 public class DbEncryptionByteArrayConverter implements AttributeConverter<byte[], String> {
 
-  @Override
-  public String convertToDatabaseColumn(byte[] s) {
-    try {
-      return DbEncryptionService.getInstance().encryptByteArray(s);
-    } catch (InvalidAlgorithmParameterException | InvalidKeyException 
+    @Override
+    public String convertToDatabaseColumn(byte[] s) {
+        try {
+            return DbEncryptionService.getInstance().encryptByteArray(s);
+        } catch (InvalidAlgorithmParameterException | InvalidKeyException
             | BadPaddingException | IllegalBlockSizeException e) {
-      throw new PersistenceException(e);
+            throw new PersistenceException(e);
+        }
     }
-  }
 
-  @Override
-  public byte[] convertToEntityAttribute(String s) {
-    try {
-      return DbEncryptionService.getInstance().decryptByteArray(s);
-    } catch (InvalidAlgorithmParameterException | InvalidKeyException 
+    @Override
+    public byte[] convertToEntityAttribute(String s) {
+        try {
+            return DbEncryptionService.getInstance().decryptByteArray(s);
+        } catch (InvalidAlgorithmParameterException | InvalidKeyException
             | BadPaddingException | IllegalBlockSizeException e) {
-      throw new PersistenceException(e);
+            throw new PersistenceException(e);
+        }
     }
-  }
 
 }

@@ -32,19 +32,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration
 public class ShedLockConfig {
 
-  /**
-   * Creates a LockProvider for ShedLock.
-   *
-   * @param dataSource JPA datasource
-   * @return LockProvider
-   */
-  @Bean
-  public LockProvider lockProvider(DataSource dataSource) {
-    return new JdbcTemplateLockProvider(builder()
-      .withTableName("shedlock")
-      .withJdbcTemplate(new JdbcTemplate(dataSource))
-      .usingDbTime()
-      .build()
-    );
-  }
+    /**
+     * Creates a LockProvider for ShedLock.
+     *
+     * @param dataSource JPA datasource
+     * @return LockProvider
+     */
+    @Bean
+    public LockProvider lockProvider(DataSource dataSource) {
+        return new JdbcTemplateLockProvider(builder()
+            .withTableName("shedlock")
+            .withJdbcTemplate(new JdbcTemplate(dataSource))
+            .usingDbTime()
+            .build()
+        );
+    }
 }

@@ -14,7 +14,7 @@ spring:
       ddl-auto: validate
   liquibase:
     enabled: true
-    change-log: classpath:db/changelog.yml
+    change-log: classpath:db/changelog.xml
   task:
     scheduling:
       pool:

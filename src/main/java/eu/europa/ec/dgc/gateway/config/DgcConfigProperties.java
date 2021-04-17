@@ -30,48 +30,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("dgc")
 public class DgcConfigProperties {
 
-  private final CertAuth certAuth = new CertAuth();
-  private final Callback callback = new Callback();
-  private final TrustAnchor trustAnchor = new TrustAnchor();
-
-  @Getter
-  @Setter
-  public static class TrustAnchor {
-    private String keyStorePath;
-    private String keyStorePass;
-    private String certificateAlias;
-  }
-
-  @Getter
-  @Setter
-  public static class Callback {
-    private int timeout = 10000;
-    private int maxRetries = 5;
-    private int retryWait = 300000;
-    private int coreThreadPoolSize = 1;
-    private int taskLockTimeout = 300;
-    private String proxyHost;
-    private Integer proxyPort;
-    private String proxyUser;
-    private String proxyPassword;
-    private String keyStorePath;
-    private String keyStorePass;
-    private String keyStorePrivateKeyAlias;
-    private String keyStoreCertificateAlias;
-  }
-
-  @Getter
-  @Setter
-  public static class CertAuth {
-
-    private final HeaderFields headerFields = new HeaderFields();
-    private List<String> certWhitelist;
+    private final CertAuth certAuth = new CertAuth();
+    private final TrustAnchor trustAnchor = new TrustAnchor();
 
     @Getter
     @Setter
-    public static class HeaderFields {
-      private String thumbprint;
-      private String distinguishedName;
+    public static class TrustAnchor {
+        private String keyStorePath;
+        private String keyStorePass;
+        private String certificateAlias;
     }
-  }
+
+    @Getter
+    @Setter
+    public static class CertAuth {
+
+        private final HeaderFields headerFields = new HeaderFields();
+        private List<String> certWhitelist;
+
+        @Getter
+        @Setter
+        public static class HeaderFields {
+            private String thumbprint;
+            private String distinguishedName;
+        }
+    }
 }

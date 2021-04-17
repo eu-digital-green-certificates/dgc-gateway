@@ -44,25 +44,25 @@ public class SignerInformationEntity {
     private Long id;
 
     /**
-     * Unique Identifier of the cert
+     * Unique Identifier of the cert.
      */
     @Column(name = "kid", length = 50, nullable = false)
     private String kid;
 
     /**
-     * Timestamp of the Record creation
+     * Timestamp of the Record creation.
      */
     @Column(name = "timestamp_created", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
     /**
-     * Timestamp of the last Record change
+     * Timestamp of the last Record change.
      */
     @Column(name = "timestamp_updated")
     private ZonedDateTime updatedAt;
 
     /**
-     * Signed Object
+     * Signed Object.
      */
     @Lob
     @Basic(fetch = FetchType.EAGER)
@@ -70,19 +70,19 @@ public class SignerInformationEntity {
     private byte[] informationObject;
 
     /**
-     * Revoked status, default false
+     * Revoked status, default false.
      */
     @Column(name = "revoked", nullable = false)
     private boolean revoked = false;
 
     /**
-     * Certificate thumbprint of creator
+     * Certificate thumbprint of creator.
      */
     @Column(name = "owner", length = 64)
     private String owner;
 
     /**
-     * Version of the uploaded object
+     * Version of the uploaded object.
      */
     @Column(name = "version", nullable = false)
     private int version = 0;
