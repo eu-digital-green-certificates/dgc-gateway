@@ -12,15 +12,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - uses: actions/cache@v1
-      env:
-        cache-name: m2
+    - uses: actions/setup-java@v2
       with:
-        path: ~/.m2/repository
-        key: ${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ env.cache-name }}-
-    - uses: actions/setup-java@v1
-      with:
-        java-version: 11
-    - name: mvn package
+        java-version: '11'
+        distribution: 'adopt'
+    - name: Build package
       run: mvn --batch-mode package

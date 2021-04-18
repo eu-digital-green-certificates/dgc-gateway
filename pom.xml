@@ -15,6 +15,13 @@
     <name>T-Systems International GmbH</name>
   </organization>
 
+  <repositories>
+    <repository>
+      <id>dgc-github</id>
+      <url>https://maven.pkg.github.com/${github.organization}/*</url>
+    </repository>
+  </repositories>
+
   <properties>
     <packaging.format>war</packaging.format>
     <!-- java -->
