@@ -16,7 +16,11 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+        server-id: 'dgc-github'
+        server-username: GITHUB_USER
+        server-password: GITHUB_PAT
     - name: Build package
       run: mvn --batch-mode package
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_USER: ${{ secrets.GPR_USER }}
+        GITHUB_PAT: ${{ secrets.GPR_PAT }}

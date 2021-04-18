@@ -14,6 +14,9 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+        server-id: 'dgc-github'
+        server-username: GITHUB_USER
+        server-password: GITHUB_PAT
     - name: environment
       run: |
         sudo apt-get install --yes --no-install-recommends libxml-xpath-perl
@@ -24,7 +27,8 @@ jobs:
     - name: Download Dependencies
       run: mvn dependency:go-offline
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_USER: ${{ secrets.GPR_USER }}
+        GITHUB_PAT: ${{ secrets.GPR_PAT }}
     - name: Set Version
       run: mvn -o --batch-mode versions:set -DgenerateBackupPoms=false -DnewVersion=${VERSION}
     - name: Deploy
