@@ -14,9 +14,6 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
-        server-id: dgc-github
-        server-username: ci
-        server-password: ${{ secrets.GITHUB_TOKEN }}
     - name: environment
       run: |
         sudo apt-get install --yes --no-install-recommends libxml-xpath-perl
@@ -24,15 +21,19 @@ jobs:
         export VERSION=${VERSION//-SNAPSHOT}-$(git rev-parse --short ${GITHUB_SHA})
         echo "VERSION=${VERSION}" >> $GITHUB_ENV
         echo ${GITHUB_SHA} > github_sha256
-    - name: mvn version
-      run: mvn --batch-mode versions:set -DgenerateBackupPoms=false -DnewVersion=${VERSION}
-    - name: mvn deploy
-      run: mvn --batch-mode deploy
+    - name: Download Dependencies
+      run: mvn dependency:go-offline
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: mvn sonar
+    - name: Set Version
+      run: mvn -o --batch-mode versions:set -DgenerateBackupPoms=false -DnewVersion=${VERSION}
+    - name: Deploy
+      run: mvn -o --batch-mode deploy
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Sonar
       run: |
-        mvn --batch-mode verify sonar:sonar \
+        mvn -o --batch-mode verify sonar:sonar \
         -Dsonar.login=${SONAR_TOKEN} \
         -Dsonar.host.url=${SONAR_URL} \
         -Dsonar.organization=${GITHUB_REPOSITORY_OWNER} \
