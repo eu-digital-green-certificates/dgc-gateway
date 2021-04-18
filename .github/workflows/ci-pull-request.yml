@@ -16,5 +16,8 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+        server-id: dgc-github
+        server-username: ci
+        server-password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build package
       run: mvn --batch-mode package
