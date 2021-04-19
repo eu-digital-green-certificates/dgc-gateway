@@ -33,6 +33,7 @@ public class SignedCertificateDto {
 
     private final X509CertificateHolder payloadCertificate;
     private final X509CertificateHolder signerCertificate;
+    private final String rawMessage;
 
     private final boolean verified;
 

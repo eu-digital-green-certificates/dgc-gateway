@@ -20,19 +20,12 @@
 
 package eu.europa.ec.dgc.gateway.repository;
 
-import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
-import java.util.List;
+import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity, Long> {
+public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
-    List<TrustedPartyEntity> getByCountryAndCertificateType(String country, TrustedPartyEntity.CertificateType type);
-
-    Optional<TrustedPartyEntity> getFirstByThumbprintAndCountryAndCertificateType(
-        String thumbprint, String country, TrustedPartyEntity.CertificateType type);
-
-    Optional<TrustedPartyEntity> getFirstByThumbprintAndCertificateType(
-        String thumbprint, TrustedPartyEntity.CertificateType type);
+    Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
 }

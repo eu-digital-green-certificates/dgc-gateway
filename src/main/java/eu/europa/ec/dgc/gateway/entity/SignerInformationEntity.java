@@ -21,75 +21,73 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "signer_information")
 public class SignerInformationEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
     /**
-     * Unique Identifier of the cert.
+     * Timestamp of the Record.
      */
-    @Column(name = "kid", length = 50, nullable = false)
-    private String kid;
-
-    /**
-     * Timestamp of the Record creation.
-     */
-    @Column(name = "timestamp_created", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
     /**
-     * Timestamp of the last Record change.
+     * ISO 3166 Alpha-2 Country Code
+     * (plus code "EU" for administrative European Union entries).
      */
-    @Column(name = "timestamp_updated")
-    private ZonedDateTime updatedAt;
+    @Column(name = "country", nullable = false, length = 2)
+    private String country;
 
     /**
-     * Signed Object.
+     * SHA-256 Thumbprint of the certificate (hex encoded).
      */
-    @Lob
-    @Basic(fetch = FetchType.EAGER)
-    @Column(name = "information_object", length = 5000, nullable = false)
-    private byte[] informationObject;
+    @Column(name = "thumbprint", nullable = false, length = 64)
+    private String thumbprint;
 
     /**
-     * Revoked status, default false.
+     * Base64 encoded certificate raw data.
      */
-    @Column(name = "revoked", nullable = false)
-    private boolean revoked = false;
+    @Column(name = "raw_data", nullable = false, length = 4096)
+    String rawData;
 
     /**
-     * Certificate thumbprint of creator.
+     * Signature of the TrustAnchor.
      */
-    @Column(name = "owner", length = 64)
-    private String owner;
+    @Column(name = "signature", nullable = false, length = 1000)
+    String signature;
 
     /**
-     * Version of the uploaded object.
+     * Type of the certificate (currently only DSC).
      */
-    @Column(name = "version", nullable = false)
-    private int version = 0;
+    @Column(name = "certificate_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    CertificateType certificateType;
 
-    @PreUpdate
-    private void preUpdate() {
-        updatedAt = ZonedDateTime.now();
-        version++;
+    public enum CertificateType {
+
+        /**
+         * Certificate which the member state is using to sign documents (NBDSC)
+         */
+        DSC
+
     }
+
 }

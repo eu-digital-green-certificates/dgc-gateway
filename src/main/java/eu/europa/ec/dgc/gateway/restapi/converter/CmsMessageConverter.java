@@ -3,6 +3,7 @@ package eu.europa.ec.dgc.gateway.restapi.converter;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -61,6 +62,7 @@ public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCert
         return SignedCertificateDto.builder()
             .payloadCertificate(certificateParser.getPayloadCertificate())
             .signerCertificate(certificateParser.getSigningCertificate())
+            .rawMessage(new String(inputBytes, StandardCharsets.UTF_8))
             .verified(certificateParser.isSignatureVerified())
             .build();
     }

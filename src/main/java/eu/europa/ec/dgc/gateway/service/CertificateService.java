@@ -36,18 +36,20 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
-public class TrustedPartyService {
+public class CertificateService {
 
     private static final String MDC_PROP_CERT_THUMBPRINT = "certVerifyThumbprint";
     private final TrustedPartyRepository trustedPartyRepository;
@@ -67,42 +69,44 @@ public class TrustedPartyService {
         String thumbprint, String country, TrustedPartyEntity.CertificateType type) {
 
         return trustedPartyRepository.getFirstByThumbprintAndCountryAndCertificateType(thumbprint, country, type)
-            .map(certificateEntity -> validateCertificateIntegrity(certificateEntity) ? certificateEntity : null);
+            .map(trustedPartyEntity -> validateCertificateIntegrity(trustedPartyEntity) ? trustedPartyEntity : null);
     }
 
     /**
-     * Method to query the db for a authentication certificate.
+     * Method to query the db for certificates.
      *
-     * @param thumbprint RSA-256 thumbprint of certificate.
-     * @return Optional holding the certificate if found.
+     * @param country country of certificate.
+     * @param type    type of certificate.
+     * @return List holding the found certificates.
      */
-    public Optional<TrustedPartyEntity> getAuthenticationCertificate(String thumbprint) {
+    public List<TrustedPartyEntity> getCertificates(String country, TrustedPartyEntity.CertificateType type) {
 
-        return trustedPartyRepository.getFirstByThumbprintAndCertificateType(
-            thumbprint, TrustedPartyEntity.CertificateType.AUTHENTICATION)
-            .map(certificateEntity -> validateCertificateIntegrity(certificateEntity) ? certificateEntity : null);
+        return trustedPartyRepository.getByCountryAndCertificateType(country, type)
+            .stream()
+            .filter(this::validateCertificateIntegrity)
+            .collect(Collectors.toList());
     }
 
-    private boolean validateCertificateIntegrity(TrustedPartyEntity certificateEntity) {
+    private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
 
-        DgcMdc.put(MDC_PROP_CERT_THUMBPRINT, certificateEntity.getThumbprint());
+        DgcMdc.put(MDC_PROP_CERT_THUMBPRINT, trustedPartyEntity.getThumbprint());
 
         // check if entity has signature and certificate information
-        if (certificateEntity.getSignature() == null || certificateEntity.getSignature().isEmpty()
-            || certificateEntity.getRawData() == null || certificateEntity.getRawData().isEmpty()) {
+        if (trustedPartyEntity.getSignature() == null || trustedPartyEntity.getSignature().isEmpty()
+            || trustedPartyEntity.getRawData() == null || trustedPartyEntity.getRawData().isEmpty()) {
             log.error("Certificate entity does not contain raw certificate or certificate signature.");
             return false;
         }
 
         // check if raw data contains a x509 certificate
-        X509Certificate x509Certificate = getX509CertificateFromEntity(certificateEntity);
+        X509Certificate x509Certificate = getX509CertificateFromEntity(trustedPartyEntity);
         if (x509Certificate == null) {
             log.error("Raw certificate data does not contain a valid x509Certificate.");
             return false;
         }
 
         // verify if thumbprint in database matches the certificate in raw data
-        if (!verifyThumbprintMatchesCertificate(certificateEntity, x509Certificate)) {
+        if (!verifyThumbprintMatchesCertificate(trustedPartyEntity, x509Certificate)) {
             log.error("Thumbprint in database does not match thumbprint of stored certificate.");
             return false;
         }
@@ -120,10 +124,10 @@ public class TrustedPartyService {
         // verify certificate signature
         try {
             Signature verifier = Signature.getInstance(trustAnchor.getSigAlgName());
-            byte[] signatureBytes = Base64.getDecoder().decode(certificateEntity.getSignature());
+            byte[] signatureBytes = Base64.getDecoder().decode(trustedPartyEntity.getSignature());
 
             verifier.initVerify(trustAnchor);
-            verifier.update(certificateEntity.getRawData().getBytes());
+            verifier.update(trustedPartyEntity.getRawData().getBytes());
 
             if (verifier.verify(signatureBytes)) {
                 DgcMdc.remove(MDC_PROP_CERT_THUMBPRINT);
@@ -145,15 +149,14 @@ public class TrustedPartyService {
         }
     }
 
-    private boolean verifyThumbprintMatchesCertificate(
-        TrustedPartyEntity certificateEntity, X509Certificate certificate) {
-        String certHash = certificateUtils.getCertThumbprint(certificate);
-
-        return certHash != null && certHash.equals(certificateEntity.getThumbprint());
-    }
-
-    private X509Certificate getX509CertificateFromEntity(TrustedPartyEntity certificateEntity) {
-        PEMParser pemParser = new PEMParser(new StringReader(certificateEntity.getRawData()));
+    /**
+     * Extracts X509Certificate from {@link TrustedPartyEntity}.
+     *
+     * @param trustedPartyEntity entity from which the certificate should be extraced.
+     * @return X509Certificate representation.
+     */
+    public X509Certificate getX509CertificateFromEntity(TrustedPartyEntity trustedPartyEntity) {
+        PEMParser pemParser = new PEMParser(new StringReader(trustedPartyEntity.getRawData()));
 
         try {
             while (pemParser.ready()) {
@@ -173,5 +176,12 @@ public class TrustedPartyService {
         } catch (IOException | CertificateException ignored) {
             return null;
         }
+    }
+
+    private boolean verifyThumbprintMatchesCertificate(
+        TrustedPartyEntity trustedPartyEntity, X509Certificate certificate) {
+        String certHash = certificateUtils.getCertThumbprint(certificate);
+
+        return certHash != null && certHash.equals(trustedPartyEntity.getThumbprint());
     }
 }
