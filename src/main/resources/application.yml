@@ -1,0 +1,56 @@
+server:
+  port: 8090
+spring:
+  profiles:
+    group:
+      "dev": "h2"
+  application:
+    name: eu-digital-green-certificates-gateway
+  datasource:
+    jndi-name: jdbc/dgc
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog.xml
+  task:
+    scheduling:
+      pool:
+        size: 5
+management:
+  endpoints:
+    web:
+      exposure:
+        exclude: "*"
+  server:
+    port: -1
+dgc:
+  trustAnchor:
+    keyStorePath: /ec/prod/app/san/dgc/dgc-ta.jks
+    keyStorePass: dgc-p4ssw0rd
+    certificateAlias: dgc_trust_anchor
+  callback:
+    locklimit: 1800000
+    keyStorePath: /ec/prod/app/san/dgc/dgc-cb-client.jks
+    keyStorePass: dgc-p4ssw0rd
+    keyStorePrivateKeyAlias: dgc_callback_key
+    keyStoreCertificateAlias: dgc_callback_cert
+    execute-interval: 300000
+    task-lock-timeout: 300
+    proxy-host: ${https.proxyHost:}
+    proxy-port: ${https.proxyPort:-1}
+    proxy-user: ${https.proxyUser:}
+    proxy-password: ${https.proxyPassword:}
+    timeout: 10000
+    core-thread-pool-size: 0
+    max-retries: 5
+    retry-wait: 300
+  cert-auth:
+    header-fields:
+      thumbprint: X-SSL-Client-SHA256
+      distinguished-name: X-SSL-Client-DN
+springdoc:
+  api-docs:
+    enabled: false
