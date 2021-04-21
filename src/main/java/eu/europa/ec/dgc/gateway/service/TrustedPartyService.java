@@ -25,15 +25,13 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import java.io.IOException;
-import java.io.StringReader;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.security.cert.CertificateException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
@@ -43,13 +41,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.openssl.PEMParser;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CertificateService {
+public class TrustedPartyService {
 
     private static final String MDC_PROP_CERT_THUMBPRINT = "certVerifyThumbprint";
     private final TrustedPartyRepository trustedPartyRepository;
@@ -127,7 +124,7 @@ public class CertificateService {
             byte[] signatureBytes = Base64.getDecoder().decode(trustedPartyEntity.getSignature());
 
             verifier.initVerify(trustAnchor);
-            verifier.update(trustedPartyEntity.getRawData().getBytes());
+            verifier.update(x509Certificate.getEncoded());
 
             if (verifier.verify(signatureBytes)) {
                 DgcMdc.remove(MDC_PROP_CERT_THUMBPRINT);
@@ -146,6 +143,9 @@ public class CertificateService {
         } catch (NoSuchAlgorithmException e) {
             log.error("Unknown signing algorithm used by DGCG Trust Anchor.");
             return false;
+        } catch (CertificateEncodingException e) {
+            log.error("Could not get encoded bytes from certificate");
+            return false;
         }
     }
 
@@ -156,26 +156,16 @@ public class CertificateService {
      * @return X509Certificate representation.
      */
     public X509Certificate getX509CertificateFromEntity(TrustedPartyEntity trustedPartyEntity) {
-        PEMParser pemParser = new PEMParser(new StringReader(trustedPartyEntity.getRawData()));
-
         try {
-            while (pemParser.ready()) {
-                Object certificateContent = pemParser.readObject();
-
-                if (certificateContent == null) {
-                    return null;
-                }
-                if (certificateContent instanceof X509Certificate) {
-                    return (X509Certificate) certificateContent;
-                } else if (certificateContent instanceof X509CertificateHolder) {
-                    JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
-                    return converter.getCertificate((X509CertificateHolder) certificateContent);
-                }
-            }
-            return null;
-        } catch (IOException | CertificateException ignored) {
-            return null;
+            byte[] rawDataBytes = Base64.getDecoder().decode(trustedPartyEntity.getRawData());
+            X509CertificateHolder certificateHolder = new X509CertificateHolder(rawDataBytes);
+            JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+            return converter.getCertificate(certificateHolder);
+        } catch (Exception e) {
+            log.error("Failed to parse Certificate from TrustedPartyEntity", e);
         }
+
+        return null;
     }
 
     private boolean verifyThumbprintMatchesCertificate(

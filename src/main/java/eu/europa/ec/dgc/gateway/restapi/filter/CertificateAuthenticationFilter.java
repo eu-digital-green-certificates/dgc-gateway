@@ -22,7 +22,7 @@ package eu.europa.ec.dgc.gateway.restapi.filter;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
-import eu.europa.ec.dgc.gateway.service.CertificateService;
+import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -60,7 +60,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
 
     private final DgcConfigProperties properties;
 
-    private final CertificateService certificateService;
+    private final TrustedPartyService trustedPartyService;
 
     private final HandlerExceptionResolver handlerExceptionResolver;
 
@@ -156,7 +156,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        Optional<TrustedPartyEntity> certFromDb = certificateService.getCertificate(
+        Optional<TrustedPartyEntity> certFromDb = trustedPartyService.getCertificate(
             headerCertThumbprint,
             distinguishNameMap.get("C"),
             TrustedPartyEntity.CertificateType.AUTHENTICATION

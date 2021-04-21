@@ -75,7 +75,7 @@ public class TrustedPartyEntity {
     String signature;
 
     /**
-     * Type of the certificate (Authentication, Signing, Issuer, Client, DID, CSCA).
+     * Type of the certificate (Authentication, Upload, CSCA).
      */
     @Column(name = "certificate_type", nullable = false)
     @Enumerated(EnumType.STRING)

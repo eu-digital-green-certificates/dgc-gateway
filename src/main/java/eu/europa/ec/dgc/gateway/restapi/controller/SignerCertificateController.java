@@ -1,8 +1,30 @@
+/*-
+ * ---license-start
+ * EU Digital Green Certificate Gateway Service / dgc-gateway
+ * ---
+ * Copyright (C) 2021 T-Systems International GmbH and all other contributors
+ * ---
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ---license-end
+ */
+
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
 import eu.europa.ec.dgc.gateway.service.SignerInformationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,10 +40,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/signerCertificate")
@@ -33,10 +57,8 @@ public class SignerCertificateController {
 
     private final SignerInformationService signerInformationService;
 
-    /**
-     * Http Method for publishing new signer certificate.
-     */
-    @PostMapping(path = "/", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
+    @CertificateAuthenticationRequired
+    @PostMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
         summary = "Uploads Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
@@ -66,26 +88,19 @@ public class SignerCertificateController {
                 responseCode = "201",
                 description = "Verification Information was created successfully."),
             @ApiResponse(
+                responseCode = "400",
+                description = "Bad request. Possible reasons: Wrong Format, no CMS, not the correct signing alg,"
+                    + " missing attributes, invalid signature, certificate not signed by known CA",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class))),
+            @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ProblemReportDto.class)
                 )),
-            @ApiResponse(
-                responseCode = "403",
-                description = "Forbidden. Verification Information package is not accepted. (hash Value or signature"
-                    + " wrong, client certificate matches not to the signer of the package)",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ProblemReportDto.class))),
-            @ApiResponse(
-                responseCode = "406",
-                description = "Content is not acceptable. (Wrong Format, no CMS, not the correct signing alg,"
-                    + " missing attributes etc.)",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "409",
                 description = "Conflict. Chosen UUID is already used. Please choose another one.",
@@ -95,20 +110,30 @@ public class SignerCertificateController {
         }
     )
     public ResponseEntity<Void> postVerificationInformation(
-        @RequestBody SignedCertificateDto cms
+        @RequestBody SignedCertificateDto cms,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode
     ) {
 
-        log.info("Signer Cert: {}", cms.getSignerCertificate().getSubject().toString());
-        log.info("Payload Cert: {}", cms.getPayloadCertificate().getSubject().toString());
+        log.info("Uploading new verification certificate, signing cert: {}, payload cert: {}",
+            cms.getSignerCertificate().getSubject().toString(),
+            cms.getPayloadCertificate().getSubject().toString());
 
         try {
             signerInformationService.addSignerCertificate(
                 cms.getPayloadCertificate(),
                 cms.getSignerCertificate(),
-                cms.getRawMessage(),
-                "DE");
+                cms.getSignature(),
+                countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
+            log.error("Verification certificate upload failed: {}: {}", e.getReason(), e.getMessage());
 
+            if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+            } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }
         }
 
         return ResponseEntity.status(201).build();
@@ -117,7 +142,8 @@ public class SignerCertificateController {
     /**
      * Http Method for revoking signer certificate.
      */
-    @DeleteMapping(path = "/")
+    @CertificateAuthenticationRequired
+    @DeleteMapping(path = "")
     @Operation(
         summary = "Revokes Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},

@@ -84,7 +84,7 @@ public class SignerInformationEntity {
     public enum CertificateType {
 
         /**
-         * Certificate which the member state is using to sign documents (NBDSC)
+         * Certificate which the member state is using to sign documents (NBDSC).
          */
         DSC
 
