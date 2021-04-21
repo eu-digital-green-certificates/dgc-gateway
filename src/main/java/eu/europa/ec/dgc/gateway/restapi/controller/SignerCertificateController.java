@@ -57,6 +57,9 @@ public class SignerCertificateController {
 
     private final SignerInformationService signerInformationService;
 
+    /**
+     * VerificationInformation Upload Controller.
+     */
     @CertificateAuthenticationRequired
     @PostMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(

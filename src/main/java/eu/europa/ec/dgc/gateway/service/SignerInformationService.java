@@ -52,6 +52,16 @@ public class SignerInformationService {
 
     private final SignerInformationRepository signerInformationRepository;
 
+    /**
+     * Adds a new Trusted Signer Certificate to TrustStore DB.
+     *
+     * @param uploadedCertificate      the certificate to add
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param signature                the detached signature of cms message
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @throws SignerCertCheckException if validation check has failed. The exception contains
+     *                                  a reason property with detailed information why the validation has failed.
+     */
     public SignerInformationEntity addSignerCertificate(
         X509CertificateHolder uploadedCertificate,
         X509CertificateHolder signerCertificate,
