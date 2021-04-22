@@ -69,6 +69,55 @@ public class SignerInformationService {
         String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
+        contentCheck_UploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheck_CountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        contentCheck_Csca(uploadedCertificate, authenticatedCountryCode);
+        contentCheck_AlreadyExists(uploadedCertificate);
+
+        // All checks passed --> Save to DB
+        byte[] certRawData;
+        try {
+            certRawData = uploadedCertificate.getEncoded();
+        } catch (IOException e) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+        }
+
+        SignerInformationEntity newSignerInformation = new SignerInformationEntity();
+        newSignerInformation.setCountry(authenticatedCountryCode);
+        newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
+        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
+        newSignerInformation.setSignature(signature);
+
+        return signerInformationRepository.save(newSignerInformation);
+    }
+
+    /**
+     * Deletes a Trusted Signer Certificate from TrustStore DB.
+     *
+     * @param uploadedCertificate      the certificate to delete
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @throws SignerCertCheckException if validation check has failed. The exception contains
+     *                                  a reason property with detailed information why the validation has failed.
+     */
+    public void deleteSignerCertificate(
+        X509CertificateHolder uploadedCertificate,
+        X509CertificateHolder signerCertificate,
+        String authenticatedCountryCode
+    ) throws SignerCertCheckException {
+
+        contentCheck_UploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheck_CountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        contentCheck_Exists(uploadedCertificate);
+
+        // All checks passed --> Delete from DB
+        signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+    }
+
+    private void contentCheck_UploaderCertificate(
+        X509CertificateHolder signerCertificate,
+        String authenticatedCountryCode) throws SignerCertCheckException {
         // Content Check Step 1: Uploader Certificate
         String signerCertThumbprint = certificateUtils.getCertThumbprint(signerCertificate);
         Optional<TrustedPartyEntity> certFromDb = trustedPartyService.getCertificate(
@@ -82,6 +131,10 @@ public class SignerInformationService {
                 "Could not find upload certificate with hash %s and country %s",
                 signerCertThumbprint, authenticatedCountryCode);
         }
+    }
+
+    private void contentCheck_CountryOfOrigin(X509CertificateHolder uploadedCertificate,
+                                              String authenticatedCountryCode) throws SignerCertCheckException {
 
         // Content Check Step 2: Country of Origin check
         RDN[] uploadedCertCountryProperties =
@@ -99,6 +152,10 @@ public class SignerInformationService {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED,
                 "Uploaded certificate is not issued for uploader country.");
         }
+    }
+
+    private void contentCheck_Csca(X509CertificateHolder uploadedCertificate,
+                                   String authenticatedCountryCode) throws SignerCertCheckException {
 
         // Content Check Step 3: CSCA Check
         List<TrustedPartyEntity> trustedCas =
@@ -114,8 +171,10 @@ public class SignerInformationService {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.CSCA_CHECK_FAILED,
                 "Could not verify uploaded certificate was signed by valid CSCA.");
         }
+    }
 
-        // Content Check Step 4: Already Exist Check
+    private void contentCheck_AlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(uploadedCertificateThumbprint);
@@ -124,23 +183,18 @@ public class SignerInformationService {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED,
                 "Uploaded certificate already exists");
         }
+    }
 
-        // All checks passed --> Save to DB
-        byte[] certRawData;
-        try {
-            certRawData = uploadedCertificate.getEncoded();
-        } catch (IOException e) {
-            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+    private void contentCheck_Exists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+
+        String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
+        Optional<SignerInformationEntity> signerInformationEntity =
+            signerInformationRepository.getFirstByThumbprint(uploadedCertificateThumbprint);
+
+        if (signerInformationEntity.isEmpty()) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
+                "Uploaded certificate does not exists");
         }
-
-        SignerInformationEntity newSignerInformation = new SignerInformationEntity();
-        newSignerInformation.setCountry(authenticatedCountryCode);
-        newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
-        newSignerInformation.setThumbprint(uploadedCertificateThumbprint);
-        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
-        newSignerInformation.setSignature(signature);
-
-        return signerInformationRepository.save(newSignerInformation);
     }
 
     private boolean certificateSignedByCa(X509CertificateHolder certificate, TrustedPartyEntity caCertificateEntity) {
@@ -178,6 +232,7 @@ public class SignerInformationService {
             COUNTRY_OF_ORIGIN_CHECK_FAILED,
             CSCA_CHECK_FAILED,
             ALREADY_EXIST_CHECK_FAILED,
+            EXIST_CHECK_FAILED,
             UPLOAD_FAILED
         }
     }

@@ -22,10 +22,14 @@ package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
+
+    @Transactional
+    void deleteByThumbprint(String thumbprint);
 
 }
