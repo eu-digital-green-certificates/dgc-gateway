@@ -24,8 +24,10 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
+import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,6 +51,9 @@ public class TrustedPartyServiceTest {
 
     @Autowired
     TrustedPartyTestHelper trustedPartyTestHelper;
+
+    @Autowired
+    DgcTestKeyStore dgcTestKeyStore;
 
     private static final String countryCode = "EU";
 
@@ -138,6 +143,27 @@ public class TrustedPartyServiceTest {
 
         certOptional = trustedPartyService.getCertificate(
             cert.getThumbprint(), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+        Assert.assertTrue(certOptional.isEmpty());
+    }
+
+    @Test
+    public void trustedPartyServiceShouldNotReturnCertificateIfSignatureIsFromUnknownTrustAnchor() throws Exception {
+        Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+
+        // Create new signature with a random non TrustAnchor certificate
+        String newSignature = new SignedCertificateMessageBuilder()
+            .withSigningCertificate(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX").getEncoded()), trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX"))
+            .withPayloadCertificate(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode).getEncoded()))
+            .buildAsString(true);
+
+        Assert.assertTrue(certOptional.isPresent());
+
+        TrustedPartyEntity trustedPartyEntity = certOptional.get();
+        trustedPartyEntity.setSignature(newSignature);
+        trustedPartyRepository.save(trustedPartyEntity);
+
+        certOptional = trustedPartyService.getCertificate(trustedPartyEntity.getThumbprint(), countryCode, TrustedPartyEntity.CertificateType.CSCA);
         Assert.assertTrue(certOptional.isEmpty());
     }
 }

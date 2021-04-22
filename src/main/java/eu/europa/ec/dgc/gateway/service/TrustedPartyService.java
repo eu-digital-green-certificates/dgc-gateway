@@ -24,13 +24,11 @@ import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
+import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import java.security.InvalidKeyException;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
-import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -40,7 +38,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -109,45 +106,37 @@ public class TrustedPartyService {
         }
 
         // load DGCG Trust Anchor PublicKey from KeyStore
-        X509Certificate trustAnchor = null;
+        X509CertificateHolder trustAnchor = null;
         try {
-            trustAnchor = (X509Certificate) trustAnchorKeyStore.getCertificate(
-                dgcConfigProperties.getTrustAnchor().getCertificateAlias());
-        } catch (KeyStoreException e) {
-            log.error("Could not load DGCG-TrustAnchor from KeyStore.");
+            trustAnchor = certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
+                dgcConfigProperties.getTrustAnchor().getCertificateAlias()));
+        } catch (KeyStoreException | CertificateEncodingException | IOException e) {
+            log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
             return false;
         }
 
         // verify certificate signature
-        try {
-            Signature verifier = Signature.getInstance(trustAnchor.getSigAlgName());
-            byte[] signatureBytes = Base64.getDecoder().decode(trustedPartyEntity.getSignature());
+        SignedCertificateMessageParser parser =
+            new SignedCertificateMessageParser(trustedPartyEntity.getSignature(), trustedPartyEntity.getRawData());
 
-            verifier.initVerify(trustAnchor);
-            verifier.update(x509Certificate.getEncoded());
-
-            if (verifier.verify(signatureBytes)) {
-                DgcMdc.remove(MDC_PROP_CERT_THUMBPRINT);
-                return true;
-            } else {
-                log.error("Verification of certificate signature failed!");
-                DgcMdc.remove(MDC_PROP_CERT_THUMBPRINT);
-                return false;
-            }
-        } catch (InvalidKeyException e) {
-            log.error("Could not use public key to initialize verifier.");
-            return false;
-        } catch (SignatureException e) {
-            log.error("Signature verifier is not initialized");
-            return false;
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Unknown signing algorithm used by DGCG Trust Anchor.");
-            return false;
-        } catch (CertificateEncodingException e) {
-            log.error("Could not get encoded bytes from certificate");
+        if (parser.getParserState() != SignedCertificateMessageParser.ParserState.SUCCESS) {
+            log.error("TrustAnchor Verification failed: {}", parser.getParserState());
             return false;
         }
+
+        if (!parser.isSignatureVerified()) {
+            log.error("TrustAnchor Verification failed: Signature is not matching signed certificate");
+            return false;
+        }
+
+        if (!parser.getSigningCertificate().equals(trustAnchor)) {
+            log.error("TrustAnchor Verification failed: Certificate was not signed by known TrustAnchor");
+            return false;
+        }
+
+        return true;
     }
+
 
     /**
      * Extracts X509Certificate from {@link TrustedPartyEntity}.
@@ -158,9 +147,7 @@ public class TrustedPartyService {
     public X509Certificate getX509CertificateFromEntity(TrustedPartyEntity trustedPartyEntity) {
         try {
             byte[] rawDataBytes = Base64.getDecoder().decode(trustedPartyEntity.getRawData());
-            X509CertificateHolder certificateHolder = new X509CertificateHolder(rawDataBytes);
-            JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
-            return converter.getCertificate(certificateHolder);
+            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
         } catch (Exception e) {
             log.error("Failed to parse Certificate from TrustedPartyEntity", e);
         }

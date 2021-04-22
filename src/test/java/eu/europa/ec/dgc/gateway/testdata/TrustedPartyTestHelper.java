@@ -22,17 +22,18 @@ package eu.europa.ec.dgc.gateway.testdata;
 
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
+import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -114,11 +115,10 @@ public class TrustedPartyTestHelper {
         String certRawData = Base64.getEncoder().encodeToString(
             certificateMap.get(type).get(countryCode).getEncoded());
 
-        Signature signer = Signature.getInstance(testKeyStore.getTrustAnchor().getSigAlgName());
-        signer.initSign(testKeyStore.getTrustAnchorPrivateKey());
-        signer.update(certificateMap.get(type).get(countryCode).getEncoded());
-        byte[] signatureBytes = signer.sign();
-        String signature = Base64.getEncoder().encodeToString(signatureBytes);
+        String signature = new SignedCertificateMessageBuilder()
+            .withPayloadCertificate(new X509CertificateHolder(certificateMap.get(type).get(countryCode).getEncoded()))
+            .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()), testKeyStore.getTrustAnchorPrivateKey())
+            .buildAsString(true);
 
         TrustedPartyEntity trustedPartyEntity = new TrustedPartyEntity();
         trustedPartyEntity.setCertificateType(type);
