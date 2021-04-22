@@ -26,24 +26,22 @@ import lombok.Data;
 
 @Schema(
     name = "ProblemReport",
-    type = "object",
-    example = "{\n"
-        + "\"code\":\"0x001\",\n"
-        + "\"problem\":\"[PROBLEM]\",\n"
-        + "\"sent value\":\"[Sent Value]\",\n"
-        + "\"details\":\"...\"\n"
-        + "}"
+    type = "object"
 )
 @Data
 @AllArgsConstructor
 public class ProblemReportDto {
 
+    @Schema(example = "0x001")
     private String code;
 
+    @Schema(example = "Signer Certificate is unknown.")
     private String problem;
 
+    @Schema(example = "Certificate Thumbprint: 2342424f24c242f42f4b24...")
     private String sendValue;
 
+    @Schema(example = "Use a known upload certificate to upload signer information.")
     private String details;
 
 }

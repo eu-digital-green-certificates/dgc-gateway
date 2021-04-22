@@ -53,6 +53,38 @@ public class SignerInformationService {
     private final SignerInformationRepository signerInformationRepository;
 
     /**
+     * Method to query persistence layer for all stored SignerInformation.
+     *
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation() {
+        return signerInformationRepository.findAll();
+    }
+
+    /**
+     * Method to query persistence layer for SignerInformation filtered by Type.
+     *
+     * @param type type to filter for
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type) {
+        return signerInformationRepository.getByCertificateType(type);
+    }
+
+    /**
+     * Method to query persistence layer for SignerInformation filtered by Type and Country.
+     *
+     * @param countryCode 2-digit country Code to filter for.
+     * @param type        type to filter for
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(
+        String countryCode,
+        SignerInformationEntity.CertificateType type) {
+        return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+    }
+
+    /**
      * Adds a new Trusted Signer Certificate to TrustStore DB.
      *
      * @param uploadedCertificate      the certificate to add
@@ -215,6 +247,23 @@ public class SignerInformationService {
             log.error("Could not verify certificate issuance.");
             return false;
         }
+    }
+
+    /**
+     * Extracts X509Certificate from {@link SignerInformationEntity}.
+     *
+     * @param signerInformationEntity entity from which the certificate should be extracted.
+     * @return X509Certificate representation.
+     */
+    public X509Certificate getX509CertificateFromEntity(SignerInformationEntity signerInformationEntity) {
+        try {
+            byte[] rawDataBytes = Base64.getDecoder().decode(signerInformationEntity.getRawData());
+            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
+        } catch (Exception e) {
+            log.error("Failed to parse Certificate from SignerInformationEntity", e);
+        }
+
+        return null;
     }
 
     public static class SignerCertCheckException extends Exception {

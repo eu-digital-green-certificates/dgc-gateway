@@ -52,6 +52,33 @@ public class TrustedPartyService {
     private final CertificateUtils certificateUtils;
 
     /**
+     * Method to query the db for all certificates.
+     *
+     * @return List holding the found certificates.
+     */
+    public List<TrustedPartyEntity> getCertificates() {
+
+        return trustedPartyRepository.findAll()
+            .stream()
+            .filter(this::validateCertificateIntegrity)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Method to query the db for certificates by type.
+     *
+     * @param type type to filter for.
+     * @return List holding the found certificates.
+     */
+    public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type) {
+
+        return trustedPartyRepository.getByCertificateType(type)
+            .stream()
+            .filter(this::validateCertificateIntegrity)
+            .collect(Collectors.toList());
+    }
+
+    /**
      * Method to query the db for a certificate.
      *
      * @param thumbprint RSA-256 thumbprint of certificate.
