@@ -31,22 +31,6 @@ dgc:
     keyStorePath: /ec/prod/app/san/dgc/dgc-ta.jks
     keyStorePass: dgc-p4ssw0rd
     certificateAlias: dgc_trust_anchor
-  callback:
-    locklimit: 1800000
-    keyStorePath: /ec/prod/app/san/dgc/dgc-cb-client.jks
-    keyStorePass: dgc-p4ssw0rd
-    keyStorePrivateKeyAlias: dgc_callback_key
-    keyStoreCertificateAlias: dgc_callback_cert
-    execute-interval: 300000
-    task-lock-timeout: 300
-    proxy-host: ${https.proxyHost:}
-    proxy-port: ${https.proxyPort:-1}
-    proxy-user: ${https.proxyUser:}
-    proxy-password: ${https.proxyPassword:}
-    timeout: 10000
-    core-thread-pool-size: 0
-    max-retries: 5
-    retry-wait: 300
   cert-auth:
     header-fields:
       thumbprint: X-SSL-Client-SHA256
