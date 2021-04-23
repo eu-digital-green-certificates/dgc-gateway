@@ -26,21 +26,14 @@ import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ContextConfiguration(classes = DgcTestKeyStore.class)
 public class TrustedPartyServiceTest {
 
     @Autowired
@@ -57,7 +50,7 @@ public class TrustedPartyServiceTest {
 
     private static final String countryCode = "EU";
 
-    @After
+    @AfterEach
     public void cleanUp() {
         // We have to delete all certs after each test because some tests are manipulating certs in DB.
         trustedPartyRepository.deleteAll();
@@ -67,18 +60,18 @@ public class TrustedPartyServiceTest {
     public void trustedPartyServiceShouldReturnCertificate() throws Exception {
         String hash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.UPLOAD);
-        Assert.assertTrue(certOptional.isPresent());
-        Assert.assertEquals(hash, certOptional.get().getThumbprint());
+        Assertions.assertTrue(certOptional.isPresent());
+        Assertions.assertEquals(hash, certOptional.get().getThumbprint());
 
         hash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode);
         certOptional = trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.CSCA);
-        Assert.assertTrue(certOptional.isPresent());
-        Assert.assertEquals(hash, certOptional.get().getThumbprint());
+        Assertions.assertTrue(certOptional.isPresent());
+        Assertions.assertEquals(hash, certOptional.get().getThumbprint());
 
         hash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         certOptional = trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
-        Assert.assertTrue(certOptional.isPresent());
-        Assert.assertEquals(hash, certOptional.get().getThumbprint());
+        Assertions.assertTrue(certOptional.isPresent());
+        Assertions.assertEquals(hash, certOptional.get().getThumbprint());
     }
 
     @Test
@@ -89,8 +82,8 @@ public class TrustedPartyServiceTest {
         Optional<TrustedPartyEntity> anotherCertOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
 
-        Assert.assertTrue(certOptional.isPresent());
-        Assert.assertTrue(anotherCertOptional.isPresent());
+        Assertions.assertTrue(certOptional.isPresent());
+        Assertions.assertTrue(anotherCertOptional.isPresent());
 
         TrustedPartyEntity cert = certOptional.get();
         cert.setRawData(anotherCertOptional.get().getRawData());
@@ -99,7 +92,7 @@ public class TrustedPartyServiceTest {
 
         certOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
-        Assert.assertTrue(certOptional.isEmpty());
+        Assertions.assertTrue(certOptional.isEmpty());
     }
 
     @Test
@@ -110,8 +103,8 @@ public class TrustedPartyServiceTest {
         Optional<TrustedPartyEntity> anotherCertOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
 
-        Assert.assertTrue(certOptional.isPresent());
-        Assert.assertTrue(anotherCertOptional.isPresent());
+        Assertions.assertTrue(certOptional.isPresent());
+        Assertions.assertTrue(anotherCertOptional.isPresent());
 
         TrustedPartyEntity cert = certOptional.get();
         cert.setSignature(anotherCertOptional.get().getSignature());
@@ -120,7 +113,7 @@ public class TrustedPartyServiceTest {
 
         certOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
-        Assert.assertTrue(certOptional.isEmpty());
+        Assertions.assertTrue(certOptional.isEmpty());
     }
 
     @Test
@@ -131,8 +124,8 @@ public class TrustedPartyServiceTest {
         Optional<TrustedPartyEntity> anotherCertOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
 
-        Assert.assertTrue(certOptional.isPresent());
-        Assert.assertTrue(anotherCertOptional.isPresent());
+        Assertions.assertTrue(certOptional.isPresent());
+        Assertions.assertTrue(anotherCertOptional.isPresent());
 
         trustedPartyRepository.delete(anotherCertOptional.get());
 
@@ -143,7 +136,7 @@ public class TrustedPartyServiceTest {
 
         certOptional = trustedPartyService.getCertificate(
             cert.getThumbprint(), countryCode, TrustedPartyEntity.CertificateType.CSCA);
-        Assert.assertTrue(certOptional.isEmpty());
+        Assertions.assertTrue(certOptional.isEmpty());
     }
 
     @Test
@@ -157,13 +150,13 @@ public class TrustedPartyServiceTest {
             .withPayloadCertificate(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode).getEncoded()))
             .buildAsString(true);
 
-        Assert.assertTrue(certOptional.isPresent());
+        Assertions.assertTrue(certOptional.isPresent());
 
         TrustedPartyEntity trustedPartyEntity = certOptional.get();
         trustedPartyEntity.setSignature(newSignature);
         trustedPartyRepository.save(trustedPartyEntity);
 
         certOptional = trustedPartyService.getCertificate(trustedPartyEntity.getThumbprint(), countryCode, TrustedPartyEntity.CertificateType.CSCA);
-        Assert.assertTrue(certOptional.isEmpty());
+        Assertions.assertTrue(certOptional.isEmpty());
     }
 }

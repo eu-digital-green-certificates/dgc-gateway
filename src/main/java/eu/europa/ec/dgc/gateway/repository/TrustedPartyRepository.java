@@ -29,6 +29,8 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
 
     List<TrustedPartyEntity> getByCountryAndCertificateType(String country, TrustedPartyEntity.CertificateType type);
 
+    List<TrustedPartyEntity> getByCertificateType(TrustedPartyEntity.CertificateType type);
+
     Optional<TrustedPartyEntity> getFirstByThumbprintAndCountryAndCertificateType(
         String thumbprint, String country, TrustedPartyEntity.CertificateType type);
 

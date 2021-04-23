@@ -39,23 +39,16 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = DgcTestKeyStore.class)
 public class SignerCertificateIntegrationTest {
 
     @Autowired
@@ -110,16 +103,16 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isCreated());
 
-        Assert.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
         Optional<SignerInformationEntity> createdSignerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
 
-        Assert.assertTrue(createdSignerInformationEntity.isPresent());
+        Assertions.assertTrue(createdSignerInformationEntity.isPresent());
 
-        Assert.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
-        Assert.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
-        Assert.assertEquals(signature, createdSignerInformationEntity.get().getSignature());
-        Assert.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()), createdSignerInformationEntity.get().getRawData());
+        Assertions.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
+        Assertions.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
+        Assertions.assertEquals(signature, createdSignerInformationEntity.get().getSignature());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()), createdSignerInformationEntity.get().getRawData());
     }
 
     @Test
@@ -158,7 +151,7 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isConflict());
 
-        Assert.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }
 
     @Test
@@ -190,7 +183,7 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isBadRequest());
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -223,7 +216,7 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isBadRequest());
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -254,7 +247,7 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isBadRequest());
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -285,7 +278,7 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isBadRequest());
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -319,7 +312,7 @@ public class SignerCertificateIntegrationTest {
         )
             .andExpect(status().isBadRequest());
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
 }

@@ -52,18 +52,30 @@ public class TrustedPartyService {
     private final CertificateUtils certificateUtils;
 
     /**
-     * Method to query the db for a certificate.
+     * Method to query the db for all certificates.
      *
-     * @param thumbprint RSA-256 thumbprint of certificate.
-     * @param country    country of certificate.
-     * @param type       type of certificate.
-     * @return Optional holding the certificate if found.
+     * @return List holding the found certificates.
      */
-    public Optional<TrustedPartyEntity> getCertificate(
-        String thumbprint, String country, TrustedPartyEntity.CertificateType type) {
+    public List<TrustedPartyEntity> getCertificates() {
 
-        return trustedPartyRepository.getFirstByThumbprintAndCountryAndCertificateType(thumbprint, country, type)
-            .map(trustedPartyEntity -> validateCertificateIntegrity(trustedPartyEntity) ? trustedPartyEntity : null);
+        return trustedPartyRepository.findAll()
+            .stream()
+            .filter(this::validateCertificateIntegrity)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Method to query the db for certificates by type.
+     *
+     * @param type type to filter for.
+     * @return List holding the found certificates.
+     */
+    public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type) {
+
+        return trustedPartyRepository.getByCertificateType(type)
+            .stream()
+            .filter(this::validateCertificateIntegrity)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -79,6 +91,21 @@ public class TrustedPartyService {
             .stream()
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Method to query the db for a certificate.
+     *
+     * @param thumbprint RSA-256 thumbprint of certificate.
+     * @param country    country of certificate.
+     * @param type       type of certificate.
+     * @return Optional holding the certificate if found.
+     */
+    public Optional<TrustedPartyEntity> getCertificate(
+        String thumbprint, String country, TrustedPartyEntity.CertificateType type) {
+
+        return trustedPartyRepository.getFirstByThumbprintAndCountryAndCertificateType(thumbprint, country, type)
+            .map(trustedPartyEntity -> validateCertificateIntegrity(trustedPartyEntity) ? trustedPartyEntity : null);
     }
 
     private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {

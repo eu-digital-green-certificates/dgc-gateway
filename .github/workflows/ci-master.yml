@@ -1,5 +1,6 @@
 name: ci-master
 on:
+  workflow_dispatch:
   push:
     branches:
     - master
@@ -48,16 +49,16 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/upload-artifact@v2
       with:
-        name: CORONA_TRACING_BACKEND001_TST-TEST
-        path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGC_GATEWAY_BACKEND001_TST*
+        name: DGCG001_TST
+        path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGCG001_TST*
     - uses: actions/upload-artifact@v2
       with:
-          name: CORONA_TRACING_BACKEND001_ACC-ACCEPTANCE
-          path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGC_GATEWAY_BACKEND001_ACC*
+        name: DGCG001_ACC
+        path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGCG001_ACC*
     - uses: actions/upload-artifact@v2
       with:
-          name: CORONA_TRACING_BACKEND001_PRD-PROD
-          path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGC_GATEWAY_BACKEND001_PRD*
+        name: DGCG001_PRD
+        path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGCG001_PRD*
     - name: mvn clean install -P docker
       run: mvn clean install -P docker
     - name: Log into registry
