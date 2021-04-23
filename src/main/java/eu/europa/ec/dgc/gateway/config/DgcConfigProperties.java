@@ -32,14 +32,6 @@ public class DgcConfigProperties {
 
     private final CertAuth certAuth = new CertAuth();
     private final TrustAnchor trustAnchor = new TrustAnchor();
-    private final DbEncryption dbEncryption = new DbEncryption();
-
-    @Getter
-    @Setter
-    public static class DbEncryption {
-        private String initVector;
-        private String password;
-    }
 
     @Getter
     @Setter
