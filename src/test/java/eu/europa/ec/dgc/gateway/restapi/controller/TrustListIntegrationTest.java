@@ -47,21 +47,18 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
 public class TrustListIntegrationTest {
 
     @Autowired
@@ -90,7 +87,7 @@ public class TrustListIntegrationTest {
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu;
 
-    @Before
+    @BeforeEach
     public void testData() throws Exception {
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
@@ -468,18 +465,18 @@ public class TrustListIntegrationTest {
             .filter(tl -> tl.getKid().equals(certificateUtils.getCertKid(certificate)))
             .findFirst();
 
-        Assert.assertTrue(trustListOptional.isPresent());
+        Assertions.assertTrue(trustListOptional.isPresent());
 
         TrustListDto trustListItem = trustListOptional.get();
 
-        Assert.assertEquals(certificateUtils.getCertKid(certificate), trustListItem.getKid());
-        Assert.assertEquals(country, trustListItem.getCountry());
-        Assert.assertEquals(certificateTypeDto, trustListItem.getCertificateType());
-        Assert.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assert.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+        Assertions.assertEquals(certificateUtils.getCertKid(certificate), trustListItem.getKid());
+        Assertions.assertEquals(country, trustListItem.getCountry());
+        Assertions.assertEquals(certificateTypeDto, trustListItem.getCertificateType());
+        Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
 
         if (signature != null) {
-            Assert.assertEquals(signature, trustListItem.getSignature());
+            Assertions.assertEquals(signature, trustListItem.getSignature());
         }
     }
 
@@ -488,6 +485,6 @@ public class TrustListIntegrationTest {
             .registerModule(new JavaTimeModule());
         List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
-        Assert.assertEquals(expectedLength, trustList.size());
+        Assertions.assertEquals(expectedLength, trustList.size());
     }
 }

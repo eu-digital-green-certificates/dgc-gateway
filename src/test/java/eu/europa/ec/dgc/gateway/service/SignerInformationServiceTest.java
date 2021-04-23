@@ -35,15 +35,12 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Optional;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 public class SignerInformationServiceTest {
 
     @Autowired
@@ -86,16 +83,16 @@ public class SignerInformationServiceTest {
             countryCode
         );
 
-        Assert.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
         Optional<SignerInformationEntity> createdSignerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
 
-        Assert.assertTrue(createdSignerInformationEntity.isPresent());
+        Assertions.assertTrue(createdSignerInformationEntity.isPresent());
 
-        Assert.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
-        Assert.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
-        Assert.assertEquals(dummySignature, createdSignerInformationEntity.get().getSignature());
-        Assert.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()), createdSignerInformationEntity.get().getRawData());
+        Assertions.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
+        Assertions.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
+        Assertions.assertEquals(dummySignature, createdSignerInformationEntity.get().getSignature());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()), createdSignerInformationEntity.get().getRawData());
 
         signerInformationService.deleteSignerCertificate(
             new X509CertificateHolder(payloadCertificate.getEncoded()),
@@ -106,8 +103,8 @@ public class SignerInformationServiceTest {
         Optional<SignerInformationEntity> deletedSignerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
 
-        Assert.assertTrue(deletedSignerInformationEntity.isEmpty());
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertTrue(deletedSignerInformationEntity.isEmpty());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -137,10 +134,10 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }
 
     @Test
@@ -164,10 +161,10 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -192,10 +189,10 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -218,10 +215,10 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -244,10 +241,10 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -266,7 +263,7 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED, e.getReason());
         }
     }
 
@@ -288,10 +285,10 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
@@ -313,9 +310,9 @@ public class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assert.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED, e.getReason());
         }
 
-        Assert.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 }

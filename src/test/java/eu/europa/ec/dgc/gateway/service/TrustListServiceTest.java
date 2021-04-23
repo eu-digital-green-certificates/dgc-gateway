@@ -16,16 +16,13 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 public class TrustListServiceTest {
 
     @Autowired
@@ -45,7 +42,7 @@ public class TrustListServiceTest {
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu;
 
-    @Before
+    @BeforeEach
     public void testData() throws Exception {
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
@@ -86,7 +83,7 @@ public class TrustListServiceTest {
     public void testTrustListWithoutFilter() throws Exception {
         List<TrustList> trustList = trustListService.getTrustList();
 
-        Assert.assertEquals(8, trustList.size());
+        Assertions.assertEquals(8, trustList.size());
 
         assertTrustListItem(trustList, certDscDe, "DE", TrustListType.DSC, "sig1");
         assertTrustListItem(trustList, certDscEu, "EU", TrustListType.DSC, "sig2");
@@ -101,22 +98,22 @@ public class TrustListServiceTest {
     @Test
     public void testTrustListFilterByType() throws Exception {
         List<TrustList> trustList = trustListService.getTrustList(TrustListType.DSC);
-        Assert.assertEquals(2, trustList.size());
+        Assertions.assertEquals(2, trustList.size());
         assertTrustListItem(trustList, certDscDe, "DE", TrustListType.DSC, "sig1");
         assertTrustListItem(trustList, certDscEu, "EU", TrustListType.DSC, "sig2");
 
         trustList = trustListService.getTrustList(TrustListType.CSCA);
-        Assert.assertEquals(2, trustList.size());
+        Assertions.assertEquals(2, trustList.size());
         assertTrustListItem(trustList, certCscaDe, "DE", TrustListType.CSCA, null);
         assertTrustListItem(trustList, certCscaEu, "EU", TrustListType.CSCA, null);
 
         trustList = trustListService.getTrustList(TrustListType.UPLOAD);
-        Assert.assertEquals(2, trustList.size());
+        Assertions.assertEquals(2, trustList.size());
         assertTrustListItem(trustList, certUploadDe, "DE", TrustListType.UPLOAD, null);
         assertTrustListItem(trustList, certUploadEu, "EU", TrustListType.UPLOAD, null);
 
         trustList = trustListService.getTrustList(TrustListType.AUTHENTICATION);
-        Assert.assertEquals(2, trustList.size());
+        Assertions.assertEquals(2, trustList.size());
         assertTrustListItem(trustList, certAuthDe, "DE", TrustListType.AUTHENTICATION, null);
         assertTrustListItem(trustList, certAuthEu, "EU", TrustListType.AUTHENTICATION, null);
     }
@@ -124,31 +121,31 @@ public class TrustListServiceTest {
     @Test
     public void testTrustListFilterByTypeAndCountry() throws Exception {
         List<TrustList> trustList = trustListService.getTrustList(TrustListType.DSC, "DE");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certDscDe, "DE", TrustListType.DSC, "sig1");
         trustList = trustListService.getTrustList(TrustListType.DSC, "EU");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certDscEu, "EU", TrustListType.DSC, "sig2");
 
         trustList = trustListService.getTrustList(TrustListType.CSCA, "DE");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certCscaDe, "DE", TrustListType.CSCA, null);
         trustList = trustListService.getTrustList(TrustListType.CSCA, "EU");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certCscaEu, "EU", TrustListType.CSCA, null);
 
         trustList = trustListService.getTrustList(TrustListType.UPLOAD, "DE");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certUploadDe, "DE", TrustListType.UPLOAD, null);
         trustList = trustListService.getTrustList(TrustListType.UPLOAD, "EU");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certUploadEu, "EU", TrustListType.UPLOAD, null);
 
         trustList = trustListService.getTrustList(TrustListType.AUTHENTICATION, "DE");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certAuthDe, "DE", TrustListType.AUTHENTICATION, null);
         trustList = trustListService.getTrustList(TrustListType.AUTHENTICATION, "EU");
-        Assert.assertEquals(1, trustList.size());
+        Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certAuthEu, "EU", TrustListType.AUTHENTICATION, null);
     }
 
@@ -158,18 +155,18 @@ public class TrustListServiceTest {
             .filter(tl -> tl.getKid().equals(certificateUtils.getCertKid(certificate)))
             .findFirst();
 
-        Assert.assertTrue(trustListOptional.isPresent());
+        Assertions.assertTrue(trustListOptional.isPresent());
 
         TrustList trustListItem = trustListOptional.get();
 
-        Assert.assertEquals(certificateUtils.getCertKid(certificate), trustListItem.getKid());
-        Assert.assertEquals(country, trustListItem.getCountry());
-        Assert.assertEquals(trustListType, trustListItem.getCertificateType());
-        Assert.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assert.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+        Assertions.assertEquals(certificateUtils.getCertKid(certificate), trustListItem.getKid());
+        Assertions.assertEquals(country, trustListItem.getCountry());
+        Assertions.assertEquals(trustListType, trustListItem.getCertificateType());
+        Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
 
         if (signature != null) {
-            Assert.assertEquals(signature, trustListItem.getSignature());
+            Assertions.assertEquals(signature, trustListItem.getSignature());
         }
     }
 

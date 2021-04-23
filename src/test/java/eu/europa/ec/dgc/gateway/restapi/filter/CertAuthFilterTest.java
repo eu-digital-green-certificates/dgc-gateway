@@ -30,18 +30,15 @@ import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
 public class CertAuthFilterTest {
 
     @Autowired
@@ -56,7 +53,7 @@ public class CertAuthFilterTest {
     private final String countryCode = "EU";
     private final String authDn = "C=" + countryCode;
 
-    @Test()
+    @Test
     public void testRequestShouldFailIfDNHeaderIsMissing() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
@@ -99,8 +96,8 @@ public class CertAuthFilterTest {
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
         ).andExpect(mvcResult -> {
-            Assert.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
-            Assert.assertEquals(
+            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
             );
@@ -118,8 +115,8 @@ public class CertAuthFilterTest {
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), encodedDnString)
         ).andExpect(mvcResult -> {
-            Assert.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
-            Assert.assertEquals(
+            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
             );
@@ -145,8 +142,8 @@ public class CertAuthFilterTest {
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), encodedThumbprint)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
         ).andExpect(mvcResult -> {
-            Assert.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
-            Assert.assertEquals(
+            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
             );
@@ -171,8 +168,8 @@ public class CertAuthFilterTest {
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), encodedThumbprint)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
         ).andExpect(mvcResult -> {
-            Assert.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
-            Assert.assertEquals(
+            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
             );
@@ -199,7 +196,7 @@ public class CertAuthFilterTest {
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
-        ).andExpect(mvcResult -> Assert.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
+        ).andExpect(mvcResult -> Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
     }
 
     @Test
@@ -210,7 +207,7 @@ public class CertAuthFilterTest {
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=EU,U=Abteilung XYZ,TR=test")
-        ).andExpect(mvcResult -> Assert.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
+        ).andExpect(mvcResult -> Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
     }
 }
 
