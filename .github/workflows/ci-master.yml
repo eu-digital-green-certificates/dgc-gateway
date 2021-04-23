@@ -26,7 +26,7 @@ jobs:
           GITHUB_USER: ${{ secrets.GPR_USER }}
           GITHUB_PAT: ${{ secrets.GPR_PAT }}
       - name: Deploy DGCG artifact to GitHub Registry
-        run: mvn --batch-mode deploy
+        run: mvn --batch-mode -DskipTests deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Sonar (optional)
