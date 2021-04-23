@@ -12,9 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
+      - name: Setup Java
+        uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
+          server-id: 'dgc-github'
+          server-username: GITHUB_USER
+          server-password: GITHUB_PAT
       - name: Execute Dependency Check
         run: mvn --batch-mode dependency-check:check
+        env:
+          GITHUB_USER: ${{ secrets.GPR_USER }}
+          GITHUB_PAT: ${{ secrets.GPR_PAT }}
