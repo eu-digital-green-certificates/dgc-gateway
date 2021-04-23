@@ -37,18 +37,20 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.Locale;
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/trustList")
 @RequiredArgsConstructor
+@Validated
 public class TrustListController {
 
     private final TrustListService trustListService;
@@ -59,7 +61,7 @@ public class TrustListController {
      * TrustList Download Controller.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         summary = "Returns the full list of trusted certificates.",
         tags = {"Trust Lists"},
@@ -86,7 +88,7 @@ public class TrustListController {
      * TrustList Download Controller (filtered by type).
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "/{type}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{type}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         summary = "Returns a filtered list of trusted certificates.",
         tags = {"Trust Lists"},
@@ -135,7 +137,7 @@ public class TrustListController {
      * TrustList Download Controller (filtered by type and country).
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "/{type}/{country}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{type}/{country}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         summary = "Returns a filtered list of trusted certificates.",
         tags = {"Trust Lists"},
@@ -177,7 +179,7 @@ public class TrustListController {
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(
         @Valid @PathVariable("type") CertificateTypeDto type,
-        @Valid @Length(max = 2, min = 2) @PathVariable("country") String countryCode
+        @Valid @Size(max = 2, min = 2) @PathVariable("country") String countryCode
     ) {
 
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);

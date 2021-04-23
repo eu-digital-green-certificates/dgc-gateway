@@ -23,12 +23,14 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import lombok.Getter;
+import lombok.Setter;
 
 @Schema(
     name = "TrustList",
     type = "object"
 )
 @Getter
+@Setter
 public class TrustListDto {
 
     @Schema(example = "qroU+hDDovs=")

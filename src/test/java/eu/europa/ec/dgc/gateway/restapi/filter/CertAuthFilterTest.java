@@ -25,28 +25,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
-import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = DgcTestKeyStore.class)
 public class CertAuthFilterTest {
 
     @Autowired

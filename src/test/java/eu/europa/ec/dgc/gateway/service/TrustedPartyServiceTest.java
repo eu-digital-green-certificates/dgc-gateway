@@ -26,7 +26,6 @@ import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.After;
 import org.junit.Assert;
@@ -34,13 +33,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-@Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ContextConfiguration(classes = DgcTestKeyStore.class)
+@RunWith(SpringRunner.class)
 public class TrustedPartyServiceTest {
 
     @Autowired
