@@ -25,6 +25,11 @@ jobs:
         env:
           GITHUB_USER: ${{ secrets.GPR_USER }}
           GITHUB_PAT: ${{ secrets.GPR_PAT }}
+      - name: Setup Java for Registry Push
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
       - name: Deploy DGCG artifact to GitHub Registry
         run: mvn --batch-mode -DskipTests deploy
         env:
