@@ -1,8 +1,29 @@
+/*-
+ * ---license-start
+ * EU Digital Green Certificate Gateway Service / dgc-gateway
+ * ---
+ * Copyright (C) 2021 T-Systems International GmbH and all other contributors
+ * ---
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ---license-end
+ */
+
 package eu.europa.ec.dgc.gateway.restapi.converter;
 
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -18,9 +39,6 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCertificateDto> {
 
-    /**
-     * HTTP Content Type Header for CMS (Cryptographic Message Syntax) Messages.
-     */
     public static final MediaType CONTENT_TYPE_CMS = new MediaType("application", "cms");
     public static final String CONTENT_TYPE_CMS_VALUE = "application/cms";
 
@@ -61,6 +79,8 @@ public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCert
         return SignedCertificateDto.builder()
             .payloadCertificate(certificateParser.getPayloadCertificate())
             .signerCertificate(certificateParser.getSigningCertificate())
+            .rawMessage(new String(inputBytes, StandardCharsets.UTF_8))
+            .signature(certificateParser.getSignature())
             .verified(certificateParser.isSignatureVerified())
             .build();
     }

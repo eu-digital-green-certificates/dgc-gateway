@@ -18,32 +18,18 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.restapi.dto;
+package eu.europa.ec.dgc.gateway.repository;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
+import java.util.Optional;
+import javax.transaction.Transactional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Schema(
-    name = "ProblemReport",
-    type = "object",
-    example = "{\n"
-        + "\"code\":\"0x001\",\n"
-        + "\"problem\":\"[PROBLEM]\",\n"
-        + "\"sent value\":\"[Sent Value]\",\n"
-        + "\"details\":\"...\"\n"
-        + "}"
-)
-@Data
-@AllArgsConstructor
-public class ProblemReportDto {
+public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
-    private String code;
+    Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
-    private String problem;
-
-    private String sendValue;
-
-    private String details;
+    @Transactional
+    void deleteByThumbprint(String thumbprint);
 
 }

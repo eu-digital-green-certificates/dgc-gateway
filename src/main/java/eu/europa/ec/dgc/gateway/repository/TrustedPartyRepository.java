@@ -21,10 +21,13 @@
 package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity, Long> {
+
+    List<TrustedPartyEntity> getByCountryAndCertificateType(String country, TrustedPartyEntity.CertificateType type);
 
     Optional<TrustedPartyEntity> getFirstByThumbprintAndCountryAndCertificateType(
         String thumbprint, String country, TrustedPartyEntity.CertificateType type);

@@ -51,7 +51,6 @@
     <plugin.sonar.version>3.6.1.1688</plugin.sonar.version>
     <plugin.jacoco.version>0.8.6</plugin.jacoco.version>
     <plugin.os-maven.version>1.7.0</plugin.os-maven.version>
-    <plugin.surefire.version>3.0.0-M5</plugin.surefire.version>
     <!-- license -->
     <license.projectName>EU Digital Green Certificate Gateway Service / dgc-gateway</license.projectName>
     <license.inceptionYear>2021</license.inceptionYear>
@@ -68,7 +67,6 @@
       **/mapper/*,
       **/dbencryption/*,
       **/entity/*,
-      **/CertificateUtils.java,
       **/DgcKeyStore.java,
       **/ErrorHandler.java
     </sonar.coverage.exclusions>
@@ -206,35 +204,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-sleuth</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.retry</groupId>
-      <artifactId>spring-retry</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webflux</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.liquibase</groupId>
-      <artifactId>liquibase-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -242,15 +213,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <version>5.7.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>${spring.test.version}</version>
-      <scope>test</scope>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -332,11 +296,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${plugin.surefire.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.1</version>
         </plugin>
@@ -368,27 +327,8 @@
         <artifactId>dependency-check-maven</artifactId>
         <version>${owasp.version}</version>
         <configuration>
-          <skip>true</skip>
           <suppressionFile>./owasp/suppressions.xml</suppressionFile>
           <failBuildOnAnyVulnerability>true</failBuildOnAnyVulnerability>
-        </configuration>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <environmentVariables>
-            <dgc_dbencryption_password>abcdefghjklmnopq</dgc_dbencryption_password>
-          </environmentVariables>
         </configuration>
       </plugin>
       <plugin>

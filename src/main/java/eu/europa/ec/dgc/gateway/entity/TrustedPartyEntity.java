@@ -29,15 +29,17 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "trusted_party")
 public class TrustedPartyEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
@@ -61,13 +63,6 @@ public class TrustedPartyEntity {
     private String thumbprint;
 
     /**
-     * Type of the certificate (Authentication, Signing, Issuer, Client, DID, CSCA).
-     */
-    @Column(name = "certificate_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    CertificateType certificateType;
-
-    /**
      * Base64 encoded certificate raw data.
      */
     @Column(name = "raw_data", nullable = false, length = 4096)
@@ -79,6 +74,13 @@ public class TrustedPartyEntity {
     @Column(name = "signature", nullable = false, length = 1000)
     String signature;
 
+    /**
+     * Type of the certificate (Authentication, Upload, CSCA).
+     */
+    @Column(name = "certificate_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    CertificateType certificateType;
+
     public enum CertificateType {
         /**
          * Certificate which the member state is using to authenticate at DGC Gateway (NBTLS).
@@ -88,24 +90,7 @@ public class TrustedPartyEntity {
         /**
          * Certificate which the member state is using to sign the uploaded information (NBUS).
          */
-        SIGNING,
-
-        /**
-         * Certificate which the member state is using to provide
-         * decentralized information for interoperability (NBISS).
-         */
-        ISSUER,
-
-        /**
-         * Certificate which the member state is using to connect the
-         * decentralized endpoints provided by the DID document (NBCL).
-         */
-        CLIENT,
-
-        /**
-         * tbd.
-         */
-        DID,
+        UPLOAD,
 
         /**
          * Country Signing Certificate Authority certificate (NBCSCA).
