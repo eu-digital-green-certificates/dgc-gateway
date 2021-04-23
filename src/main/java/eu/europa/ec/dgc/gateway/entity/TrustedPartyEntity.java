@@ -71,7 +71,7 @@ public class TrustedPartyEntity {
     /**
      * Signature of the TrustAnchor.
      */
-    @Column(name = "signature", nullable = false, length = 1000)
+    @Column(name = "signature", nullable = false, length = 6000)
     String signature;
 
     /**
