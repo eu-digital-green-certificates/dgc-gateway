@@ -33,12 +33,12 @@
         <file>
             <source>${project.basedir}/target/${artifactId}-${version}.${packaging}</source>
             <outputDirectory>webapps</outputDirectory>
-            <destName>dgcgw.war</destName>
+            <destName>dgcg.war</destName>
         </file>
         <file>
             <source>${project.basedir}/target/${artifactId}-${version}.${packaging}.sha1</source>
             <outputDirectory>webapps</outputDirectory>
-            <destName>dgcgw.war.sha1</destName>
+            <destName>dgcg.war.sha1</destName>
         </file>
     </files>
     <includeBaseDirectory>false</includeBaseDirectory>
