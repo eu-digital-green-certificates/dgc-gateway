@@ -20,12 +20,15 @@ jobs:
           server-id: 'dgc-github'
           server-username: GITHUB_USER
           server-password: GITHUB_PAT
-      - name: Build DGCG and deploy artifact to GitHub Registry
+      - name: Build DGCG
+        run: mvn --batch-mode clean install
+        env:
+          GITHUB_USER: ${{ secrets.GPR_USER }}
+          GITHUB_PAT: ${{ secrets.GPR_PAT }}
+      - name: Deploy DGCG artifact to GitHub Registry
         run: mvn --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_USER: ${{ secrets.GPR_USER }}
-          GITHUB_PAT: ${{ secrets.GPR_PAT }}
       - name: Sonar (optional)
         continue-on-error: true
         run: |
