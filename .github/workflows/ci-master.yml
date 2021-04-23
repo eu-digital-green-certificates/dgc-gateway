@@ -21,7 +21,7 @@ jobs:
           server-username: GITHUB_USER
           server-password: GITHUB_PAT
       - name: Build DGCG and deploy artifact to GitHub Registry
-        run: mvn -o --batch-mode deploy
+        run: mvn --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USER: ${{ secrets.GPR_USER }}
@@ -29,7 +29,7 @@ jobs:
       - name: Sonar (optional)
         continue-on-error: true
         run: |
-          mvn -o --batch-mode verify sonar:sonar \
+          mvn --batch-mode verify sonar:sonar \
           -Dsonar.login=${SONAR_TOKEN} \
           -Dsonar.host.url=${SONAR_URL} \
           -Dsonar.organization=${GITHUB_REPOSITORY_OWNER} \
