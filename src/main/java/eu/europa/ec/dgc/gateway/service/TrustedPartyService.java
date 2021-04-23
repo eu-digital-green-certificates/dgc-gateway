@@ -79,21 +79,6 @@ public class TrustedPartyService {
     }
 
     /**
-     * Method to query the db for a certificate.
-     *
-     * @param thumbprint RSA-256 thumbprint of certificate.
-     * @param country    country of certificate.
-     * @param type       type of certificate.
-     * @return Optional holding the certificate if found.
-     */
-    public Optional<TrustedPartyEntity> getCertificate(
-        String thumbprint, String country, TrustedPartyEntity.CertificateType type) {
-
-        return trustedPartyRepository.getFirstByThumbprintAndCountryAndCertificateType(thumbprint, country, type)
-            .map(trustedPartyEntity -> validateCertificateIntegrity(trustedPartyEntity) ? trustedPartyEntity : null);
-    }
-
-    /**
      * Method to query the db for certificates.
      *
      * @param country country of certificate.
@@ -106,6 +91,21 @@ public class TrustedPartyService {
             .stream()
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Method to query the db for a certificate.
+     *
+     * @param thumbprint RSA-256 thumbprint of certificate.
+     * @param country    country of certificate.
+     * @param type       type of certificate.
+     * @return Optional holding the certificate if found.
+     */
+    public Optional<TrustedPartyEntity> getCertificate(
+        String thumbprint, String country, TrustedPartyEntity.CertificateType type) {
+
+        return trustedPartyRepository.getFirstByThumbprintAndCountryAndCertificateType(thumbprint, country, type)
+            .map(trustedPartyEntity -> validateCertificateIntegrity(trustedPartyEntity) ? trustedPartyEntity : null);
     }
 
     private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
