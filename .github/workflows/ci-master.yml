@@ -8,26 +8,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Git
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: actions/setup-java@v2
+      - name: Setup Java
+        uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
           server-id: 'dgc-github'
           server-username: GITHUB_USER
           server-password: GITHUB_PAT
-      - name: Download Dependencies
-        run: mvn dependency:go-offline
-        env:
-          GITHUB_USER: ${{ secrets.GPR_USER }}
-          GITHUB_PAT: ${{ secrets.GPR_PAT }}
-      - name: Deploy
+      - name: Build DGCG and deploy artifact to GitHub Registry
         run: mvn -o --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Sonar
+          GITHUB_USER: ${{ secrets.GPR_USER }}
+          GITHUB_PAT: ${{ secrets.GPR_PAT }}
+      - name: Sonar (optional)
         continue-on-error: true
         run: |
           mvn -o --batch-mode verify sonar:sonar \
@@ -39,20 +38,27 @@ jobs:
           SONAR_URL: https://sonarcloud.io
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v2
+      - name: Upload ZIP for TST
+        uses: actions/upload-artifact@v2
         with:
           name: DGCG001_TST
           path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGCG001_TST*
-      - uses: actions/upload-artifact@v2
+      - name: Upload ZIP for ACC
+        uses: actions/upload-artifact@v2
         with:
           name: DGCG001_ACC
           path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGCG001_ACC*
-      - uses: actions/upload-artifact@v2
+      - name: Upload ZIP for PRD
+        uses: actions/upload-artifact@v2
         with:
           name: DGCG001_PRD
           path: /home/runner/work/eu-digital-green-certificates/dgc-gateway/target/DGCG001_PRD*
-      - name: mvn clean install -P docker
+      - name: Build DGCG for Docker Image
         run: mvn clean install -P docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ secrets.GPR_USER }}
+          GITHUB_PAT: ${{ secrets.GPR_PAT }}
       - name: Log into registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
       - name: Build docker image
