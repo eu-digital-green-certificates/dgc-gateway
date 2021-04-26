@@ -22,7 +22,7 @@
             <column name="raw_data" type="VARCHAR(4096)">
                 <constraints nullable="false"/>
             </column>
-            <column name="signature" type="VARCHAR(1000)">
+            <column name="signature" type="VARCHAR(6000)">
                 <constraints nullable="false"/>
             </column>
             <column name="certificate_type" type="VARCHAR(255)">
@@ -47,7 +47,7 @@
             <column name="raw_data" type="VARCHAR(4096)">
                 <constraints nullable="false"/>
             </column>
-            <column name="signature" type="VARCHAR(1000)">
+            <column name="signature" type="VARCHAR(6000)">
                 <constraints nullable="false"/>
             </column>
             <column name="certificate_type" type="VARCHAR(255)">

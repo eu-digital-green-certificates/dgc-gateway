@@ -424,7 +424,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>CORONA_TRACING_BACKEND001_ACC-ACCEPTANCE-${project.version}</finalName>
+                            <finalName>DGCG001_ACC-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/assembly/assembly.xml</descriptor>
