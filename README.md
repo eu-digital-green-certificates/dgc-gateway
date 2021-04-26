@@ -17,13 +17,9 @@
   <a href="#licensing">Licensing</a>
 </p>
 
-- [ ] TODO
+## About
 
-<!-- 
-## Status
--->
-
-<!-- ![ci](https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-master.yml/badge.svg) -->
+This repository contains the source code of the Digital Green Certificates Gateway (DGCG).
 
 ## Development
 
