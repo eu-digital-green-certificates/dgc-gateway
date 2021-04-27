@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-master.yml" title="ci-master.yml"><img src="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-master.yml/badge.svg"></a>
+  <a href="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml" title="ci-main.yml"><img src="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml/badge.svg"></a>
       <a href="https://sonarcloud.io/dashboard?id=eu-digital-green-certificates_dgc-gateway" title="Quality Gate Status"><img src="https://sonarcloud.io/api/project_badges/measure?project=eu-digital-green-certificates_dgc-gateway&metric=alert_status"></a>
   <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
   <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
