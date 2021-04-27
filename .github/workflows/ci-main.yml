@@ -1,4 +1,4 @@
-name: ci-master
+name: ci-main
 on:
   workflow_dispatch:
   push:
@@ -33,18 +33,6 @@ jobs:
       - name: Deploy DGCG artifact to GitHub Registry
         run: mvn --batch-mode -DskipTests deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Sonar (optional)
-        continue-on-error: true
-        run: |
-          mvn --batch-mode verify sonar:sonar \
-          -Dsonar.login=${SONAR_TOKEN} \
-          -Dsonar.host.url=${SONAR_URL} \
-          -Dsonar.organization=${GITHUB_REPOSITORY_OWNER} \
-          -Dsonar.projectKey=${GITHUB_REPOSITORY/\//_}
-        env:
-          SONAR_URL: https://sonarcloud.io
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload ZIP for TST
         uses: actions/upload-artifact@v2

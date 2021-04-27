@@ -2,25 +2,25 @@ name: ci-pull-request
 on:
   pull_request:
     types:
-    - opened
-    - synchronize
-    - reopened
+      - opened
+      - synchronize
+      - reopened
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-        distribution: 'adopt'
-        server-id: 'dgc-github'
-        server-username: GITHUB_USER
-        server-password: GITHUB_PAT
-    - name: Build package
-      run: mvn --batch-mode package
-      env:
-        GITHUB_USER: ${{ secrets.GPR_USER }}
-        GITHUB_PAT: ${{ secrets.GPR_PAT }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          server-id: 'dgc-github'
+          server-username: GITHUB_USER
+          server-password: GITHUB_PAT
+      - name: Build package
+        run: mvn --batch-mode package
+        env:
+          GITHUB_USER: ${{ secrets.GPR_USER }}
+          GITHUB_PAT: ${{ secrets.GPR_PAT }}
