@@ -20,7 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.testdata;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
@@ -77,7 +76,7 @@ public class DgcTestKeyStore {
         keyStoreMock.load(null);
 
         doAnswer((x) -> trustAnchor)
-            .when(keyStoreSpiMock).engineGetCertificate(eq(configProperties.getTrustAnchor().getCertificateAlias()));
+            .when(keyStoreSpiMock).engineGetCertificate(configProperties.getTrustAnchor().getCertificateAlias());
 
         return keyStoreMock;
     }

@@ -101,10 +101,10 @@ public class SignerInformationService {
         String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
-        contentCheck_UploaderCertificate(signerCertificate, authenticatedCountryCode);
-        contentCheck_CountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
-        contentCheck_Csca(uploadedCertificate, authenticatedCountryCode);
-        contentCheck_AlreadyExists(uploadedCertificate);
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
+        contentCheckAlreadyExists(uploadedCertificate);
 
         // All checks passed --> Save to DB
         byte[] certRawData;
@@ -139,15 +139,15 @@ public class SignerInformationService {
         String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
-        contentCheck_UploaderCertificate(signerCertificate, authenticatedCountryCode);
-        contentCheck_CountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
-        contentCheck_Exists(uploadedCertificate);
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        contentCheckExists(uploadedCertificate);
 
         // All checks passed --> Delete from DB
         signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
     }
 
-    private void contentCheck_UploaderCertificate(
+    private void contentCheckUploaderCertificate(
         X509CertificateHolder signerCertificate,
         String authenticatedCountryCode) throws SignerCertCheckException {
         // Content Check Step 1: Uploader Certificate
@@ -165,8 +165,8 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheck_CountryOfOrigin(X509CertificateHolder uploadedCertificate,
-                                              String authenticatedCountryCode) throws SignerCertCheckException {
+    private void contentCheckCountryOfOrigin(X509CertificateHolder uploadedCertificate,
+                                             String authenticatedCountryCode) throws SignerCertCheckException {
 
         // Content Check Step 2: Country of Origin check
         RDN[] uploadedCertCountryProperties =
@@ -186,8 +186,8 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheck_Csca(X509CertificateHolder uploadedCertificate,
-                                   String authenticatedCountryCode) throws SignerCertCheckException {
+    private void contentCheckCsca(X509CertificateHolder uploadedCertificate,
+                                  String authenticatedCountryCode) throws SignerCertCheckException {
 
         // Content Check Step 3: CSCA Check
         List<TrustedPartyEntity> trustedCas =
@@ -205,7 +205,7 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheck_AlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private void contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
@@ -217,7 +217,7 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheck_Exists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private void contentCheckExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
@@ -269,7 +269,7 @@ public class SignerInformationService {
     public static class SignerCertCheckException extends Exception {
 
         @Getter
-        Reason reason;
+        private final Reason reason;
 
         public SignerCertCheckException(Reason reason, String message, Object... args) {
             super(String.format(message, args));

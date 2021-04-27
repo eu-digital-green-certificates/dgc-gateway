@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class TrustListServiceTest {
+class TrustListServiceTest {
 
     @Autowired
     SignerInformationRepository signerInformationRepository;
@@ -43,7 +43,7 @@ public class TrustListServiceTest {
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu;
 
     @BeforeEach
-    public void testData() throws Exception {
+    void testData() throws Exception {
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
 
@@ -80,7 +80,7 @@ public class TrustListServiceTest {
     }
 
     @Test
-    public void testTrustListWithoutFilter() throws Exception {
+    void testTrustListWithoutFilter() throws Exception {
         List<TrustList> trustList = trustListService.getTrustList();
 
         Assertions.assertEquals(8, trustList.size());
@@ -96,7 +96,7 @@ public class TrustListServiceTest {
     }
 
     @Test
-    public void testTrustListFilterByType() throws Exception {
+    void testTrustListFilterByType() throws Exception {
         List<TrustList> trustList = trustListService.getTrustList(TrustListType.DSC);
         Assertions.assertEquals(2, trustList.size());
         assertTrustListItem(trustList, certDscDe, "DE", TrustListType.DSC, "sig1");
@@ -119,7 +119,7 @@ public class TrustListServiceTest {
     }
 
     @Test
-    public void testTrustListFilterByTypeAndCountry() throws Exception {
+    void testTrustListFilterByTypeAndCountry() throws Exception {
         List<TrustList> trustList = trustListService.getTrustList(TrustListType.DSC, "DE");
         Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certDscDe, "DE", TrustListType.DSC, "sig1");

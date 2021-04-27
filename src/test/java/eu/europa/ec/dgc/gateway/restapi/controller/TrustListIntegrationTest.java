@@ -59,7 +59,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TrustListIntegrationTest {
+class TrustListIntegrationTest {
 
     @Autowired
     SignerInformationRepository signerInformationRepository;
@@ -88,7 +88,7 @@ public class TrustListIntegrationTest {
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu;
 
     @BeforeEach
-    public void testData() throws Exception {
+    void testData() throws Exception {
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
 
@@ -125,7 +125,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListDownloadNoFilter() throws Exception {
+    void testTrustListDownloadNoFilter() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList")
@@ -147,7 +147,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListDownloadFilterByType() throws Exception {
+    void testTrustListDownloadFilterByType() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION")
@@ -196,7 +196,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListDownloadFilterByTypeCaseInsensitive() throws Exception {
+    void testTrustListDownloadFilterByTypeCaseInsensitive() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/aUtHeNtiCaTiOn")
@@ -245,7 +245,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListDownloadFilterByTypeAndCountry() throws Exception {
+    void testTrustListDownloadFilterByTypeAndCountry() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/DE")
@@ -330,7 +330,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListDownloadFilterByTypeAndCountryLowercase() throws Exception {
+    void testTrustListDownloadFilterByTypeAndCountryLowercase() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/de")
@@ -415,7 +415,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListDownloadEmptyList() throws Exception {
+    void testTrustListDownloadEmptyList() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         signerInformationRepository.deleteAll();
@@ -431,7 +431,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListWrongType() throws Exception {
+    void testTrustListWrongType() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/XXX")
@@ -443,7 +443,7 @@ public class TrustListIntegrationTest {
     }
 
     @Test
-    public void testTrustListWrongCountryCode() throws Exception {
+    void testTrustListWrongCountryCode() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/DSC/XXX")
