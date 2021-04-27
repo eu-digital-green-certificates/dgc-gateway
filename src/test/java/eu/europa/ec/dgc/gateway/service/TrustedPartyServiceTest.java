@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class TrustedPartyServiceTest {
+class TrustedPartyServiceTest {
 
     @Autowired
     TrustedPartyRepository trustedPartyRepository;
@@ -51,13 +51,13 @@ public class TrustedPartyServiceTest {
     private static final String countryCode = "EU";
 
     @AfterEach
-    public void cleanUp() {
+    void cleanUp() {
         // We have to delete all certs after each test because some tests are manipulating certs in DB.
         trustedPartyRepository.deleteAll();
     }
 
     @Test
-    public void trustedPartyServiceShouldReturnCertificate() throws Exception {
+    void trustedPartyServiceShouldReturnCertificate() throws Exception {
         String hash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.UPLOAD);
         Assertions.assertTrue(certOptional.isPresent());
@@ -75,7 +75,7 @@ public class TrustedPartyServiceTest {
     }
 
     @Test
-    public void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfRawDataIsViolated() throws Exception {
+    void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfRawDataIsViolated() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
 
@@ -96,7 +96,7 @@ public class TrustedPartyServiceTest {
     }
 
     @Test
-    public void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfSignatureIsViolated() throws Exception {
+    void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfSignatureIsViolated() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
 
@@ -117,7 +117,7 @@ public class TrustedPartyServiceTest {
     }
 
     @Test
-    public void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfThumbprintIsViolated() throws Exception {
+    void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfThumbprintIsViolated() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
 
@@ -140,7 +140,7 @@ public class TrustedPartyServiceTest {
     }
 
     @Test
-    public void trustedPartyServiceShouldNotReturnCertificateIfSignatureIsFromUnknownTrustAnchor() throws Exception {
+    void trustedPartyServiceShouldNotReturnCertificateIfSignatureIsFromUnknownTrustAnchor() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
 

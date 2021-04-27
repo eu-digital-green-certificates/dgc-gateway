@@ -49,7 +49,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class SignerCertificateIntegrationTest {
+class SignerCertificateIntegrationTest {
 
     @Autowired
     DgcConfigProperties dgcConfigProperties;
@@ -73,7 +73,7 @@ public class SignerCertificateIntegrationTest {
     private static final String authCertSubject = "C=" + countryCode;
 
     @Test
-    public void testSuccessfulUpload() throws Exception {
+    void testSuccessfulUpload() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -116,7 +116,7 @@ public class SignerCertificateIntegrationTest {
     }
 
     @Test
-    public void testUploadFailedConflict() throws Exception {
+    void testUploadFailedConflict() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -155,7 +155,7 @@ public class SignerCertificateIntegrationTest {
     }
 
     @Test
-    public void testUploadFailedInvalidCSCA() throws Exception {
+    void testUploadFailedInvalidCSCA() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -187,7 +187,7 @@ public class SignerCertificateIntegrationTest {
     }
 
     @Test
-    public void testUploadFailedInvalidCSCAWrongCountryCode() throws Exception {
+    void testUploadFailedInvalidCSCAWrongCountryCode() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -220,7 +220,7 @@ public class SignerCertificateIntegrationTest {
     }
 
     @Test
-    public void testUploadFailedPayloadCertCountryWrong() throws Exception {
+    void testUploadFailedPayloadCertCountryWrong() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -251,7 +251,7 @@ public class SignerCertificateIntegrationTest {
     }
 
     @Test
-    public void testUploadFailedWrongSignerCertificate() throws Exception {
+    void testUploadFailedWrongSignerCertificate() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
@@ -282,7 +282,7 @@ public class SignerCertificateIntegrationTest {
     }
 
     @Test
-    public void testUploadFailedInvalidCmsMessage() throws Exception {
+    void testUploadFailedInvalidCmsMessage() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);

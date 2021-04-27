@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class SignerInformationServiceTest {
+class SignerInformationServiceTest {
 
     @Autowired
     DgcConfigProperties dgcConfigProperties;
@@ -65,7 +65,7 @@ public class SignerInformationServiceTest {
     private static final String dummySignature = "randomStringAsSignatureWhichIsNotValidatedInServiceLevel";
 
     @Test
-    public void testSuccessfulAddingNewSignerInformationAndDelete() throws Exception {
+    void testSuccessfulAddingNewSignerInformationAndDelete() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -108,7 +108,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testAddingFailedConflict() throws Exception {
+    void testAddingFailedConflict() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -141,7 +141,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testUploadFailedInvalidCSCA() throws Exception {
+    void testUploadFailedInvalidCSCA() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -168,7 +168,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testUploadFailedInvalidCSCAWrongCountryCode() throws Exception {
+    void testUploadFailedInvalidCSCAWrongCountryCode() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -196,7 +196,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testUploadFailedPayloadCertCountryWrong() throws Exception {
+    void testUploadFailedPayloadCertCountryWrong() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -222,7 +222,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testUploadFailedWrongSignerCertificate() throws Exception {
+    void testUploadFailedWrongSignerCertificate() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
@@ -248,7 +248,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testDeleteFailedNotExists() throws Exception {
+    void testDeleteFailedNotExists() throws Exception {
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
         PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
@@ -268,7 +268,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testDeleteFailedPayloadCertCountryWrong() throws Exception {
+    void testDeleteFailedPayloadCertCountryWrong() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -292,7 +292,7 @@ public class SignerInformationServiceTest {
     }
 
     @Test
-    public void testDeleteFailedWrongSignerCertificate() throws Exception {
+    void testDeleteFailedWrongSignerCertificate() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
