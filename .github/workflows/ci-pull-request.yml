@@ -1,4 +1,4 @@
-name: ci-pull-request
+name: CI Pull Request
 on:
   pull_request:
     types:

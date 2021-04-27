@@ -1,4 +1,4 @@
-name: ci-master
+name: Sonar Cloud Check
 on:
   workflow_dispatch:
   push:

@@ -1,4 +1,4 @@
-name: ci-release-notes
+name: CI Release Notes
 on:
   release:
     types:

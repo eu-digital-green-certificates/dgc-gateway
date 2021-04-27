@@ -1,4 +1,4 @@
-name: ci-main
+name: CI Main Branch
 on:
   workflow_dispatch:
   push:
