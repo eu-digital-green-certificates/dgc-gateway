@@ -22,6 +22,8 @@
 
 This repository contains the source code of the Digital Green Certificates Gateway (DGCG).
 
+DGCG is used to share validation and verification information across all national backend servers. By using DGCG, backend-to-backend integration is facilitated, and countries can onboard incrementally, while the national backends retain flexibility and can control data processing of their users.
+
 ## Development
 
 ### Prerequisites
