@@ -4,7 +4,7 @@ on:
     - cron: '48 02 * * 0' # Each Sunday at 02:48 UTC
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
