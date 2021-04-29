@@ -1,12 +1,15 @@
-name: ci-pull-request
+name: ci-sonar
 on:
+  push:
+    branches:
+      - main
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
 jobs:
-  build:
+  sonar:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-java@v2
@@ -23,23 +26,14 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
       - name: mvn
         run: >-
-          mvn clean package
+          mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml
           --define app.packages.username="${APP_PACKAGES_USERNAME}"
           --define app.packages.password="${APP_PACKAGES_PASSWORD}";
-          mvn clean package -P docker
-          --batch-mode
-          --file ./pom.xml
-          --settings ./settings.xml
-          --define app.packages.username="${APP_PACKAGES_USERNAME}"
-          --define app.packages.password="${APP_PACKAGES_PASSWORD}"
-          -DskipTests;
         env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APP_PACKAGES_USERNAME: ${{ github.actor }}
           APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      - name: docker
-        run: >-
-          docker build .
-          --file ./Dockerfile;
