@@ -1,4 +1,4 @@
-name: ci-main
+name: ci-main-docker
 on:
   push:
     branches:
@@ -35,7 +35,7 @@ jobs:
           --file ./pom.xml
           --settings ./settings.xml
           --define newVersion="${APP_VERSION}";
-          mvn clean package
+          mvn clean install -p docker
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml
@@ -44,18 +44,17 @@ jobs:
         env:
           APP_PACKAGES_USERNAME: ${{ github.actor }}
           APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload ZIP for TST
-        uses: actions/upload-artifact@v2
-        with:
-          name: DGCG001_TST
-          path: target/DGCG001_TST*
-      - name: Upload ZIP for ACC
-        uses: actions/upload-artifact@v2
-        with:
-          name: DGCG001_ACC
-          path: target/DGCG001_ACC*
-      - name: Upload ZIP for PRD
-        uses: actions/upload-artifact@v2
-        with:
-          name: DGCG001_PRD
-          path: target/DGCG001_PRD*
+      - name: docker
+        run: >-
+          echo "${APP_PACKAGES_PASSWORD}" |
+          docker login "${APP_PACKAGES_URL}"
+          --username "${APP_PACKAGES_USERNAME}"
+          --password-stdin;
+          docker build .
+          --file ./Dockerfile
+          --tag "${APP_PACKAGES_URL}:${APP_VERSION}";
+          docker push "${APP_PACKAGES_URL}:${APP_VERSION}";
+        env:
+          APP_PACKAGES_URL: docker.pkg.github.com/${{ github.repository }}/dgc-gateway
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

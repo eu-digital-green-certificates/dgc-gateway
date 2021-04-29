@@ -28,7 +28,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://dgc-gateway-mysql:3306/fg
       - SPRING_DATASOURCE_USERNAME=dgc_adm
       - SPRING_DATASOURCE_PASSWORD=admin
-      - efgs_dbencryption_password=aaaaaaaaaaaaaaaa
     depends_on:
       - mysql
     networks:
