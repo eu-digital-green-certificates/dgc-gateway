@@ -35,7 +35,7 @@ jobs:
           --file ./pom.xml
           --settings ./settings.xml
           --define newVersion="${APP_VERSION}";
-          mvn clean install -p docker
+          mvn clean install -P docker
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml

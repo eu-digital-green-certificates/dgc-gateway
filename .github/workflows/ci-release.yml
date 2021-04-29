@@ -52,7 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: mvn docker
         run: >-
-          mvn clean package -p docker
+          mvn clean package -P docker
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml

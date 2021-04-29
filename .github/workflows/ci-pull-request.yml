@@ -29,7 +29,7 @@ jobs:
           --settings ./settings.xml
           --define app.packages.username="${APP_PACKAGES_USERNAME}"
           --define app.packages.password="${APP_PACKAGES_PASSWORD}";
-          mvn clean package -p docker
+          mvn clean package -P docker
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml
