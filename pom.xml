@@ -277,7 +277,24 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.boot.version}</version>
+                <configuration>
+                    <profiles>dev</profiles>
+                    <wait>5000</wait>
+                    <maxAttempts>30</maxAttempts>
+                </configuration>
                 <executions>
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <goals>
                             <goal>repackage</goal>
@@ -471,7 +488,22 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <plugin>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-maven-plugin</artifactId>
+                <version>1.3</version>
+                <configuration>
+                    <apiDocsUrl>http://localhost:8090/api/docs</apiDocsUrl>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
