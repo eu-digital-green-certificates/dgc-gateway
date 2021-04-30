@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class CertAuthFilterTest {
+class CertAuthFilterTest {
 
     @Autowired
     private DgcConfigProperties properties;
@@ -54,7 +54,7 @@ public class CertAuthFilterTest {
     private final String authDn = "C=" + countryCode;
 
     @Test
-    public void testRequestShouldFailIfDNHeaderIsMissing() throws Exception {
+    void testRequestShouldFailIfDNHeaderIsMissing() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
@@ -64,7 +64,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testRequestShouldFailIfThumbprintHeaderIsMissing() throws Exception {
+    void testRequestShouldFailIfThumbprintHeaderIsMissing() throws Exception {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
@@ -72,14 +72,14 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testRequestShouldFailIfCertHeadersAreMissing() throws Exception {
+    void testRequestShouldFailIfCertHeadersAreMissing() throws Exception {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
         ).andExpect(status().isForbidden());
     }
 
     @Test
-    public void testRequestShouldFailIfCertIsNotOnWhitelist() throws Exception {
+    void testRequestShouldFailIfCertIsNotOnWhitelist() throws Exception {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), "randomString")
@@ -88,7 +88,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testFilterShouldAppendCountryAndThumbprintToRequestObject() throws Exception {
+    void testFilterShouldAppendCountryAndThumbprintToRequestObject() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
@@ -105,7 +105,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testFilterShouldDecodeDnString() throws Exception {
+    void testFilterShouldDecodeDnString() throws Exception {
         String encodedDnString = "ST%3dSome-State%2c%20C%3dEU%2c%20O%3dInternet%20Widgits%20Pty%20Ltd%2c%20CN%3dTest%20Cert";
 
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -124,7 +124,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testFilterShouldDecodeBase64AndUrlEncodedCertThumbprint() throws Exception {
+    void testFilterShouldDecodeBase64AndUrlEncodedCertThumbprint() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         byte[] certHashBytes = new BigInteger(certHash, 16).toByteArray();
 
@@ -151,7 +151,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testFilterShouldDecodeBase64EncodedCertThumbprint() throws Exception {
+    void testFilterShouldDecodeBase64EncodedCertThumbprint() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         byte[] certHashBytes = new BigInteger(certHash, 16).toByteArray();
 
@@ -178,7 +178,7 @@ public class CertAuthFilterTest {
 
 
     @Test
-    public void testRequestShouldFailIfCountryIsNotPresentInDnString() throws Exception {
+    void testRequestShouldFailIfCountryIsNotPresentInDnString() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
@@ -189,7 +189,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testFilterShouldFindCountryEvenOnMalformedDnString() throws Exception {
+    void testFilterShouldFindCountryEvenOnMalformedDnString() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
@@ -200,7 +200,7 @@ public class CertAuthFilterTest {
     }
 
     @Test
-    public void testRequestShouldNotFailIfDnStringContainsDuplicatedKeys() throws Exception {
+    void testRequestShouldNotFailIfDnStringContainsDuplicatedKeys() throws Exception {
         String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")

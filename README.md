@@ -3,12 +3,15 @@
 </h1>
 
 <p align="center">
-    <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
-    <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
-    <a href="./LICENSE" title="License"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat"></a>
+  <a href="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml" title="ci-main.yml"><img src="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml/badge.svg"></a>
+      <a href="https://sonarcloud.io/dashboard?id=eu-digital-green-certificates_dgc-gateway" title="Quality Gate Status"><img src="https://sonarcloud.io/api/project_badges/measure?project=eu-digital-green-certificates_dgc-gateway&metric=alert_status"></a>
+  <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
+  <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
+  <a href="./LICENSE" title="License"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat"></a>
 </p>
 
 <p align="center">
+  <a href="#about">About</a> •
   <a href="#development">Development</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#support-and-feedback">Support</a> •
@@ -21,11 +24,13 @@
 
 This repository contains the source code of the Digital Green Certificates Gateway (DGCG).
 
+DGCG is used to share validation and verification information across all national backend servers. By using DGCG, backend-to-backend integration is facilitated, and countries can onboard incrementally, while the national backends retain flexibility and can control data processing of their users.
+
 ## Development
 
 ### Prerequisites
 
-- [ ] TODO
+- [ ] TODO: Describe prerequisites
 
 ### Build
 
@@ -33,21 +38,13 @@ Whether you cloned or downloaded the 'zipped' sources you will either find the s
 
 In either case open a terminal pointing to the directory you put the sources in. The local build process is described afterwards depending on the way you choose.
 
-#### XYZ (Maven, ...) based build
+#### XYZ (Maven, Docker ...) based build
 
-- [ ] TODO
-
-#### Build Docker Image
-
-- [ ] TODO
-
-#### API documentation  
-
-- [ ] TODO
+- [ ] TODO: Add instructions for different build types
 
 ## Documentation  
 
-- [ ] TODO
+- [ ] TODO: Link to documentation
 
 ## Support and feedback
 
