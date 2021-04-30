@@ -44,7 +44,7 @@ In either case open a terminal pointing to the directory you put the sources in.
 
 ## Documentation  
 
-- [ ] TODO: Link to documentation
+See [./docs/software-design-dgc-gateway.md](./docs/software-design-dgc-gateway.md).
 
 ## Support and feedback
 
