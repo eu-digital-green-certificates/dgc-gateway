@@ -134,16 +134,19 @@ public class SignerCertificateController {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
                 auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "postVerificationInformation_UPLOAD_FAILED", "");
+                        cms.getPayloadCertificate().toString(), "UPLOAD_FAILED",
+                        "postVerificationInformation triggered UPLOAD_FAILED");
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             } else {
                 auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "postVerificationInformation_BAD_REQUEST", "");
+                        cms.getPayloadCertificate().toString(), "BAD_REQUEST",
+                        "postVerificationInformation triggered BAD_REQUEST");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
         }
         auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                cms.getPayloadCertificate().toString(), "postVerificationInformation_SUCCESS", "");
+                cms.getPayloadCertificate().toString(), "SUCCESS",
+                "postVerificationInformation successful executed");
         return ResponseEntity.status(201).build();
     }
 
@@ -215,20 +218,24 @@ public class SignerCertificateController {
 
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED) {
                 auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "revokeVerificationInformation_EXIST_CHECK_FAILED", "");
+                        cms.getPayloadCertificate().toString(), "EXIST_CHECK_FAILED",
+                        "revokeVerificationInformation triggered EXIST_CHECK_FAILED");
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
                 auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "revokeVerificationInformation_UPLOAD_FAILED", "");
+                        cms.getPayloadCertificate().toString(), "UPLOAD_FAILED",
+                        "revokeVerificationInformation triggered UPLOAD_FAILED");
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             } else {
                 auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "revokeVerificationInformation_BAD_REQUEST", "");
+                        cms.getPayloadCertificate().toString(), "BAD_REQUEST",
+                        "revokeVerificationInformation triggered BAD_REQUEST");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
         }
         auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                cms.getPayloadCertificate().toString(), "revokeVerificationInformation_EXIST_CHECK_FAILED", "");
+                cms.getPayloadCertificate().toString(), "SUCCESS",
+                "revokeVerificationInformation triggered SUCCESS ");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
