@@ -34,7 +34,7 @@ jobs:
           --file ./pom.xml
           --settings ./settings.xml
           --define newVersion="${APP_VERSION}";
-          mvn clean package
+          mvn clean verify
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml
@@ -44,10 +44,9 @@ jobs:
           APP_PACKAGES_USERNAME: ${{ github.actor }}
           APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: target/DGCG001_*
+        run: |
+          for f in target/*.zip; do gh release upload ${APP_TAG} --clobber $f; done
+          gh release upload ${APP_TAG} --clobber target/openapi.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: mvn docker
