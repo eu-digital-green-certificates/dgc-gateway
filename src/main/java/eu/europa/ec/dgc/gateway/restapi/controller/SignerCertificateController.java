@@ -25,6 +25,7 @@ import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
+import eu.europa.ec.dgc.gateway.service.AuditService;
 import eu.europa.ec.dgc.gateway.service.SignerInformationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,6 +54,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class SignerCertificateController {
 
     private final SignerInformationService signerInformationService;
+
+    private final AuditService auditService;
 
     /**
      * VerificationInformation Upload Controller.
@@ -130,12 +133,17 @@ public class SignerCertificateController {
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
+                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                        cms.getPayloadCertificate().toString(), "postVerificationInformation_UPLOAD_FAILED", "");
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             } else {
+                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                        cms.getPayloadCertificate().toString(), "postVerificationInformation_BAD_REQUEST", "");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
         }
-
+        auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                cms.getPayloadCertificate().toString(), "postVerificationInformation_SUCCESS", "");
         return ResponseEntity.status(201).build();
     }
 
@@ -206,14 +214,21 @@ public class SignerCertificateController {
             log.error("Verification certificate delete failed: {}: {}", e.getReason(), e.getMessage());
 
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED) {
+                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                        cms.getPayloadCertificate().toString(), "revokeVerificationInformation_EXIST_CHECK_FAILED", "");
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
+                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                        cms.getPayloadCertificate().toString(), "revokeVerificationInformation_UPLOAD_FAILED", "");
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             } else {
+                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                        cms.getPayloadCertificate().toString(), "revokeVerificationInformation_BAD_REQUEST", "");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
         }
-
+        auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
+                cms.getPayloadCertificate().toString(), "revokeVerificationInformation_EXIST_CHECK_FAILED", "");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

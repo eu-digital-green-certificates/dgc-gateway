@@ -1,12 +1,16 @@
 package eu.europa.ec.dgc.gateway.entity;
 
+import java.time.ZonedDateTime;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.*;
-import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -28,20 +32,20 @@ public class AuditEventEntity {
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
     /**
-     * ISO 3166 Alpha-2 Country Code
+     * ISO 3166 Alpha-2 Country Code.
      * (plus code "EU" for administrative European Union entries).
      */
     @Column(name = "country", nullable = false, length = 2)
     private String country;
 
     /**
-     * uploader_sha256_fingerprint SHA256-fingerprint of the certificate
+     * uploader_sha256_fingerprint SHA256-fingerprint of the certificate.
      */
     @Column(name = "uploader_sha256_fingerprint", nullable = false, length = 64)
     private String uploaderSha256Fingerprint;
 
     /**
-     * uploader_sha256_fingerprint SHA256-fingerprint of the certificate
+     * uploader_sha256_fingerprint SHA256-fingerprint of the certificate.
      */
     @Column(name = "authentication_sha256_fingerprint", nullable = false, length = 64)
     private String authenticationSha256Fingerprint;
@@ -53,7 +57,7 @@ public class AuditEventEntity {
     private String event;
 
     /**
-     * Description of the recoreded event.
+     * Description of the recorded event.
      */
     @Column(name = "description", nullable = false, length = 64)
     private String description;
