@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class AuditServiceTest {
+class AuditServiceTest {
     @Autowired
     AuditService auditService;
     @Autowired
@@ -17,7 +17,7 @@ public class AuditServiceTest {
     private static final String dummySignature = "randomStringAsSignatureWhichIsNotValidatedInServiceLevel";
 
     @Test
-    public void testSuccessfulCreateAuditEvent() throws Exception {
+    void testSuccessfulCreateAuditEvent() throws Exception {
         long count = auditEventRepository.count() + 1;
 
         auditService.addAuditEvent(countryCode,dummySignature,
