@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import eu.europa.ec.dgc.gateway.repository.AuditEventRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +68,8 @@ class SignerCertificateIntegrationTest {
     SignerInformationRepository signerInformationRepository;
 
     @Autowired
+    AuditEventRepository auditEventRepository;
+    @Autowired
     private MockMvc mockMvc;
 
     private static final String countryCode = "EU";
@@ -75,7 +78,7 @@ class SignerCertificateIntegrationTest {
     @Test
     void testSuccessfulUpload() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
-
+        long auditEventEntitiesInDb = auditEventRepository.count();
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
@@ -109,6 +112,7 @@ class SignerCertificateIntegrationTest {
 
         Assertions.assertTrue(createdSignerInformationEntity.isPresent());
 
+        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
         Assertions.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
         Assertions.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
         Assertions.assertEquals(signature, createdSignerInformationEntity.get().getSignature());
@@ -118,6 +122,7 @@ class SignerCertificateIntegrationTest {
     @Test
     void testUploadFailedConflict() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -150,13 +155,14 @@ class SignerCertificateIntegrationTest {
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         )
             .andExpect(status().isConflict());
-
+        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }
 
     @Test
     void testUploadFailedInvalidCSCA() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -182,13 +188,14 @@ class SignerCertificateIntegrationTest {
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         )
             .andExpect(status().isBadRequest());
-
+        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
     void testUploadFailedInvalidCSCAWrongCountryCode() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -215,13 +222,14 @@ class SignerCertificateIntegrationTest {
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         )
             .andExpect(status().isBadRequest());
-
+        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
     void testUploadFailedPayloadCertCountryWrong() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
@@ -246,13 +254,14 @@ class SignerCertificateIntegrationTest {
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         )
             .andExpect(status().isBadRequest());
-
+        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
     @Test
     void testUploadFailedWrongSignerCertificate() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
 
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
@@ -277,7 +286,7 @@ class SignerCertificateIntegrationTest {
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         )
             .andExpect(status().isBadRequest());
-
+        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
@@ -311,7 +320,6 @@ class SignerCertificateIntegrationTest {
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         )
             .andExpect(status().isBadRequest());
-
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
