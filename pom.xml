@@ -69,14 +69,6 @@
         <sonar.organization>eu-digital-green-certificates</sonar.organization>
         <sonar.projectKey>${sonar.organization}_${project.artifactId}</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.coverage.exclusions>
-            **/DgcGatewayApplication.java,
-            **/model/*,
-            **/mapper/*,
-            **/entity/*,
-            **/DgcKeyStore.java,
-            **/ErrorHandler.java
-        </sonar.coverage.exclusions>
     </properties>
 
     <url>https://github.com/eu-digital-green-certificates/dgc-gateway</url>
@@ -329,6 +321,18 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/DgcGatewayApplication.java</exclude>
+                        <exclude>**/restapi/dto/*</exclude>
+                        <exclude>**/restapi/mapper/*</exclude>
+                        <exclude>**/repository/*</exclude>
+                        <exclude>**/model/*</exclude>
+                        <exclude>**/entity/*</exclude>
+                        <exclude>**/DgcKeyStore.java</exclude>
+                        <exclude>**/ErrorHandler.java</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
