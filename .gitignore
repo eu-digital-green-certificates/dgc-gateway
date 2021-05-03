@@ -41,3 +41,5 @@ build/
 /tools/*
 !/tools/*.bat
 !/tools/*.sh
+
+certs/*
