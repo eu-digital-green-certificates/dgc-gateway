@@ -1,7 +1,7 @@
 package eu.europa.ec.dgc.gateway.service;
 
 import eu.europa.ec.dgc.gateway.entity.AuditEventEntity;
-import eu.europa.ec.dgc.gateway.repository.AuditEventRepositorty;
+import eu.europa.ec.dgc.gateway.repository.AuditEventRepository;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class AuditService {
-    private final AuditEventRepositorty auditEventRepositorty;
+    private final AuditEventRepository auditEventRepository;
 
     /**
      * Method to create an audit Event.
@@ -35,6 +35,6 @@ public class AuditService {
         log.debug("Created AuditEvent with ID {} for Country {} with uploader {} authentication{}", auditEvent,
                 countryCode, uploaderSha256Fingerprint, authenticationSha256Fingerprint);
         log.info("Created AuditEvent with ID {} for Country {} ", auditEvent, countryCode);
-        auditEventRepositorty.save(auditEventEntity);
+        auditEventRepository.save(auditEventEntity);
     }
 }
