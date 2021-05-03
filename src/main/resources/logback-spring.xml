@@ -44,6 +44,12 @@
         </root>
     </springProfile>
 
+    <springProfile name="docker">
+        <root level="INFO">
+            <appender-ref ref="console"/>
+        </root>
+    </springProfile>
+
     <springProfile name="!dev">
         <root level="INFO">
             <appender-ref ref="file"/>

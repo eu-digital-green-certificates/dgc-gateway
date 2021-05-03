@@ -3,7 +3,6 @@ version: '3'
 services:
   mysql:
     image: mysql/mysql-server:5.7
-    container_name: dgc-gateway-mysql
     ports:
       - 3306:3306
     environment:
@@ -14,20 +13,22 @@ services:
     networks:
       persistence:
 
-  backend:
+  dgc-gateway:
     build: .
     image: eu-digital-green-certificates/dgc-gateway
-    container_name: dgc-gateway-backend
     volumes:
       - ./certs:/ec/prod/app/san/dgc
     ports:
       - 8080:8080
     environment:
       - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=mysql
-      - SPRING_DATASOURCE_URL=jdbc:mysql://dgc-gateway-mysql:3306/fg
+      - SPRING_PROFILES_ACTIVE=mysql,docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/dgc
       - SPRING_DATASOURCE_USERNAME=dgc_adm
       - SPRING_DATASOURCE_PASSWORD=admin
+      - DGC_TRUSTANCHOR_KEYSTOREPATH=/ec/prod/app/san/dgc/ta.jks
+      - DGC_TRUSTANCHOR_KEYSTOREPASS=dgcg-p4ssw0rd
+      - DGC_TRUSTANCHOR_CERTIFICATEALIAS=dgcg_trust_anchor
     depends_on:
       - mysql
     networks:

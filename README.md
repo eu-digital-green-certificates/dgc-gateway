@@ -24,25 +24,117 @@
 
 This repository contains the source code of the Digital Green Certificates Gateway (DGCG).
 
-DGCG is used to share validation and verification information across all national backend servers. By using DGCG, backend-to-backend integration is facilitated, and countries can onboard incrementally, while the national backends retain flexibility and can control data processing of their users.
+DGCG is used to share validation and verification information across all national backend servers. By using DGCG,
+backend-to-backend integration is facilitated, and countries can onboard incrementally, while the national backends
+retain flexibility and can control data processing of their users.
 
 ## Development
 
 ### Prerequisites
 
-- [ ] TODO: Describe prerequisites
+- OpenJDK 11 (with installed ```keytool``` CLI)
+- Maven
+
+#### Additional Tools for starting Gateway locally
+
+- OpenSSL (with installed CLI)
+- DGC-CLI (https://github.com/eu-digital-green-certificates/dgc-cli)
 
 ### Build
 
-Whether you cloned or downloaded the 'zipped' sources you will either find the sources in the chosen checkout-directory or get a zip file with the source code, which you can expand to a folder of your choice.
+Whether you cloned or downloaded the 'zipped' sources you will either find the sources in the chosen checkout-directory
+or get a zip file with the source code, which you can expand to a folder of your choice.
 
-In either case open a terminal pointing to the directory you put the sources in. The local build process is described afterwards depending on the way you choose.
+In either case open a terminal pointing to the directory you put the sources in. The local build process is described
+afterwards depending on the way you choose.
 
-#### XYZ (Maven, Docker ...) based build
+#### Maven based build for Tomcat WAR-File
 
-- [ ] TODO: Add instructions for different build types
+```
+mvn clean install
+```
 
-## Documentation  
+#### Maven based build for Docker Image
+
+```
+mvn clean install -P docker
+docker-compose backend build
+```
+
+### Start Local
+
+In order to start the gateway on your local computer you have to follow these steps:
+
+* Create TrustAnchor
+* Create Database
+* Start Gateway
+* Insert Trusted Parties
+
+#### Create TrustAnchor
+
+The TrustAnchor is used to sign TrustedParty entries in the DB. To validate these signatures the gateway needs to public
+key of the TrustAnchor.
+
+To create a TrustAnchor you can execute the following OpenSSL command:
+
+```
+openssl req -x509 -newkey rsa:4096 -keyout key_ta.pem -out cert_ta.pem -days 365 -nodes
+```
+
+afterwards the PublicKey has to be exported in a Java KeyStore.
+
+```
+keytool -importcert -alias dgcg_trust_anchor -file cert_ta.pem -keystore ta.jks -storepass dgcg-p4ssw0rd
+```
+
+Put the created ta.jks file in the "certs" directory of dgc-gateway. (Create directory if not already existing)
+
+#### Create Database
+
+DGC Gateway needs a database to persist data. For local deployment a MySQL is recommended. A MySQL DB will be started
+when docker-compose file is started, so no additional tasks are required.
+
+#### Start Gateway
+
+To start the Gateway just start the docker-compose file. Please assure that the project was build for Docker build
+before.
+
+```
+docker-compose up --build
+```
+
+#### Insert Trusted Parties
+
+The data structure in the database should be now be created by DGC Gateway. In order to access the DGC Gateway is is
+required to onboard some certificates. You will need AUTHENTICATION, UPLOAD and CSCA certificates.
+
+The certificates can be created with OpenSSL:
+
+```
+openssl req -x509 -newkey rsa:4096 -keyout key_auth.pem -out cert_auth.pem -days 365 -nodes
+openssl req -x509 -newkey rsa:4096 -keyout key_csca.pem -out cert_csca.pem -days 365 -nodes 
+openssl req -x509 -newkey rsa:4096 -keyout key_upload.pem -out cert_upload.pem -days 365 -nodes
+```
+
+To sign them with TrustAnchor you can use DGC-CLI
+
+```
+dgc ta sign -c cert_ta.pem -k key_ta.pem -i cert_auth.pem
+```
+
+Afterwards you can create a new entry in the trusted_parties table and fill all field with the data from command above.
+
+#### Send requests
+
+DGC Gateway does not do any mTLS termination. To simulate the LoadBalancer on your local deployment you have to send
+HTTP requests to the gateway and set two HTTP-Headers:
+
+X-SSL-Client-SHA256: Containing the SHA-256 Hash of the AUTHENTICATION certificate (thumbprint from dgc ta command
+output)
+X-SSL-Client-DN: Containing the Distinguish Name (Subject) of the AUTHENTICATION certificate. (Must only contain Country
+Property, e.g. C=EU)
+
+## Documentation
 
 See [./docs/software-design-dgc-gateway.md](./docs/software-design-dgc-gateway.md).
 
