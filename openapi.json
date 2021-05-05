@@ -1,7 +1,8 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Digital Green Certificate Gateway",
+    "version": "0.3.1",
+    "title": "Digital Green Certificate Gateway (Test)",
     "description": "The API defines how to exchange verification information for digital green certificates.",
     "license": {
       "name": "Apache 2.0",
