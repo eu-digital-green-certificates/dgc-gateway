@@ -65,12 +65,11 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemReportDto> handleException(Exception e) {
 
         if (e instanceof ResponseStatusException) {
+            DgcgResponseException de = (DgcgResponseException) e;
             return ResponseEntity
                 .status(((ResponseStatusException) e).getStatus())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ProblemReportDto(((DgcgResponseException) e).getCode(),
-                        ((DgcgResponseException) e).getProblem(),
-                        ((DgcgResponseException) e).getSentValues(), ((DgcgResponseException) e).getDetails()));
+                .body(new ProblemReportDto(de.getCode(),de.getProblem(),de.getSentValues(),de.getDetails()));
         } else {
             log.error("Uncaught exception {}", e.getMessage());
             log.error("exception Type {}", e.getClass());
