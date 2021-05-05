@@ -47,7 +47,7 @@ jobs:
           name: openapi.json
           path: target/openapi.json
       - name: Checkout OpenApi Doc Branch
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
         with:
           ref: openapi-doc
       - name: Delete existing openapi.json
