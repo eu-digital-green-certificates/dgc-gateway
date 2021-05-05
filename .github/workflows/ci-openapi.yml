@@ -1,6 +1,9 @@
 name: ci-openapi
 on:
   workflow_dispatch:
+  release:
+    types:
+      - created
 jobs:
   release:
     runs-on: ubuntu-20.04
@@ -61,5 +64,5 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -a -m "Update OpenAPI JSON"
+          git commit -a --allow-empty -m "Update OpenAPI JSON"
           git push
