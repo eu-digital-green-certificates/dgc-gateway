@@ -143,6 +143,8 @@ Property, e.g. C=EU)
 
 ## Documentation
 
+You can find the latest OpenAPI Spec here: https://eu-digital-green-certificates.github.io/dgc-gateway/
+
 See [./docs/software-design-dgc-gateway.md](./docs/software-design-dgc-gateway.md).
 
 ## Support and feedback
