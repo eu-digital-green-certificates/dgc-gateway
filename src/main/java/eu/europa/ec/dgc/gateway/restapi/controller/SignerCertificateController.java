@@ -46,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/signerCertificate")
@@ -130,7 +129,7 @@ public class SignerCertificateController {
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
             log.error("Verification certificate upload failed: {}: {}", e.getReason(), e.getMessage());
-            String sentValues = String.format("{} country:{}",cms,countryCode);
+            String sentValues = String.format("{%s} country:{%s}",cms,countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED) {
                 throw new DgcgResponseException(HttpStatus.CONFLICT, "0x002","You cant upload an existing certificate.",
                         sentValues,e.getMessage());
@@ -220,7 +219,7 @@ public class SignerCertificateController {
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
             log.error("Verification certificate delete failed: {}: {}", e.getReason(), e.getMessage());
-            String sentValues = String.format("{} country:{}",cms,countryCode);
+            String sentValues = String.format("{%s} country:{%s}",cms,countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED) {
                 auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
                         cms.getPayloadCertificate().toString(), "EXIST_CHECK_FAILED",

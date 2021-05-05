@@ -1,27 +1,16 @@
 package eu.europa.ec.dgc.gateway.exception;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @Getter
-@Setter
 public class DgcgResponseException extends ResponseStatusException {
 
-    private String code;
-    private String details;
-    private String sentValues;
-    private String problem;
-
-    /**
-     * One Arg constructor for DgcgResponseException.
-     *
-     * @param status the HTTP Status.
-     */
-    public DgcgResponseException(HttpStatus status) {
-        super(status);
-    }
+    private final String code;
+    private final String details;
+    private final String sentValues;
+    private final String problem;
 
     /**
      * All Args constructor for DgcgResponseException.
