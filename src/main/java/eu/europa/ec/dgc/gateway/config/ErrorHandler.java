@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import javax.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .contentType(MediaType.APPLICATION_JSON)
-            .body(new ProblemReportDto("", "Validation Error", "", e.getMessage()));
+            .body(new ProblemReportDto("0x001", "Validation Error", "", e.getMessage()));
     }
 
     /**
@@ -62,17 +63,19 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemReportDto> handleException(Exception e) {
-        if (e instanceof ResponseStatusException) {
+        if (e instanceof DgcgResponseException) {
             return ResponseEntity
                 .status(((ResponseStatusException) e).getStatus())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ProblemReportDto("co", "prob", "val", "det"));
+                .body(new ProblemReportDto(((DgcgResponseException) e).getCode(),
+                        ((DgcgResponseException) e).getProblem(),
+                        ((DgcgResponseException) e).getSentValues(), ((DgcgResponseException) e).getDetails()));
         } else {
-            log.error("Uncatched exception", e);
+            log.error("Uncaught exception {}", e.getMessage());
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ProblemReportDto("0x500", "Internal Server Error", "", ""));
+                .body(new ProblemReportDto("0x008", "Internal Server Error", "", ""));
         }
     }
 }

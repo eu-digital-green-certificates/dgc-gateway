@@ -41,7 +41,6 @@ public class ProblemReportDto {
     @Schema(example = "Certificate Thumbprint: 2342424f24c242f42f4b24...")
     private String sendValue;
 
-    @Schema(example = "Use a known upload certificate to upload signer information.")
+    @Schema(example = "Use aG known upload certificate to upload signer information.")
     private String details;
-
 }

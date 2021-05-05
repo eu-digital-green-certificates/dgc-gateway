@@ -95,16 +95,32 @@ The cerificate type is one of the following
 | Authentication Sha256Fingerprint | SHA256-fingerprint of the certificate     | varchar(*) |
 | Event | Event which occurs     | binary|
 | Description | Description of the Event    | varchar(*) |
-The Rights on the table are restricted to insert only for the appilication user to restict manipulation of the audit events.
-The following table will contain all Audit Events. It is currently under implementation so the list will be filled after.
+The Rights on the table are restricted to insert only for the application user to restrict manipulation of the audit events.
+The following table will contain all Audit Events. It is currently under implementation, so the list will be filled after.
+
 |  Event    | Description                                           |
 | -------------- | ------------------------------------------------  |
 | EventID | Description  |
 
+###Problem Report
+This is a List of all Possible Problem Reports that can be returned.
+
+| Code | Problem | Send Value | Details |
+| ----- | --------- | ----------- | --------------------- |
+| 0x001 | Validation Error | Not Available | Contains the exception message |
+| 0x002 | You cant upload an existing certificate. | Parameters send in the request | Contains the exception message |
+| 0x003 | Upload of Signer Certificate failed | Parameters send in the request | Contains the exception message |
+| 0x004 | Possible reasons: Wrong Format no CMS, not the correct signing alg missing attributes, invalid signature, certificate not signed by known CA | Parameters send in the request | Contains the exception message |
+| 0x005 | The certificate doesn't exists in the database | Parameters send in the request | Contains the exception message |
+| 0x006 | Upload of Signer Certificate failed | Parameters send in the request | Contains the exception message |
+| 0x007 | Possible reasons: Wrong Format no CMS, not the correct signing alg missing attributes, invalid signature, certificate not signed by known CA | Parameters send in the request | Contains the exception message |
+| 0x008 | Internal Server Error | Not Available | Not Available |
+
+
 ## Monitoring
 ## Audit Logging
 The purpose of the audit logging is to track the usage of the system. 
-The autit events will be additionally logged into the application log.
+The audit events will be additionally logged into the application log.
 ### Log File Structure
 
 The target environment for this service is an Apache Tomcat Server. So all log output will be written to stdout
@@ -115,7 +131,7 @@ which is redirected to `catalina.out` log file. So the content of this file need
 All log messages are following one format. The log format is inspired by the Splunk best practices document ([link](https://dev.splunk.com/enterprise/docs/developapps/addsupport/logging/loggingbestpractices/))
 
 Each log message contains key value pairs which will represent the required data.
-All of these log messages are consisting of mandatory and additional fields. The mandatory fields are always at the begin of a log message.
+All of these log messages are consisting of mandatory and additional fields. The mandatory fields are always at the beginning of a log message.
  The key value pairs are connected by a "=" and seperated by  "," followed by a space. If the value consists of more than one word, the value will be wrapped within double quotes.
  Multiple log messages are seperated by a new line.
  The following mandatory fields will be sent with each log message:
@@ -129,7 +145,7 @@ All of these log messages are consisting of mandatory and additional fields. The
 | traceId    | Correlation ID for tracing                       | d058309145b9f7a3                       |
 | spanId     | Span ID for tracing                              | d058309145b9f7a3                       |
 | thread     | ID of the thread                                 | main                                   |
-| class      | The class from which the message is comming from | e.i.f.service.SignerInformationService |
+| class      | The class from which the message is coming from | e.i.f.service.SignerInformationService |
 | message    | Information about what has happened              | Uploaded certificate already exist      |
 | exception  | Stack Trace, if available                        | org.springframew...                    |
 
