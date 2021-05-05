@@ -38,6 +38,7 @@ import org.bouncycastle.cert.CertException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.RuntimeOperatorException;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.springframework.stereotype.Service;
 
@@ -243,8 +244,9 @@ public class SignerInformationService {
 
         try {
             return certificate.isSignatureValid(verifier);
-        } catch (CertException e) {
+        } catch (CertException | RuntimeOperatorException e) {
             log.error("Could not verify certificate issuance.");
+            log.debug("Could not verify certificate issuance: {}", e.getMessage());
             return false;
         }
     }
