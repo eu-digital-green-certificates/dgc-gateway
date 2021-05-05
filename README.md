@@ -58,7 +58,7 @@ mvn clean install
 
 ```
 mvn clean install -P docker
-docker-compose backend build
+docker-compose build
 ```
 
 ### Start Local
@@ -102,6 +102,13 @@ before.
 ```
 docker-compose up --build
 ```
+
+#### Common issues
+
+`ERROR: for dgc-gateway_dgc-gateway_1  Cannot create container for service dgc-gateway`
+
+This error occurs in Docker-for-Windows if Docker does not have access to the gateway folder. In Docker-for-Windows, 
+go to `Settings > Resources > File Sharing` and add the root directory of the repository, then restart Docker-for-Windows.
 
 #### Insert Trusted Parties
 
