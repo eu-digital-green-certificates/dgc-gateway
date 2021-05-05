@@ -51,12 +51,11 @@ jobs:
         with:
           ref: openapi-doc
       - name: Delete existing openapi.json
-        run: rm -f /dist/openapi.json
+        run: rm -f openapi.json
       - name: Download openapi.json
         uses: actions/download-artifact@v2
         with:
           name: openapi.json
-          path: dist/
       - name: Commit and Push changes
         run: |
           git config user.name github-actions
