@@ -63,7 +63,8 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemReportDto> handleException(Exception e) {
-        if (e instanceof DgcgResponseException) {
+
+        if (e instanceof ResponseStatusException) {
             return ResponseEntity
                 .status(((ResponseStatusException) e).getStatus())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -72,10 +73,11 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
                         ((DgcgResponseException) e).getSentValues(), ((DgcgResponseException) e).getDetails()));
         } else {
             log.error("Uncaught exception {}", e.getMessage());
+            log.error("exception Type {}", e.getClass());
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ProblemReportDto("0x008", "Internal Server Error", "", ""));
+                .body(new ProblemReportDto("0x008", "Internal Server Error", "", e.getMessage()));
         }
     }
 }
