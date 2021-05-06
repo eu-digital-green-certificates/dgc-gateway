@@ -123,7 +123,7 @@ go to `Settings > Resources > File Sharing` and add the root directory of the re
 
 #### Insert Trusted Parties
 
-The data structure in the database should be now be created by DGC Gateway. In order to access the DGC Gateway is is
+The data structure in the database should be now be created by DGC Gateway. In order to access the DGC Gateway it is
 required to onboard some certificates. You will need AUTHENTICATION, UPLOAD and CSCA certificates.
 
 The certificates can be created with OpenSSL:
@@ -134,7 +134,7 @@ openssl req -x509 -newkey rsa:4096 -keyout key_csca.pem -out cert_csca.pem -days
 openssl req -x509 -newkey rsa:4096 -keyout key_upload.pem -out cert_upload.pem -days 365 -nodes
 ```
 
-To sign them with TrustAnchor you can use DGC-CLI
+To sign them with TrustAnchor you can use DGC-CLI:
 
 ```
 dgc ta sign -c cert_ta.pem -k key_ta.pem -i cert_auth.pem
@@ -142,7 +142,7 @@ dgc ta sign -c cert_ta.pem -k key_ta.pem -i cert_csca.pem
 dgc ta sign -c cert_ta.pem -k key_ta.pem -i cert_upload.pem
 ```
 
-Afterwards you can create a new entry in the `trusted_parties` table and fill all field with the data from command above.
+Afterwards you can create a new entry in the `trusted_parties` table and fill all of the fields with the data produced by the above commands.
 
 ##### Inserting Trusted Parties into the Database
 
@@ -164,7 +164,7 @@ We're interested in the table `trusted_party`; you can see the structure of it b
 describe trusted_party;
 ```
 
-To insert your certificates you can do this (replacing this with your own information from the `dgc` command:
+To insert your certificates you can do this (replacing this with your own information from the `dgc` command):
 
 ```
 INSERT INTO trusted_party (created_at, country, thumbprint, raw_data, signature, certificate_type)
@@ -177,7 +177,7 @@ SELECT
 	'{AUTHENTICATION|UPLOAD|CSCA}' as certificate_type;
 ```
 
-Here is an actual example of signing all of the certificates:
+Here is a set of example queries including all of the data:
 
 ```
 -- Authentication certificate
@@ -267,6 +267,17 @@ X-SSL-Client-SHA256: Containing the SHA-256 Hash of the AUTHENTICATION certifica
 output)
 X-SSL-Client-DN: Containing the Distinguish Name (Subject) of the AUTHENTICATION certificate. (Must only contain Country
 Property, e.g. C=EU)
+
+#### Coverting the certificate/private key into PKCS12
+
+Windows users may wish to convert their certificate/private keys into a PKCS12 package so that it can be imported into the 
+machine's certificate store. Thankfully that is pretty simple using openssl.
+
+For example to convert the test authentication certificate created earlier:
+
+```
+     openssl pkcs12 -export -out auth.pfx -inkey key_auth.pem -in cert_auth.pem
+```
 
 ## Documentation
 
