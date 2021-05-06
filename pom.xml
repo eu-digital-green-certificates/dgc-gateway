@@ -52,6 +52,7 @@
         <mockito.version>3.9.0</mockito.version>
         <bcpkix.version>1.68</bcpkix.version>
         <!-- plugins -->
+        <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
         <plugin.sonar.version>3.6.1.1688</plugin.sonar.version>
         <plugin.jacoco.version>0.8.6</plugin.jacoco.version>
@@ -251,7 +252,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>${plugin.maven-assembly.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
