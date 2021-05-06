@@ -59,7 +59,7 @@ jobs:
         with:
           name: DGCG001_PRD
           path: target/DGCG001_PRD*
-  build docker:
+  build-docker:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-java@v2
