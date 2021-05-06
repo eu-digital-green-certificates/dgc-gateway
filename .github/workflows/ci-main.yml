@@ -59,3 +59,90 @@ jobs:
         with:
           name: DGCG001_PRD
           path: target/DGCG001_PRD*
+  build-docker:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: adopt
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+      - name: version
+        run: >-
+          APP_SHA=$(git rev-parse --short ${GITHUB_SHA});
+          APP_REV=$(git rev-list --tags --max-count=1);
+          APP_TAG=$(git describe --tags ${APP_REV} 2> /dev/null || echo 0.0.0);
+          APP_VERSION=${APP_TAG}-${APP_SHA};
+          echo "APP_SHA=${APP_SHA}" >> ${GITHUB_ENV};
+          echo "APP_TAG=${APP_TAG}" >> ${GITHUB_ENV};
+          echo "APP_VERSION=${APP_VERSION}" >> ${GITHUB_ENV};
+      - name: mvn
+        run: >-
+          mvn versions:set
+          --batch-mode
+          --file ./pom.xml
+          --settings ./settings.xml
+          --define newVersion="${APP_VERSION}";
+          mvn clean install -P docker
+          --batch-mode
+          --file ./pom.xml
+          --settings ./settings.xml
+          --define app.packages.username="${APP_PACKAGES_USERNAME}"
+          --define app.packages.password="${APP_PACKAGES_PASSWORD}";
+        env:
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: docker
+        run: >-
+          echo "${APP_PACKAGES_PASSWORD}" |
+          docker login "${APP_PACKAGES_URL}"
+          --username "${APP_PACKAGES_USERNAME}"
+          --password-stdin;
+          docker build .
+          --file ./Dockerfile
+          --tag "${APP_PACKAGES_URL}:${APP_VERSION}";
+          docker push "${APP_PACKAGES_URL}:${APP_VERSION}";
+        env:
+          APP_PACKAGES_URL: docker.pkg.github.com/${{ github.repository }}/dgc-gateway
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  license:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: adopt
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+      - name: mvn
+        run: >-
+          mvn license:remove-file-header license:update-file-header license:add-third-party
+          --batch-mode
+          --file ./pom.xml
+          --settings ./settings.xml
+          --define app.packages.username="${APP_PACKAGES_USERNAME}"
+          --define app.packages.password="${APP_PACKAGES_PASSWORD}";
+        env:
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and Push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit --allow-empty -m "Update License Header and Third Party Notices"
+          git push
