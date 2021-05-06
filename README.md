@@ -3,11 +3,21 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml" title="ci-main.yml"><img src="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml/badge.svg"></a>
-      <a href="https://sonarcloud.io/dashboard?id=eu-digital-green-certificates_dgc-gateway" title="Quality Gate Status"><img src="https://sonarcloud.io/api/project_badges/measure?project=eu-digital-green-certificates_dgc-gateway&metric=alert_status"></a>
-  <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
-  <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat"></a>
-  <a href="./LICENSE" title="License"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat"></a>
+  <a href="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml" title="ci-main.yml">
+    <img src="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/ci-main.yml/badge.svg">
+  </a>
+  <a href="https://sonarcloud.io/dashboard?id=eu-digital-green-certificates_dgc-gateway" title="Quality Gate Status">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=eu-digital-green-certificates_dgc-gateway&metric=alert_status">
+  </a>
+  <a href="/../../commits/" title="Last Commit">
+    <img src="https://img.shields.io/github/last-commit/eu-digital-green-certificates/dgc-gateway?style=flat">
+  </a>
+  <a href="/../../issues" title="Open Issues">
+    <img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat">
+  </a>
+  <a href="./LICENSE" title="License">
+    <img src="https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat">
+  </a>
 </p>
 
 <p align="center">
@@ -87,7 +97,8 @@ afterwards the PublicKey has to be exported in a Java KeyStore.
 keytool -importcert -alias dgcg_trust_anchor -file cert_ta.pem -keystore ta.jks -storepass dgcg-p4ssw0rd
 ```
 
-Put the created ta.jks file in the "certs" directory of dgc-gateway. (Create directory if not already existing)
+Put the created ta.jks file in the "certs" directory of dgc-gateway. If you are using the Docker image then this folder must
+be in the root directory of your local workspace (on the same level as this readme file). Create directory it does not already exist.
 
 #### Create Database
 
@@ -200,6 +211,53 @@ select
 	'CSCA' as certificate_type;
 ```
 
+#### Testing that everything works
+
+You can test that everything works quickly by using this curl:
+
+```
+curl -X GET http://localhost:8080/trustList -H "accept: application/json" -H "X-SSL-Client-SHA256: 397da9eb17467a2b3b83704ab6490a540bef43e84f06a6bd885e6621572da401" -H "X-SSL-Client-DN: C=NL"
+```
+
+* Replace the example SHA with that of your own test certificate in the `X-SSL-Client-SHA256` header
+* Replace the example country with your own country in the `X-SSL-Client-DN` header (i.e. US, CN, ZA) 
+
+That command will return something looking like this (but with large base64 strings)
+
+```
+[{
+	"kid":"OX2p6xdGeis=",
+	"timestamp":"2021-05-05T12:54:49Z",
+	"country":"NL",
+	"certificateType":"AUTHENTICATION",
+	"thumbprint":"397da9eb17467a2b3b83704ab6490a540bef43e84f06a6bd885e6621572da401",
+	"signature":"<snip>",
+	"rawData":"<snip>"
+},{
+	"kid":"eljMhaG8/ss=",
+	"timestamp":"2021-05-05T12:57:26Z",
+	"country":"NL",
+	"certificateType":"UPLOAD",
+	"thumbprint":"7a58cc85a1bcfecb1bc69822cc2a72dfb4fbc9fe23d588fa9b0660b929d368f9",
+	"signature":"<snip>",
+	"rawData":"<snip>"
+},{
+"kid":"pdRBv6f9vCs=",
+"timestamp":"2021-05-05T12:57:36Z",
+"country":"NL",
+"certificateType":"CSCA",
+"thumbprint":"a5d441bfa7fdbc2b64b73fb1d78e801bc131d670f6e97218a1625098b3ced707",
+"signature":"<snip>",
+"rawData":"<snip>"}]
+```
+
+NOTE: the url uses mixed cases; it's `trustList` not `trustlist`!
+
+If something goes wrong, the best place to look is in the logging.
+
+Docker users can read the logs by copying them to their machine; use `docker ps` to get the ID of the running containers
+and `docker cp [CONTAINER_ID]:/logs/dgcg.log .` to copy the log file to the current directory.
+
 #### Send requests
 
 DGC Gateway does not do any mTLS termination. To simulate the LoadBalancer on your local deployment you have to send
@@ -212,7 +270,9 @@ Property, e.g. C=EU)
 
 ## Documentation
 
-See [./docs/software-design-dgc-gateway.md](./docs/software-design-dgc-gateway.md).
+See [docs/software-design-dgc-gateway.md](docs/software-design-dgc-gateway.md).
+
+The onboarding document, which includes [https://github.com/eu-digital-green-certificates/dgc-participating-countries/gateway/OnboardingChecklist.md
 
 ## Support and feedback
 
@@ -225,7 +285,9 @@ The following channels are available for discussions, feedback, and support requ
 
 ## How to contribute  
 
-Contribution and feedback is encouraged and always welcome. For more information about how to contribute, the project structure, as well as additional contribution information, see our [Contribution Guidelines](./CONTRIBUTING.md). By participating in this project, you agree to abide by its [Code of Conduct](./CODE_OF_CONDUCT.md) at all times.
+Contribution and feedback is encouraged and always welcome. For more information about how to contribute, the project structure, 
+as well as additional contribution information, see our [Contribution Guidelines](./CONTRIBUTING.md). By participating in this 
+project, you agree to abide by its [Code of Conduct](./CODE_OF_CONDUCT.md) at all times.
 
 ## Contributors  
 
@@ -239,4 +301,6 @@ Licensed under the **Apache License, Version 2.0** (the "License"); you may not 
 
 You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the [LICENSE](./LICENSE) for the specific language governing permissions and limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" 
+BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the [LICENSE](./LICENSE) for the specific 
+language governing permissions and limitations under the License.
