@@ -132,7 +132,8 @@ public class SignerCertificateController {
             log.error("Verification certificate upload failed: {}: {}", e.getReason(), e.getMessage());
             String sentValues = String.format("{%s} country:{%s}", cms, countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED) {
-                throw new DgcgResponseException(HttpStatus.CONFLICT, "0x002", "You cant upload an existing certificate.",
+                throw new DgcgResponseException(HttpStatus.CONFLICT, "0x002",
+                    "You cant upload an existing certificate.",
                     sentValues, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
                 auditService.addAuditEvent(
