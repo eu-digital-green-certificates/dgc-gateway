@@ -21,9 +21,6 @@
 package eu.europa.ec.dgc.gateway;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,13 +31,6 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  */
 @SpringBootApplication
 @EnableConfigurationProperties(DgcConfigProperties.class)
-@OpenAPIDefinition(
-    info = @Info(
-        title = "Digital Green Certificate Gateway",
-        description = "The API defines how to exchange verification information for digital green certificates.",
-        license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0")
-    )
-)
 public class DgcGatewayApplication extends SpringBootServletInitializer {
 
     /**
