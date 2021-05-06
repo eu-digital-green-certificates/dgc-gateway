@@ -130,7 +130,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
       - name: mvn
         run: >-
-          mvn license:remove-file-header license:update-file-header license:add-third-party
+          license:update-file-header license:add-third-party
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml
