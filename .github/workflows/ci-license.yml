@@ -1,0 +1,40 @@
+name: ci-license
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: adopt
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+      - name: mvn
+        run: >-
+          mvn license:remove-file-header license:update-file-header license:add-third-party
+          --batch-mode
+          --file ./pom.xml
+          --settings ./settings.xml
+          --define app.packages.username="${APP_PACKAGES_USERNAME}"
+          --define app.packages.password="${APP_PACKAGES_PASSWORD}";
+        env:
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and Push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -a --allow-empty -m "Update License Header"
+          git push
