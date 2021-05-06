@@ -43,5 +43,4 @@ public class ProblemReportDto {
 
     @Schema(example = "Use a known upload certificate to upload signer information.")
     private String details;
-
 }

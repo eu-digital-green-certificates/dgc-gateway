@@ -1,10 +1,11 @@
-name: ci-main-docker
+name: ci-openapi
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+  release:
+    types:
+      - created
 jobs:
-  build:
+  release:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-java@v2
@@ -35,7 +36,7 @@ jobs:
           --file ./pom.xml
           --settings ./settings.xml
           --define newVersion="${APP_VERSION}";
-          mvn clean install -P docker
+          mvn clean verify
           --batch-mode
           --file ./pom.xml
           --settings ./settings.xml
@@ -44,17 +45,24 @@ jobs:
         env:
           APP_PACKAGES_USERNAME: ${{ github.actor }}
           APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      - name: docker
-        run: >-
-          echo "${APP_PACKAGES_PASSWORD}" |
-          docker login "${APP_PACKAGES_URL}"
-          --username "${APP_PACKAGES_USERNAME}"
-          --password-stdin;
-          docker build .
-          --file ./Dockerfile
-          --tag "${APP_PACKAGES_URL}:${APP_VERSION}";
-          docker push "${APP_PACKAGES_URL}:${APP_VERSION}";
-        env:
-          APP_PACKAGES_URL: docker.pkg.github.com/${{ github.repository }}/dgc-gateway
-          APP_PACKAGES_USERNAME: ${{ github.actor }}
-          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: openapi.json
+          path: target/openapi.json
+      - name: Checkout OpenApi Doc Branch
+        uses: actions/checkout@v2
+        with:
+          ref: openapi-doc
+      - name: Delete existing openapi.json
+        run: rm -f openapi.json
+      - name: Download openapi.json
+        uses: actions/download-artifact@v2
+        with:
+          name: openapi.json
+      - name: Commit and Push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -a --allow-empty -m "Update OpenAPI JSON"
+          git push

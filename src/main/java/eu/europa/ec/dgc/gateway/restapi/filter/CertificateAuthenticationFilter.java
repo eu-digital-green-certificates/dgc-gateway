@@ -136,7 +136,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
         if (headerDistinguishedName == null || headerCertThumbprint == null) {
             log.error("No thumbprint or distinguish name");
             handlerExceptionResolver.resolveException(
-                httpServletRequest, httpServletResponse, null, new ResponseStatusException(HttpStatus.FORBIDDEN));
+                httpServletRequest, httpServletResponse, null, new ResponseStatusException(HttpStatus.UNAUTHORIZED));
             return;
         }
 
@@ -166,7 +166,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             log.error("Unknown client certificate");
             handlerExceptionResolver.resolveException(
                 httpServletRequest, httpServletResponse, null,
-                new ResponseStatusException(HttpStatus.FORBIDDEN,
+                new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "Client is not authorized to access the service"));
             return;
         }

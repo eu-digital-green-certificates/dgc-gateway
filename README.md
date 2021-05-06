@@ -270,9 +270,9 @@ Property, e.g. C=EU)
 
 ## Documentation
 
-See [docs/software-design-dgc-gateway.md](docs/software-design-dgc-gateway.md).
-
-The onboarding document, which includes [https://github.com/eu-digital-green-certificates/dgc-participating-countries/gateway/OnboardingChecklist.md
+* [OpenAPI Spec](https://eu-digital-green-certificates.github.io/dgc-gateway/)
+* [Software Design](docs/software-design-dgc-gateway.md)
+* [Onboarding Document](https://github.com/eu-digital-green-certificates/dgc-participating-countries/blob/main/gateway/OnboardingChecklist.md)
 
 ## Support and feedback
 

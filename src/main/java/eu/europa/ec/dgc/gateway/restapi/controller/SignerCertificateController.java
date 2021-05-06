@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
@@ -45,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/signerCertificate")
@@ -114,7 +114,8 @@ public class SignerCertificateController {
     )
     public ResponseEntity<Void> postVerificationInformation(
         @RequestBody SignedCertificateDto cms,
-        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
 
         log.info("Uploading new verification certificate, signing cert: {}, payload cert: {}",
@@ -129,24 +130,40 @@ public class SignerCertificateController {
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
             log.error("Verification certificate upload failed: {}: {}", e.getReason(), e.getMessage());
-
+            String sentValues = String.format("{%s} country:{%s}", cms, countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+                throw new DgcgResponseException(HttpStatus.CONFLICT, "0x002",
+                    "You cant upload an existing certificate.",
+                    sentValues, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
-                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "UPLOAD_FAILED",
-                        "postVerificationInformation triggered UPLOAD_FAILED");
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                auditService.addAuditEvent(
+                    countryCode,
+                    cms.getSignerCertificate(),
+                    authThumbprint,
+                    "UPLOAD_FAILED",
+                    "postVerificationInformation triggered UPLOAD_FAILED");
+
+                throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "0x003", "Upload of Signer Certificate failed", sentValues, e.getMessage());
             } else {
-                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "BAD_REQUEST",
-                        "postVerificationInformation triggered BAD_REQUEST");
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+                auditService.addAuditEvent(
+                    countryCode,
+                    cms.getSignerCertificate(),
+                    authThumbprint,
+                    "BAD_REQUEST",
+                    "postVerificationInformation triggered BAD_REQUEST");
+
+                throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x004", "Possible reasons: Wrong Format,"
+                    + " no CMS, not the correct signing alg missing attributes, invalid signature, certificate not "
+                    + "signed by known CA", sentValues, e.getMessage());
             }
         }
-        auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                cms.getPayloadCertificate().toString(), "SUCCESS",
-                "postVerificationInformation successful executed");
+        auditService.addAuditEvent(
+            countryCode,
+            cms.getSignerCertificate(),
+            authThumbprint,
+            "SUCCESS",
+            "postVerificationInformation successful executed");
         return ResponseEntity.status(201).build();
     }
 
@@ -201,7 +218,8 @@ public class SignerCertificateController {
     )
     public ResponseEntity<Void> revokeVerificationInformation(
         @RequestBody SignedCertificateDto cms,
-        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
 
         log.info("Revoking verification certificate, signing cert: {}, payload cert: {}",
@@ -215,27 +233,48 @@ public class SignerCertificateController {
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
             log.error("Verification certificate delete failed: {}: {}", e.getReason(), e.getMessage());
-
+            String sentValues = String.format("{%s} country:{%s}", cms, countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED) {
-                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "EXIST_CHECK_FAILED",
-                        "revokeVerificationInformation triggered EXIST_CHECK_FAILED");
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+                auditService.addAuditEvent(
+                    countryCode,
+                    cms.getSignerCertificate(),
+                    authThumbprint,
+                    "EXIST_CHECK_FAILED",
+                    "revokeVerificationInformation triggered EXIST_CHECK_FAILED");
+
+                throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x005",
+                    "The certificate doesn't exists in the database.",
+                    sentValues, e.getMessage());
             } else if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.UPLOAD_FAILED) {
-                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "UPLOAD_FAILED",
-                        "revokeVerificationInformation triggered UPLOAD_FAILED");
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                auditService.addAuditEvent(
+                    countryCode,
+                    cms.getSignerCertificate(),
+                    authThumbprint,
+                    "UPLOAD_FAILED",
+                    "revokeVerificationInformation triggered UPLOAD_FAILED");
+
+                throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "0x006", "Upload of Signer Certificate failed", sentValues, e.getMessage());
             } else {
-                auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                        cms.getPayloadCertificate().toString(), "BAD_REQUEST",
-                        "revokeVerificationInformation triggered BAD_REQUEST");
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+                auditService.addAuditEvent(
+                    countryCode,
+                    cms.getSignerCertificate(),
+                    authThumbprint,
+                    "BAD_REQUEST",
+                    "revokeVerificationInformation triggered BAD_REQUEST");
+
+                throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x007", "Possible reasons: Wrong Format,"
+                    + " no CMS, not the correct signing alg missing attributes, invalid signature, certificate not "
+                    + "signed by known CA", sentValues, e.getMessage());
             }
         }
-        auditService.addAuditEvent(countryCode,cms.getSignerCertificate().toString(),
-                cms.getPayloadCertificate().toString(), "SUCCESS",
-                "revokeVerificationInformation triggered SUCCESS ");
+        auditService.addAuditEvent(
+            countryCode,
+            cms.getSignerCertificate(),
+            authThumbprint,
+            "SUCCESS",
+            "revokeVerificationInformation triggered SUCCESS");
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
