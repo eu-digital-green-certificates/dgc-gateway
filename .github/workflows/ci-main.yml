@@ -122,7 +122,7 @@ jobs:
           distribution: adopt
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          token: ${{ secrets.GPR_TOKEN_F11H }}
       - uses: actions/cache@v2
         with:
           path: |
