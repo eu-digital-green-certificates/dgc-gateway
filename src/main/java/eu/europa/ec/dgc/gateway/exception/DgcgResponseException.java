@@ -31,7 +31,17 @@ public class DgcgResponseException extends ResponseStatusException {
     private final String details;
     private final String sentValues;
     private final String problem;
-    public DgcgResponseException(HttpStatus status,String code,String problem,String sentValues,String details) {
+
+    /**
+     * All Args constructor for DgcgResponseException.
+     *
+     * @param status     the HTTP Status.
+     * @param code       the error code.
+     * @param details    the details of the problem.
+     * @param sentValues the values sent to cause the error.
+     * @param problem    short problem description.
+     */
+    public DgcgResponseException(HttpStatus status, String code, String problem, String sentValues, String details) {
         super(status);
         this.code = code;
         this.details = details;
