@@ -8,7 +8,6 @@
     </#list>
     <#return result>
 </#function>
-
 ThirdPartyNotices
 -----------------
 This project uses third-party software or other resources that
@@ -22,8 +21,10 @@ ThirdParty Licenses
 
 | Dependency | License |
 | --- | --- |
-<#list dependencyMap as e>
-    <#assign project = e.getKey() />
-    <#assign license = e.getValue() />
-    | ${artifactFormat(project)} | ${licenseFormat(license)} |
-</#list>
+<#compress>
+    <#list dependencyMap as e>
+        <#assign project = e.getKey() />
+        <#assign license = e.getValue() />
+        | ${artifactFormat(project)} | ${licenseFormat(license)} |
+    </#list>
+</#compress>
