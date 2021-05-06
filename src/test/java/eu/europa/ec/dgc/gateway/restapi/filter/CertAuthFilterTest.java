@@ -60,7 +60,7 @@ class CertAuthFilterTest {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
-        ).andExpect(status().isForbidden());
+        ).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -68,14 +68,14 @@ class CertAuthFilterTest {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
-        ).andExpect(status().isForbidden());
+        ).andExpect(status().isUnauthorized());
     }
 
     @Test
     void testRequestShouldFailIfCertHeadersAreMissing() throws Exception {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
-        ).andExpect(status().isForbidden());
+        ).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -84,7 +84,7 @@ class CertAuthFilterTest {
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), "randomString")
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
-        ).andExpect(status().isForbidden());
+        ).andExpect(status().isUnauthorized());
     }
 
     @Test
