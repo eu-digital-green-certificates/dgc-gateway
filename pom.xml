@@ -377,6 +377,10 @@
                     <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
                     <trimHeaderLine>true</trimHeaderLine>
                     <emptyLineAfterHeader>true</emptyLineAfterHeader>
+                    <outputDirectory>.</outputDirectory>
+                    <thirdPartyFilename>THIRD-PARTY.md</thirdPartyFilename>
+                    <fileTemplate>templates/third-party.ftl</fileTemplate>
+                    <excludedArtifacts>dgc-lib</excludedArtifacts>
                 </configuration>
             </plugin>
             <plugin>
