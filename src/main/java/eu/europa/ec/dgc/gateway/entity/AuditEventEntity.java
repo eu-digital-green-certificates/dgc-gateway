@@ -44,6 +44,10 @@ public class AuditEventEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
+    /**
+     * Timestamp of the Record.
+     */
     @Column(name = "timestamp", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 

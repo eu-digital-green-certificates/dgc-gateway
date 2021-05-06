@@ -38,6 +38,16 @@ public class AuditService {
     private final AuditEventRepository auditEventRepository;
 
     private final CertificateUtils certificateUtils;
+
+    /**
+     * Method to create an audit Event.
+     *
+     * @param countryCode                     2-digit country Code
+     * @param uploaderCertificate             the uploader cert
+     * @param authenticationSha256Fingerprint fingerprint of the authentication cert
+     * @param auditEvent                      Event ID
+     * @param auditEventDescription           EventDescription
+     */
     public void addAuditEvent(String countryCode, X509CertificateHolder uploaderCertificate,
                               String authenticationSha256Fingerprint,
                               String auditEvent, String auditEventDescription) {

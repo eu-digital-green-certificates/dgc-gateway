@@ -37,5 +37,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -a --allow-empty -m "Update License Header"
+          git add .
+          git commit --allow-empty -m "Update License Header and Third Party Notices"
           git push
