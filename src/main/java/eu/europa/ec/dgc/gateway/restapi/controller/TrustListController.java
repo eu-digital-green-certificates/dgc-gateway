@@ -150,7 +150,7 @@ public class TrustListController {
                 schema = @Schema(implementation = CertificateTypeDto.class)),
             @Parameter(
                 in = ParameterIn.PATH,
-                name = "county",
+                name = "country",
                 description = "2-Digit Country Code to filter for",
                 example = "EU",
                 required = true)
