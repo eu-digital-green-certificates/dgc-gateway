@@ -28,7 +28,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface TrustListMapper {
+public interface GwTrustListMapper {
 
     TrustListDto trustListToTrustListDto(TrustList trustList);
 
