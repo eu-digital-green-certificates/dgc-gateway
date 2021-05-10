@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BouncyCastleConfig {
 
+    /**
+     * Adds BouncyCastle as Provider for JavaSecurity.
+     */
     public BouncyCastleConfig() {
         Security.addProvider(new BouncyCastleProvider());
     }
