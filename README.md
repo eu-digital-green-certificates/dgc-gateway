@@ -54,9 +54,6 @@ The following steps need to be followed
 
 - Create [PAT](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with scopes:
   - `read:packages` for downloading packages
-  - `write:packages` for uploading packages (NOTE: Requires write permission for the repo of the package)
-  - `delete:packages` for deleting packages (NOTE: Requires admin permission for the repo of the package)
-  - `repo` pload and delete packages (along with `write:packages`, or `delete:packages`)
 - Copy/Augment `~/.m2/settings.xml` with the contents of `settings.xml` present in this repository
   - Replace `${app.packages.username}` with your github username
   - Replace `${app.packages.password}` with the generated PAT
