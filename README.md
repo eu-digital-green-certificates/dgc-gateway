@@ -46,7 +46,7 @@ retain flexibility and can control data processing of their users.
 - Maven
 - Authenticate to [Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
 
-#### Authenticating in to GitHub Packages
+#### Authenticating to GitHub Packages
 
 As some of the required libraries (and/or versions are pinned/available only from GitHub Packages) You need to authenticate
 to [GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
