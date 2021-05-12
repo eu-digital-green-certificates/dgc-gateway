@@ -281,7 +281,19 @@ For example to convert the test authentication certificate created earlier:
 
 ## Documentation
 
-* [OpenAPI Spec](https://eu-digital-green-certificates.github.io/dgc-gateway/)
+### OpenAPI Spec
+
+The latest OpenAPI specification can always be found here: https://eu-digital-green-certificates.github.io/dgc-gateway/
+
+It is also possible to access OpenAPI when DGC Gateway is deployed on your local computer when Spring-Profile "dev" or "
+local" is enabled. In order to set authentication headers for authentication without a mTLS terminating LoadBalancer at
+least the profile "local"
+should be enabled. Then both headers can be set in Swagger UI.
+
+http://localhost:8090/swagger-ui/index.html
+
+### Other Documentation
+
 * [Software Design](docs/software-design-dgc-gateway.md)
 * [Onboarding Document](https://github.com/eu-digital-green-certificates/dgc-participating-countries/blob/main/gateway/OnboardingChecklist.md)
 
