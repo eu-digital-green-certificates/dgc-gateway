@@ -62,6 +62,7 @@ The following steps need to be followed
   - Replace `${app.packages.password}` with the generated PAT
 
 ##### GitHub Docker Registry
+
 - Run `docker login docker.pkg.github.com/eu-digital-green-certificates` before running further docker commands.
   - Use your GitHub username as username
   - Use the generated PAT as password
