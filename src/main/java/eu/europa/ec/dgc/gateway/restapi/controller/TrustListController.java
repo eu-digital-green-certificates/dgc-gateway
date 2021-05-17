@@ -25,7 +25,7 @@ import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
-import eu.europa.ec.dgc.gateway.restapi.mapper.TrustListMapper;
+import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustListMapper;
 import eu.europa.ec.dgc.gateway.service.TrustListService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -55,7 +55,7 @@ public class TrustListController {
 
     private final TrustListService trustListService;
 
-    private final TrustListMapper trustListMapper;
+    private final GwTrustListMapper trustListMapper;
 
     /**
      * TrustList Download Controller.
