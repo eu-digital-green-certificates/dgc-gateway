@@ -172,7 +172,6 @@ public class SignerCertificateController {
      */
     @CertificateAuthenticationRequired
     @DeleteMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
-    @PostMapping(path = "delete", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
         summary = "Revokes Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
@@ -277,5 +276,64 @@ public class SignerCertificateController {
             "revokeVerificationInformation triggered SUCCESS");
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    /**
+     * Alias Method for revoking signer certificate.
+     */
+    @CertificateAuthenticationRequired
+    @PostMapping(path = "/delete", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
+    @Operation(
+        summary = "Revokes Signer Certificate of a trusted Issuer",
+        description = "This endpoint is a workaround alias endpoint. This should only be used if it is not possible"
+            + " to send http payloads with DELETE requests.",
+        tags = {"Signer Information"},
+        parameters = {
+            @Parameter(
+                in = ParameterIn.HEADER,
+                name = HttpHeaders.CONTENT_TYPE,
+                required = true,
+                schema = @Schema(type = "string"),
+                example = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE),
+            @Parameter(
+                in = ParameterIn.HEADER,
+                name = HttpHeaders.CONTENT_ENCODING,
+                required = true,
+                schema = @Schema(type = "string"),
+                example = "base64")
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            description = "Request body with payload. (limited)",
+            content = @Content(
+                mediaType = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE,
+                schema = @Schema(implementation = SignedCertificateDto.class))
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "204",
+                description = "Certificate was revoked successfully."),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad request. Possible reasons: Wrong Format, no CMS, not the correct signing alg,"
+                    + " missing attributes, invalid signature, certificate not signed by known CA",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class))),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class)
+                ))
+        }
+    )
+    public ResponseEntity<Void> revokeVerificationInformationAlias(
+        @RequestBody SignedCertificateDto cms,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
+    ) {
+        return revokeVerificationInformation(cms, countryCode, authThumbprint);
     }
 }
