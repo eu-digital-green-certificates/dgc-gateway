@@ -172,6 +172,7 @@ public class SignerCertificateController {
      */
     @CertificateAuthenticationRequired
     @DeleteMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
+    @PostMapping(path = "delete", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
         summary = "Revokes Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
