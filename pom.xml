@@ -39,10 +39,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- dependencies -->
-        <owasp.version>6.1.1</owasp.version>
-        <spring.boot.version>2.4.4</spring.boot.version>
-        <spring.cloud.version>2020.0.2</spring.cloud.version>
-        <spring.test.version>5.3.5</spring.test.version>
+        <owasp.version>6.1.6</owasp.version>
+        <spring.boot.version>2.4.5</spring.boot.version>
+        <spring.test.version>5.3.7</spring.test.version>
         <spring.security.version>5.4.6</spring.security.version>
         <lombok.version>1.18.20</lombok.version>
         <liquibase.version>4.3.3</liquibase.version>
