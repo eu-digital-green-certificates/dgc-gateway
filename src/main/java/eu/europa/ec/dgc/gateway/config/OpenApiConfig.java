@@ -20,20 +20,29 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @RequiredArgsConstructor
 public class OpenApiConfig {
 
     private final Optional<BuildProperties> buildProperties;
+
+    private final DgcConfigProperties configProperties;
+
+    private final Environment environment;
 
     @Bean
     OpenAPI openApiInfo() {
@@ -45,6 +54,26 @@ public class OpenApiConfig {
             version = "Development Build";
         }
 
+        Components components = new Components();
+
+        // Add authorization if "local" Profile is enabled.
+        List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
+        if (activeProfiles.contains("local")) {
+            components = new Components()
+                .addSecuritySchemes("Authentication Certificate Hash", new SecurityScheme()
+                    .type(SecurityScheme.Type.APIKEY)
+                    .in(SecurityScheme.In.HEADER)
+                    .name(configProperties.getCertAuth().getHeaderFields().getThumbprint())
+                    .description("SHA256 Hash of Authentication Certificate (HEX encoded, "
+                        + "e.g. e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)"))
+                .addSecuritySchemes("Authentication Certificate Distinguish Name", new SecurityScheme()
+                    .type(SecurityScheme.Type.APIKEY)
+                    .in(SecurityScheme.In.HEADER)
+                    .name(configProperties.getCertAuth().getHeaderFields().getDistinguishedName())
+                    .description("Distinguish Name of Authentication Certificate."
+                        + "Should contain at least country property. (e.g. C=EU)"));
+        }
+
         return new OpenAPI()
             .info(new Info()
                 .version(version)
@@ -52,6 +81,7 @@ public class OpenApiConfig {
                 .description("The API defines how to exchange verification information for digital green certificates.")
                 .license(new License()
                     .name("Apache 2.0")
-                    .url("http://www.apache.org/licenses/LICENSE-2.0")));
+                    .url("http://www.apache.org/licenses/LICENSE-2.0")))
+            .components(components);
     }
 }
