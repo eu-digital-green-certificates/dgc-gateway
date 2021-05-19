@@ -188,7 +188,7 @@ These key-value-pairs can be followed by additional attributes. The additional a
 | Revoking Certificate | INFO | Revoking verification certificate | signerCertSubject, payloadCertSubject |
 | Uploading Certificate | INFO | Uploading new verification certificate | signerCertSubject, payloadCertSubject |
 | Saving Certificate into DB (All checks passed) | INFO | Saving new SignerInformation Entity | uploadCertThumbprint, cscaCertThumbprint |
-| Revoking Certificate from DB (All checks passed) | INFO | Revoking new SignerInformation Entity | uploadCertThumbprint |
+| Revoking Certificate from DB (All checks passed) | INFO | Revoking SignerInformation Entity | uploadCertThumbprint |
 | **Audit Service**
 | Created new AuditEvent (id = event type) | INFO | Created AuditEvent | auditId, country |
 | **General**
