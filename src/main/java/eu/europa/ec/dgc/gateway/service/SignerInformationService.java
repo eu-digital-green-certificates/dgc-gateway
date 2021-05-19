@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.service;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
+import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -237,16 +238,14 @@ public class SignerInformationService {
         try {
             verifier = new JcaContentVerifierProviderBuilder().build(caCertificate);
         } catch (OperatorCreationException e) {
-            log.error("Failed to instantiate JcaContentVerifierProvider from cert {}",
-                caCertificateEntity.getThumbprint());
+            DgcMdc.put("certHash", caCertificateEntity.getThumbprint());
+            log.error("Failed to instantiate JcaContentVerifierProvider from cert");
             return false;
         }
 
         try {
             return certificate.isSignatureValid(verifier);
         } catch (CertException | RuntimeOperatorException e) {
-            log.error("Could not verify certificate issuance.");
-            log.debug("Could not verify certificate issuance: {}", e.getMessage());
             return false;
         }
     }

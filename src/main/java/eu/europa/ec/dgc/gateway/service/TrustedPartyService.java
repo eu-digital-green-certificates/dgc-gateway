@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 public class TrustedPartyService {
 
     private static final String MDC_PROP_CERT_THUMBPRINT = "certVerifyThumbprint";
+    private static final String MDC_PROP_PARSER_STATE = "parserState";
     private final TrustedPartyRepository trustedPartyRepository;
     private final KeyStore trustAnchorKeyStore;
     private final DgcConfigProperties dgcConfigProperties;
@@ -147,7 +148,8 @@ public class TrustedPartyService {
             new SignedCertificateMessageParser(trustedPartyEntity.getSignature(), trustedPartyEntity.getRawData());
 
         if (parser.getParserState() != SignedCertificateMessageParser.ParserState.SUCCESS) {
-            log.error("TrustAnchor Verification failed: {}", parser.getParserState());
+            DgcMdc.put(MDC_PROP_PARSER_STATE, parser.getParserState().name());
+            log.error("TrustAnchor Verification failed.");
             return false;
         }
 
@@ -176,7 +178,7 @@ public class TrustedPartyService {
             byte[] rawDataBytes = Base64.getDecoder().decode(trustedPartyEntity.getRawData());
             return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
         } catch (Exception e) {
-            log.error("Failed to parse Certificate from TrustedPartyEntity", e);
+            log.error("Raw certificate data does not contain a valid x509Certificate", e);
         }
 
         return null;
