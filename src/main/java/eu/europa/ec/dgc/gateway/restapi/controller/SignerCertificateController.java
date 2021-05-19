@@ -28,6 +28,7 @@ import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
 import eu.europa.ec.dgc.gateway.service.AuditService;
 import eu.europa.ec.dgc.gateway.service.SignerInformationService;
+import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -118,9 +119,10 @@ public class SignerCertificateController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
 
-        log.info("Uploading new verification certificate, signing cert: {}, payload cert: {}",
-            cms.getSignerCertificate().getSubject().toString(),
-            cms.getPayloadCertificate().getSubject().toString());
+        DgcMdc.put("signerCertSubject", cms.getSignerCertificate().getSubject().toString());
+        DgcMdc.put("payloadCertSubject", cms.getPayloadCertificate().getSubject().toString());
+
+        log.info("Uploading new verification certificate");
 
         try {
             signerInformationService.addSignerCertificate(
@@ -129,7 +131,10 @@ public class SignerCertificateController {
                 cms.getSignature(),
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
-            log.error("Verification certificate upload failed: {}: {}", e.getReason(), e.getMessage());
+            DgcMdc.put("reason", e.getReason().toString());
+            DgcMdc.put("message", e.getMessage());
+            log.error("Verification certificate upload failed");
+
             String sentValues = String.format("{%s} country:{%s}", cms, countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED) {
                 throw new DgcgResponseException(HttpStatus.CONFLICT, "0x002",
@@ -222,9 +227,10 @@ public class SignerCertificateController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
 
-        log.info("Revoking verification certificate, signing cert: {}, payload cert: {}",
-            cms.getSignerCertificate().getSubject().toString(),
-            cms.getPayloadCertificate().getSubject().toString());
+        DgcMdc.put("signerCertSubject", cms.getSignerCertificate().getSubject().toString());
+        DgcMdc.put("payloadCertSubject", cms.getPayloadCertificate().getSubject().toString());
+
+        log.info("Revoking verification certificate");
 
         try {
             signerInformationService.deleteSignerCertificate(
@@ -232,7 +238,10 @@ public class SignerCertificateController {
                 cms.getSignerCertificate(),
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
-            log.error("Verification certificate delete failed: {}: {}", e.getReason(), e.getMessage());
+            DgcMdc.put("reason", e.getReason().toString());
+            DgcMdc.put("message", e.getMessage());
+            log.error("Verification certificate delete failed");
+
             String sentValues = String.format("{%s} country:{%s}", cms, countryCode);
             if (e.getReason() == SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED) {
                 auditService.addAuditEvent(
