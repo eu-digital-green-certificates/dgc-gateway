@@ -162,9 +162,35 @@ These key-value-pairs can be followed by additional attributes. The additional a
 
 | Event | Log Level | Log Message | Additional attributes |
 | ----- | --------- | ----------- | --------------------- |
-| **Authentication** |
+| **Authentication**
 | Authentication failed, no thumbprint or distinguish name provided | ERROR | No thumbprint or distinguish name | n/a |
-|
+| Authentication failed, country property not present in distinguish name | ERROR | Country property is missing | dnString, thumbprint |
+| Authentication failed, client has used unkown cert for authentication | ERROR | Unknown client certificate | dnString, thumbprint |
+| Authentication failed, normalization of hash failed (load balancer config error) | ERROR | Could not normalize certificate hash. |
+| Successful Authentication | INFO | Successful Authentication | dnString, thumbprint |
+| **Certificate Integrity Check**
+| Certificate integrity check failed: Calculated thumbprint does not match stored thumbprint in database. (data manipulation!) | ERROR | Thumbprint in database does not match thumbprint of stored certificate. | certVerifyThumbprint |
+| Certificate integrity check failed: Certificate signature is not issued by TrustAnchor or signature is corrupted (data manipulation!) | ERROR | Verification of certificate signature failed! | certVerifyThumbprint |
+| Certificate integrity check failed: Certificate entity does not contain raw certificate or certificate signature. (Onboarding failure) | ERROR | Certificate entity does not contain raw certificate or certificate signature. | certVerifyThumbprint |
+| Certificate integrity check failed: Raw certificate data does not contain a valid x509Certificate. (parsing error) | ERROR | Raw certificate data does not contain a valid x509Certificate. | certVerifyThumbprint, exception |
+| Certificate integrity check failed: Could not load DGCG-TrustAnchor from KeyStore. (initialization error) | ERROR | Could not load DGCG-TrustAnchor from KeyStore. | certVerifyThumbprint |
+| Certificate integrity check failed: Could not use public key to initialize verifier. (initialization error) | ERROR | Could not use public key to initialize verifier. | certVerifyThumbprint |
+| Certificate integrity check failed: Signature verifier is not initialized (initialization error) | ERROR | Signature verifier is not initialized | certVerifyThumbprint |
+| Certificate integrity check failed: Unknown signing algorithm used by DGCG Trust Anchor. (initialization error) | ERROR | Unknown signing algorithm used by EFGS Trust Anchor. | certVerifyThumbprint |
+| Certificate integrity check failed: Parsing of signature results in error. See Parser State for more information. | ERROR | TrustAnchor Verification failed. | parserState |
+| Certificate integrity check failed: Parsing of signature results in error. Signature of CMS is not matching contained certificate (data manipulation!) | ERROR | TrustAnchor Verification failed: Signature is not matching signed certificate | certVerifyThumbprint |
+| Certificate integrity check failed: Parsing of signature results in error. Certificate is signed but not by TrustAnchor (data manipulation!) | ERROR | TrustAnchor Verification failed: Certificate was not signed by known TrustAnchor | certVerifyThumbprint |
+| **Certificate Upload Check**
+| Verifier for certificate could not be instantiated. | ERROR | Failed to instantiate JcaContentVerifierProvider from cert | certHash |
+| Certificate Issuer Check has failed | ERROR | Could not verify certificate issuance. | exception |
+| Check of uploaded certificate has failed when revoking a certificate | ERROR | Verification certificate delete failed | reason, message |
+| Check of uploaded certificate has failed when uploading a certificate | ERROR | Verification certificate upload failed | reason, message |
+| Revoking Certificate | INFO | Revoking verification certificate | signerCertSubject, payloadCertSubject |
+| Uploading Certificate | INFO | Uploading new verification certificate | signerCertSubject, payloadCertSubject |
+| **Audit Service**
+| Created new AuditEvent (id = event type) | INFO | Created AuditEvent | auditId, country |
+| **General**
+| Uncaught Exception was thrown in DGCG | ERROR | Uncaught exception | exception |
 
 
  

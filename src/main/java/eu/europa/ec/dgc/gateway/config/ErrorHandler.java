@@ -48,7 +48,6 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemReportDto> handleException(ConstraintViolationException e) {
-        log.error(e.getMessage());
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .contentType(MediaType.APPLICATION_JSON)
@@ -71,8 +70,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ProblemReportDto(de.getCode(),de.getProblem(),de.getSentValues(),de.getDetails()));
         } else {
-            log.error("Uncaught exception {}", e.getMessage());
-            log.error("exception Type {}", e.getClass());
+            log.error("Uncaught exception", e);
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
