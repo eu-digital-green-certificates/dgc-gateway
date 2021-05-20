@@ -54,6 +54,9 @@ public class SignerInformationService {
 
     private final SignerInformationRepository signerInformationRepository;
 
+    private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
+    private static final String MDC_PROP_CSCA_CERT_THUMBPRINT = "cscaCertThumbprint";
+
     /**
      * Method to query persistence layer for all stored SignerInformation.
      *
@@ -123,7 +126,14 @@ public class SignerInformationService {
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
 
-        return signerInformationRepository.save(newSignerInformation);
+        log.info("Saving new SignerInformation Entity");
+
+        newSignerInformation = signerInformationRepository.save(newSignerInformation);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
+
+        return newSignerInformation;
     }
 
     /**
@@ -145,8 +155,12 @@ public class SignerInformationService {
         contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
         contentCheckExists(uploadedCertificate);
 
+        log.info("Revoking SignerInformation Entity");
+
         // All checks passed --> Delete from DB
         signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
     }
 
     private void contentCheckUploaderCertificate(
@@ -165,6 +179,8 @@ public class SignerInformationService {
                 "Could not find upload certificate with hash %s and country %s",
                 signerCertThumbprint, authenticatedCountryCode);
         }
+
+        DgcMdc.put(MDC_PROP_UPLOAD_CERT_THUMBPRINT, signerCertThumbprint);
     }
 
     private void contentCheckCountryOfOrigin(X509CertificateHolder uploadedCertificate,
@@ -200,10 +216,15 @@ public class SignerInformationService {
                 "CSCA list for country %s is empty", authenticatedCountryCode);
         }
 
-        boolean cscaCheckResult = trustedCas.stream().anyMatch(ca -> certificateSignedByCa(uploadedCertificate, ca));
-        if (!cscaCheckResult) {
+        Optional<TrustedPartyEntity> matchingCa = trustedCas.stream()
+            .dropWhile(ca -> !certificateSignedByCa(uploadedCertificate, ca))
+            .findFirst();
+
+        if (matchingCa.isEmpty()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.CSCA_CHECK_FAILED,
                 "Could not verify uploaded certificate was signed by valid CSCA.");
+        } else {
+            DgcMdc.put(MDC_PROP_CSCA_CERT_THUMBPRINT, matchingCa.get().getThumbprint());
         }
     }
 
