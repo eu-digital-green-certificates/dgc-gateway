@@ -24,9 +24,11 @@ import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
 import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustListMapper;
 import eu.europa.ec.dgc.gateway.service.TrustListService;
+import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -39,11 +41,13 @@ import java.util.Locale;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,11 +55,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/trustList")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class TrustListController {
 
     private final TrustListService trustListService;
 
     private final GwTrustListMapper trustListMapper;
+
+    private static final String MDC_PROP_DOWNLOAD_KEYS_COUNT = "downloadedKeys";
+    private static final String MDC_PROP_DOWNLOAD_KEYS_TYPE = "downloadedKeysType";
+    private static final String MDC_PROP_DOWNLOAD_KEYS_COUNTRY = "downloadedKeysCountry";
 
     /**
      * TrustList Download Controller.
@@ -80,8 +89,17 @@ public class TrustListController {
                     schema = @Schema(implementation = ProblemReportDto.class)
                 ))
         })
-    public ResponseEntity<List<TrustListDto>> downloadTrustList() {
-        return ResponseEntity.ok(trustListMapper.trustListToTrustListDto(trustListService.getTrustList()));
+    public ResponseEntity<List<TrustListDto>> downloadTrustList(
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
+    ) {
+        List<TrustListDto> trustList = trustListMapper.trustListToTrustListDto(trustListService.getTrustList());
+
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
+
+        log.info("Downloaded TrustList");
+
+        return ResponseEntity.ok(trustList);
     }
 
     /**
@@ -123,14 +141,22 @@ public class TrustListController {
                 ))
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByType(
-        @Valid @PathVariable("type") CertificateTypeDto type
+        @Valid @PathVariable("type") CertificateTypeDto type,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
 
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
 
-        return ResponseEntity.ok(
-            trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType)));
+        List<TrustListDto> trustList = trustListMapper.trustListToTrustListDto(
+            trustListService.getTrustList(mappedType));
+
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_TYPE, type.name());
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
+
+        log.info("Downloaded TrustList");
+
+        return ResponseEntity.ok(trustList);
     }
 
     /**
@@ -179,15 +205,23 @@ public class TrustListController {
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(
         @Valid @PathVariable("type") CertificateTypeDto type,
-        @Valid @Size(max = 2, min = 2) @PathVariable("country") String countryCode
+        @Valid @Size(max = 2, min = 2) @PathVariable("country") String countryCode,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
 
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
         countryCode = countryCode.toUpperCase(Locale.ROOT);
 
-        return ResponseEntity.ok(
-            trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, countryCode)));
+        List<TrustListDto> trustList = trustListMapper.trustListToTrustListDto(
+            trustListService.getTrustList(mappedType, countryCode));
+
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_TYPE, type.name());
+        DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
+
+        log.info("Downloaded TrustList");
+
+        return ResponseEntity.ok(trustList);
     }
 
 }
