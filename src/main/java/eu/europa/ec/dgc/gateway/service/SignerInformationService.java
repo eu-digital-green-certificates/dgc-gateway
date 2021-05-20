@@ -110,6 +110,7 @@ public class SignerInformationService {
         contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
         contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
         contentCheckAlreadyExists(uploadedCertificate);
+        contentCheckKidAlreadyExists(uploadedCertificate);
 
         // All checks passed --> Save to DB
         byte[] certRawData;
@@ -240,6 +241,21 @@ public class SignerInformationService {
         }
     }
 
+    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+
+        String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
+        // KID is the first 8 byte of hash. So we take the first 16 characters of the hash
+        String thumbprintKidPart = uploadedCertificateThumbprint.substring(0, 16);
+
+        Optional<SignerInformationEntity> signerInformationEntity =
+            signerInformationRepository.getFirstByThumbprintStartsWith(thumbprintKidPart);
+
+        if (signerInformationEntity.isPresent()) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
+                "A certificate with KID of uploaded certificate already exists");
+        }
+    }
+
     private void contentCheckExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
@@ -303,6 +319,7 @@ public class SignerInformationService {
             COUNTRY_OF_ORIGIN_CHECK_FAILED,
             CSCA_CHECK_FAILED,
             ALREADY_EXIST_CHECK_FAILED,
+            KID_CHECK_FAILED,
             EXIST_CHECK_FAILED,
             UPLOAD_FAILED
         }

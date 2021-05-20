@@ -141,6 +141,48 @@ class SignerInformationServiceTest {
     }
 
     @Test
+    void testAddingFailedKidConflict() throws Exception {
+        long signerInformationEntitiesInDb = signerInformationRepository.count();
+
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+
+        KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
+        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+
+        signerInformationService.addSignerCertificate(
+            new X509CertificateHolder(payloadCertificate.getEncoded()),
+            new X509CertificateHolder(signerCertificate.getEncoded()),
+            dummySignature,
+            countryCode
+        );
+
+        Optional<SignerInformationEntity> certInDbOptional = signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
+
+        Assertions.assertTrue(certInDbOptional.isPresent());
+
+        SignerInformationEntity certInDb = certInDbOptional.get();
+        certInDb.setThumbprint(certInDb.getThumbprint().substring(0, 40) + "x".repeat(24)); // Generate new Hash with first 40 chars from ogirinal hash and add 24 x
+
+        signerInformationRepository.save(certInDb);
+
+        try {
+            signerInformationService.addSignerCertificate(
+                new X509CertificateHolder(payloadCertificate.getEncoded()),
+                new X509CertificateHolder(signerCertificate.getEncoded()),
+                dummySignature,
+                countryCode
+            );
+        } catch (SignerInformationService.SignerCertCheckException e) {
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.KID_CHECK_FAILED, e.getReason());
+        }
+
+        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
+    }
+
+    @Test
     void testUploadFailedInvalidCSCA() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
