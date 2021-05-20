@@ -65,6 +65,7 @@ public class TrustListController {
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNT = "downloadedKeys";
     private static final String MDC_PROP_DOWNLOAD_KEYS_TYPE = "downloadedKeysType";
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNTRY = "downloadedKeysCountry";
+    private static final String DOWNLOADED_TRUSTLIST_LOG_MESSAGE = "Downloaded TrustList";
 
     /**
      * TrustList Download Controller.
@@ -97,7 +98,7 @@ public class TrustListController {
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
 
-        log.info("Downloaded TrustList");
+        log.info(DOWNLOADED_TRUSTLIST_LOG_MESSAGE);
 
         return ResponseEntity.ok(trustList);
     }
@@ -154,7 +155,7 @@ public class TrustListController {
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_TYPE, type.name());
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
 
-        log.info("Downloaded TrustList");
+        log.info(DOWNLOADED_TRUSTLIST_LOG_MESSAGE);
 
         return ResponseEntity.ok(trustList);
     }
@@ -219,7 +220,7 @@ public class TrustListController {
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_TYPE, type.name());
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
 
-        log.info("Downloaded TrustList");
+        log.info(DOWNLOADED_TRUSTLIST_LOG_MESSAGE);
 
         return ResponseEntity.ok(trustList);
     }
