@@ -30,10 +30,10 @@ ThirdParty Licenses
 | com.zaxxer:HikariCP:3.4.5 | The Apache Software License, Version 2.0 |
 | commons-codec:commons-codec:1.15 | Apache License, Version 2.0 |
 | commons-fileupload:commons-fileupload:1.4 | Apache License, Version 2.0 |
-| commons-io:commons-io:2.2 | The Apache Software License, Version 2.0 |
+| commons-io:commons-io:2.8.0 | Apache License, Version 2.0 |
 | io.github.classgraph:classgraph:4.8.69 | The MIT License (MIT) |
 | io.github.openfeign:feign-core:10.10.1 | The Apache Software License, Version 2.0 |
-| io.github.openfeign:feign-httpclient:10.10.1 | The Apache Software License, Version 2.0 |
+| io.github.openfeign:feign-httpclient:11.2 | The Apache Software License, Version 2.0 |
 | io.github.openfeign:feign-slf4j:10.10.1 | The Apache Software License, Version 2.0 |
 | io.github.openfeign.form:feign-form:3.8.0 | The Apache Software License, Version 2.0 |
 | io.github.openfeign.form:feign-form-spring:3.8.0 | The Apache Software License, Version 2.0 |
