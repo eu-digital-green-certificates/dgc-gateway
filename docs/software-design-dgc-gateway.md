@@ -193,6 +193,8 @@ These key-value-pairs can be followed by additional attributes. The additional a
 | Created new AuditEvent (id = event type) | INFO | Created AuditEvent | auditId, country |
 | **General**
 | Uncaught Exception was thrown in DGCG | ERROR | Uncaught exception | exception |
+| **Download Interface**
+| Trust List was downloaded by a country | INFO | Downloaded TrustList | downloadedKeys (Number of Keys), downloadedKeysCountry (Downloader Country), downloadedKeysType (optional) | 
 
 
  
