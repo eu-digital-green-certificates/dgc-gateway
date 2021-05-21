@@ -241,7 +241,8 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate)
+        throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         // KID is the first 8 byte of hash. So we take the first 16 characters of the hash
