@@ -58,6 +58,9 @@ public class SignerCertificateController {
 
     private final AuditService auditService;
 
+    private static final String MDC_VERIFICATION_ERROR_REASON = "verificationFailureReason";
+    private static final String MDC_VERIFICATION_ERROR_MESSAGE = "verificationFailureMessage";
+
     /**
      * VerificationInformation Upload Controller.
      */
@@ -131,8 +134,8 @@ public class SignerCertificateController {
                 cms.getSignature(),
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
-            DgcMdc.put("reason", e.getReason().toString());
-            DgcMdc.put("message", e.getMessage());
+            DgcMdc.put(MDC_VERIFICATION_ERROR_REASON, e.getReason().toString());
+            DgcMdc.put(MDC_VERIFICATION_ERROR_MESSAGE, e.getMessage());
             log.error("Verification certificate upload failed");
 
             String sentValues = String.format("{%s} country:{%s}", cms, countryCode);
@@ -238,8 +241,8 @@ public class SignerCertificateController {
                 cms.getSignerCertificate(),
                 countryCode);
         } catch (SignerInformationService.SignerCertCheckException e) {
-            DgcMdc.put("reason", e.getReason().toString());
-            DgcMdc.put("message", e.getMessage());
+            DgcMdc.put(MDC_VERIFICATION_ERROR_REASON, e.getReason().toString());
+            DgcMdc.put(MDC_VERIFICATION_ERROR_MESSAGE, e.getMessage());
             log.error("Verification certificate delete failed");
 
             String sentValues = String.format("{%s} country:{%s}", cms, countryCode);

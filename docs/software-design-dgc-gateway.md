@@ -183,8 +183,8 @@ These key-value-pairs can be followed by additional attributes. The additional a
 | **Certificate Upload Check**
 | Verifier for certificate could not be instantiated. | ERROR | Failed to instantiate JcaContentVerifierProvider from cert | certHash |
 | Certificate Issuer Check has failed | ERROR | Could not verify certificate issuance. | exception |
-| Check of uploaded certificate has failed when revoking a certificate | ERROR | Verification certificate delete failed | reason, message |
-| Check of uploaded certificate has failed when uploading a certificate | ERROR | Verification certificate upload failed | reason, message |
+| Check of uploaded certificate has failed when revoking a certificate | ERROR | Verification certificate delete failed | verificationFailureReason, verificationFailureMessage |
+| Check of uploaded certificate has failed when uploading a certificate | ERROR | Verification certificate upload failed | verificationFailureReason, verificationFailureReasonMessage |
 | Revoking Certificate | INFO | Revoking verification certificate | signerCertSubject, payloadCertSubject |
 | Uploading Certificate | INFO | Uploading new verification certificate | signerCertSubject, payloadCertSubject |
 | Saving Certificate into DB (All checks passed) | INFO | Saving new SignerInformation Entity | uploadCertThumbprint, cscaCertThumbprint |
