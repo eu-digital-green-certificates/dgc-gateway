@@ -38,10 +38,10 @@ ThirdParty Licenses
 | io.github.openfeign.form:feign-form:3.8.0 | The Apache Software License, Version 2.0 |
 | io.github.openfeign.form:feign-form-spring:3.8.0 | The Apache Software License, Version 2.0 |
 | io.micrometer:micrometer-core:1.6.6 | The Apache Software License, Version 2.0 |
-| io.swagger.core.v3:swagger-annotations:2.1.7 | Apache License 2.0 |
-| io.swagger.core.v3:swagger-core:2.1.7 | Apache License 2.0 |
-| io.swagger.core.v3:swagger-integration:2.1.7 | Apache License 2.0 |
-| io.swagger.core.v3:swagger-models:2.1.7 | Apache License 2.0 |
+| io.swagger.core.v3:swagger-annotations:2.1.9 | Apache License 2.0 |
+| io.swagger.core.v3:swagger-core:2.1.9 | Apache License 2.0 |
+| io.swagger.core.v3:swagger-integration:2.1.9 | Apache License 2.0 |
+| io.swagger.core.v3:swagger-models:2.1.9 | Apache License 2.0 |
 | jakarta.activation:jakarta.activation-api:1.2.2 | EDL 1.0 |
 | jakarta.annotation:jakarta.annotation-api:1.3.5 | EPL 2.0 GPL2 w/ CPE |
 | jakarta.persistence:jakarta.persistence-api:2.2.3 | Eclipse Distribution License v. 1.0 Eclipse Public License v. 2.0 |
@@ -97,9 +97,9 @@ ThirdParty Licenses
 | org.skyscreamer:jsonassert:1.5.0 | The Apache Software License, Version 2.0 |
 | org.slf4j:jul-to-slf4j:1.7.30 | MIT License |
 | org.slf4j:slf4j-api:1.7.30 | MIT License |
-| org.springdoc:springdoc-openapi-common:1.5.7 | The Apache License, Version 2.0 |
-| org.springdoc:springdoc-openapi-ui:1.5.7 | The Apache License, Version 2.0 |
-| org.springdoc:springdoc-openapi-webmvc-core:1.5.7 | The Apache License, Version 2.0 |
+| org.springdoc:springdoc-openapi-common:1.5.8 | The Apache License, Version 2.0 |
+| org.springdoc:springdoc-openapi-ui:1.5.8 | The Apache License, Version 2.0 |
+| org.springdoc:springdoc-openapi-webmvc-core:1.5.8 | The Apache License, Version 2.0 |
 | org.springframework:spring-aop:5.3.6 | Apache License, Version 2.0 |
 | org.springframework:spring-aspects:5.3.6 | Apache License, Version 2.0 |
 | org.springframework:spring-beans:5.3.6 | Apache License, Version 2.0 |
@@ -141,7 +141,7 @@ ThirdParty Licenses
 | org.springframework.security:spring-security-crypto:5.4.6 | The Apache Software License, Version 2.0 |
 | org.springframework.security:spring-security-rsa:1.0.9.RELEASE | Apache 2.0 |
 | org.springframework.security:spring-security-web:5.4.6 | The Apache Software License, Version 2.0 |
-| org.webjars:swagger-ui:3.46.0 | Apache 2.0 |
+| org.webjars:swagger-ui:3.47.1 | Apache 2.0 |
 | org.webjars:webjars-locator-core:0.46 | MIT |
 | org.xmlunit:xmlunit-core:2.7.0 | The Apache Software License, Version 2.0 |
 | org.yaml:snakeyaml:1.27 | Apache License, Version 2.0 |
