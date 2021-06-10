@@ -176,12 +176,12 @@ public class SignerCertificateController {
     }
 
     /**
-     * Http Method for revoking signer certificate.
+     * Http Method for deleting signer certificate.
      */
     @CertificateAuthenticationRequired
     @DeleteMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
-        summary = "Revokes Signer Certificate of a trusted Issuer",
+        summary = "Deletes Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
         parameters = {
             @Parameter(
@@ -207,7 +207,7 @@ public class SignerCertificateController {
         responses = {
             @ApiResponse(
                 responseCode = "204",
-                description = "Certificate was revoked successfully."),
+                description = "Certificate was deleted successfully."),
             @ApiResponse(
                 responseCode = "400",
                 description = "Bad request. Possible reasons: Wrong Format, no CMS, not the correct signing alg,"
@@ -224,7 +224,7 @@ public class SignerCertificateController {
                 ))
         }
     )
-    public ResponseEntity<Void> revokeVerificationInformation(
+    public ResponseEntity<Void> deleteVerificationInformation(
         @RequestBody SignedCertificateDto cms,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
@@ -262,11 +262,11 @@ public class SignerCertificateController {
                     countryCode,
                     cms.getSignerCertificate(),
                     authThumbprint,
-                    "UPLOAD_FAILED",
+                    "DELETE_FAILED",
                     "revokeVerificationInformation triggered UPLOAD_FAILED");
 
                 throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "0x006", "Upload of Signer Certificate failed", sentValues, e.getMessage());
+                    "0x006", "Delete of Signer Certificate failed", sentValues, e.getMessage());
             } else {
                 auditService.addAuditEvent(
                     countryCode,
@@ -291,12 +291,12 @@ public class SignerCertificateController {
     }
 
     /**
-     * Alias Method for revoking signer certificate.
+     * Alias Method for deleting signer certificate.
      */
     @CertificateAuthenticationRequired
     @PostMapping(path = "/delete", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
-        summary = "Revokes Signer Certificate of a trusted Issuer",
+        summary = "Deletes Signer Certificate of a trusted Issuer",
         description = "This endpoint is a workaround alias endpoint. This should only be used if it is not possible"
             + " to send http payloads with DELETE requests.",
         tags = {"Signer Information"},
@@ -324,7 +324,7 @@ public class SignerCertificateController {
         responses = {
             @ApiResponse(
                 responseCode = "204",
-                description = "Certificate was revoked successfully."),
+                description = "Certificate was deleted successfully."),
             @ApiResponse(
                 responseCode = "400",
                 description = "Bad request. Possible reasons: Wrong Format, no CMS, not the correct signing alg,"
@@ -341,11 +341,11 @@ public class SignerCertificateController {
                 ))
         }
     )
-    public ResponseEntity<Void> revokeVerificationInformationAlias(
+    public ResponseEntity<Void> deleteVerificationInformationAlias(
         @RequestBody SignedCertificateDto cms,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
-        return revokeVerificationInformation(cms, countryCode, authThumbprint);
+        return deleteVerificationInformation(cms, countryCode, authThumbprint);
     }
 }
