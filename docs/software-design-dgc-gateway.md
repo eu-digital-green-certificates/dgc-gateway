@@ -115,6 +115,7 @@ This is a List of all Possible Problem Reports that can be returned.
 | 0x006 | Upload of Signer Certificate failed | Parameters send in the request | Contains the exception message |
 | 0x007 | Possible reasons: Wrong Format no CMS, not the correct signing alg missing attributes, invalid signature, certificate not signed by known CA | Parameters send in the request | Contains the exception message |
 | 0x008 | Internal Server Error | Not Available | Not Available |
+| 0x100 | Valueset not found | The requested valueset ID | Not available |
 
 
 ## Monitoring
