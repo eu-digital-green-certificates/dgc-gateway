@@ -44,7 +44,7 @@ public class ValuesetEntity {
     /**
      * Signature of the TrustAnchor.
      */
-    @Column(name = "json", nullable = false, length = 10240)
+    @Column(name = "json", nullable = false, length = 1024000)
     String json;
 
 }
