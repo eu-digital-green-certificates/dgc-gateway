@@ -21,7 +21,7 @@
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
-import eu.europa.ec.dgc.gateway.restapi.converter.CmsMessageConverter;
+import eu.europa.ec.dgc.gateway.restapi.converter.CmsCertificateMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
@@ -65,7 +65,7 @@ public class SignerCertificateController {
      * VerificationInformation Upload Controller.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
+    @PostMapping(path = "", consumes = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
         summary = "Uploads Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
@@ -75,7 +75,7 @@ public class SignerCertificateController {
                 name = HttpHeaders.CONTENT_TYPE,
                 required = true,
                 schema = @Schema(type = "string"),
-                example = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE),
+                example = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE),
             @Parameter(
                 in = ParameterIn.HEADER,
                 name = HttpHeaders.CONTENT_ENCODING,
@@ -87,7 +87,7 @@ public class SignerCertificateController {
             required = true,
             description = "Request body with payload. (limited)",
             content = @Content(
-                mediaType = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE,
+                mediaType = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE,
                 schema = @Schema(implementation = SignedCertificateDto.class))
         ),
         responses = {
@@ -179,7 +179,7 @@ public class SignerCertificateController {
      * Http Method for deleting signer certificate.
      */
     @CertificateAuthenticationRequired
-    @DeleteMapping(path = "", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
+    @DeleteMapping(path = "", consumes = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
         summary = "Deletes Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
@@ -189,7 +189,7 @@ public class SignerCertificateController {
                 name = HttpHeaders.CONTENT_TYPE,
                 required = true,
                 schema = @Schema(type = "string"),
-                example = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE),
+                example = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE),
             @Parameter(
                 in = ParameterIn.HEADER,
                 name = HttpHeaders.CONTENT_ENCODING,
@@ -201,7 +201,7 @@ public class SignerCertificateController {
             required = true,
             description = "Request body with payload. (limited)",
             content = @Content(
-                mediaType = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE,
+                mediaType = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE,
                 schema = @Schema(implementation = SignedCertificateDto.class))
         ),
         responses = {
@@ -294,7 +294,7 @@ public class SignerCertificateController {
      * Alias Method for deleting signer certificate.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "/delete", consumes = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE)
+    @PostMapping(path = "/delete", consumes = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
         summary = "Deletes Signer Certificate of a trusted Issuer",
         description = "This endpoint is a workaround alias endpoint. This should only be used if it is not possible"
@@ -306,7 +306,7 @@ public class SignerCertificateController {
                 name = HttpHeaders.CONTENT_TYPE,
                 required = true,
                 schema = @Schema(type = "string"),
-                example = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE),
+                example = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE),
             @Parameter(
                 in = ParameterIn.HEADER,
                 name = HttpHeaders.CONTENT_ENCODING,
@@ -318,7 +318,7 @@ public class SignerCertificateController {
             required = true,
             description = "Request body with payload. (limited)",
             content = @Content(
-                mediaType = CmsMessageConverter.CONTENT_TYPE_CMS_VALUE,
+                mediaType = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE,
                 schema = @Schema(implementation = SignedCertificateDto.class))
         ),
         responses = {

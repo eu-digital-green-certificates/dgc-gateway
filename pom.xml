@@ -132,7 +132,7 @@
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>dgc-lib</artifactId>
-            <version>0.4.4</version>
+            <version>0.5.1-e4b9b54</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

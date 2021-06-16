@@ -37,12 +37,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Component
 @Slf4j
-public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCertificateDto> {
+public class CmsCertificateMessageConverter extends AbstractHttpMessageConverter<SignedCertificateDto> {
 
     public static final MediaType CONTENT_TYPE_CMS = new MediaType("application", "cms");
     public static final String CONTENT_TYPE_CMS_VALUE = "application/cms";
 
-    public CmsMessageConverter() {
+    public CmsCertificateMessageConverter() {
         super(CONTENT_TYPE_CMS);
     }
 
@@ -71,13 +71,13 @@ public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCert
                 throw badRequest("CMS Message needs to contain exactly one X509 certificate");
             case FAILURE_CMS_SIGNER_INFO:
                 throw badRequest("CMS Message needs to have exactly 1 signer information.");
-            case FAILURE_CMS_BODY_NO_CERTIFICATE:
+            case FAILURE_CMS_BODY_PARSING_FAILED:
                 throw badRequest("CMS Message payload needs to be a DER encoded X509 certificate");
             default:
         }
 
         return SignedCertificateDto.builder()
-            .payloadCertificate(certificateParser.getPayloadCertificate())
+            .payloadCertificate(certificateParser.getPayload())
             .signerCertificate(certificateParser.getSigningCertificate())
             .rawMessage(new String(inputBytes, StandardCharsets.UTF_8))
             .signature(certificateParser.getSignature())

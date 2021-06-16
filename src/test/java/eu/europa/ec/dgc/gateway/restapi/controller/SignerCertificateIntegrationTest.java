@@ -20,13 +20,13 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
-import eu.europa.ec.dgc.gateway.repository.AuditEventRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import eu.europa.ec.dgc.gateway.repository.AuditEventRepository;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
@@ -90,7 +90,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         // immediately parse the message to get the signature from the signed message
@@ -135,7 +135,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -176,7 +176,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -210,7 +210,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -242,7 +242,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -274,7 +274,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -305,7 +305,7 @@ class SignerCertificateIntegrationTest {
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayloadCertificate(new X509CertificateHolder(payloadCertificate.getEncoded()))
+            .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
         // randomly play a little bit inside the base64 string
