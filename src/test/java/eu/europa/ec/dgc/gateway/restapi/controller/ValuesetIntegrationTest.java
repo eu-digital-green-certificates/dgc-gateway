@@ -122,4 +122,16 @@ class ValuesetIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.key3").value(equalTo("content3")));
     }
+
+    @Test
+    void testGetValuesetNotFound() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        mockMvc.perform(get("/valuesets/randomId")
+            .accept(MediaType.APPLICATION_JSON_VALUE)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isNotFound());
+    }
 }
