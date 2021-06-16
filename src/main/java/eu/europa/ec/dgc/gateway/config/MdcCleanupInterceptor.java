@@ -28,8 +28,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class MdcCleanupInterceptor implements HandlerInterceptor {
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-        throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
 
         // Clean Up MDC after each Request.
         DgcMdc.clear();
