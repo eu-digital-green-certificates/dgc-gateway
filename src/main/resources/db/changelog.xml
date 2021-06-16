@@ -6,6 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
     <include file="db/changelog/init-tables.xml"/>
     <include file="db/changelog/create-audit-table.xml"/>
+    <include file="db/changelog/add-valueset-table.xml"/>
 
 
 </databaseChangeLog>
