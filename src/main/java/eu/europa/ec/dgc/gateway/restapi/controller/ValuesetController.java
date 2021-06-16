@@ -51,6 +51,9 @@ public class ValuesetController {
 
     private final ValuesetService valuesetService;
 
+    /**
+     * Controller to get valueset ids.
+     */
     @CertificateAuthenticationRequired
     @GetMapping(path = "")
     @Operation(
@@ -74,7 +77,10 @@ public class ValuesetController {
     public ResponseEntity<List<String>> getValuesetIds() {
         return ResponseEntity.ok(valuesetService.getValuesetIds());
     }
-
+    
+    /**
+     * Controller to get a specific valueset.
+     */
     @CertificateAuthenticationRequired
     @GetMapping(path = "/{id}")
     @Operation(

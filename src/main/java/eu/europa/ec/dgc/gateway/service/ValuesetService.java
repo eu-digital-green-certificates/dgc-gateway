@@ -36,12 +36,23 @@ public class ValuesetService {
 
     private final ValuesetRepository valuesetRepository;
 
+    /**
+     * Gets a list of existing valueset IDs.
+     *
+     * @return List of Strings
+     */
     public List<String> getValuesetIds() {
         log.info("Getting ValueSet IDs");
 
         return valuesetRepository.getIds();
     }
 
+    /**
+     * Gets the content of a valueset by its id.
+     *
+     * @param id id of the valueset
+     * @return the json content
+     */
     public Optional<String> getValueSetById(String id) {
         DgcMdc.put("valueSetId", id);
         log.info("Requesting Value Set.");
