@@ -7,6 +7,7 @@
     <include file="db/changelog/init-tables.xml"/>
     <include file="db/changelog/create-audit-table.xml"/>
     <include file="db/changelog/add-valueset-table.xml"/>
+    <include file="db/changelog/increase-column-size-for-valueset.xml"/>
 
 
 </databaseChangeLog>
