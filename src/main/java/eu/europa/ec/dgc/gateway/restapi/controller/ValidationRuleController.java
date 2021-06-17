@@ -134,7 +134,7 @@ public class ValidationRuleController {
         tags = {"Validation Rules"},
         requestBody = @RequestBody(
             required = true,
-            description = "CMS Signed String representing Validation Rule. Needs to be signed with valid Upload Certificate"
+            description = "CMS Signed String with Validation Rule. Needs to be signed with valid Upload Certificate"
         ),
         responses = {
             @ApiResponse(
@@ -191,6 +191,9 @@ public class ValidationRuleController {
                 case INVALID_TIMESTAMP:
                     throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid Timestamp(s)",
                         "", e.getMessage());
+                default:
+                    throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x00", "Unexpected Error",
+                        "", "");
             }
         }
 
