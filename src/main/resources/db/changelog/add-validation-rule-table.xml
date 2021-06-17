@@ -28,6 +28,9 @@
             <column name="version" type="VARCHAR(30)">
                 <constraints nullable="false"/>
             </column>
+            <column name="country" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
             <column name="type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>

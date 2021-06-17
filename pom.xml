@@ -27,6 +27,10 @@
             <id>dgc-github</id>
             <url>https://maven.pkg.github.com/${github.organization}/*</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <properties>
@@ -50,6 +54,8 @@
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <mockito.version>3.9.0</mockito.version>
         <bcpkix.version>1.68</bcpkix.version>
+        <semver4j.version>3.1.0</semver4j.version>
+        <json-schema.version>1.12.3</json-schema.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
@@ -133,6 +139,16 @@
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>dgc-lib</artifactId>
             <version>0.5.1-e4b9b54</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vdurmont</groupId>
+            <artifactId>semver4j</artifactId>
+            <version>${semver4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.everit-org.json-schema</groupId>
+            <artifactId>org.everit.json.schema</artifactId>
+            <version>${json-schema.version}</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

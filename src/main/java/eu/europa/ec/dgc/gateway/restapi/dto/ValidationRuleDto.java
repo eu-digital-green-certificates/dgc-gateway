@@ -18,20 +18,24 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.config;
+package eu.europa.ec.dgc.gateway.restapi.dto;
 
-import eu.europa.ec.dgc.gateway.utils.DgcMdc;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.ZonedDateTime;
 
-public class MdcCleanupInterceptor implements HandlerInterceptor {
+@Schema(name = "Validation Rule")
+public class ValidationRuleDto {
 
-    @Override
-    public void afterCompletion(
-        HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    @Schema(name = "Version of the Rule (Semver)", example = "1.0.0")
+    String version;
 
-        // Clean Up MDC after each Request.
-        DgcMdc.clear();
-    }
+    @Schema(name = "Rule is valid from")
+    ZonedDateTime validFrom;
+
+    @Schema(name = "Rule is valid to")
+    ZonedDateTime validTo;
+
+    @Schema(name = "CMS containing the signed JSON Object with the rule itself")
+    String cms;
+
 }

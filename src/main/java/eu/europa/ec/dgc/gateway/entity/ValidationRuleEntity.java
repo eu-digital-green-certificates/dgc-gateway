@@ -82,6 +82,12 @@ public class ValidationRuleEntity {
     private String version;
 
     /**
+     * 2-Digit Country Code of origin of the rule.
+     */
+    @Column(name = "country", nullable = false, length = 2)
+    private String country;
+
+    /**
      * Type of the certificate (Authentication, Upload, CSCA).
      */
     @Column(name = "type", nullable = false)

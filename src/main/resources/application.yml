@@ -27,6 +27,7 @@ management:
   server:
     port: -1
 dgc:
+  validationRuleSchema: classpath:validation-rule.schema.json
   trustAnchor:
     keyStorePath: /ec/prod/app/san/dgc/dgc-ta.jks
     keyStorePass: dgc-p4ssw0rd

@@ -18,20 +18,15 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.config;
+package eu.europa.ec.dgc.gateway.restapi.mapper;
 
-import eu.europa.ec.dgc.gateway.utils.DgcMdc;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
+import eu.europa.ec.dgc.gateway.entity.ValidationRuleEntity;
+import eu.europa.ec.dgc.gateway.restapi.dto.ValidationRuleDto;
+import org.mapstruct.Mapper;
 
-public class MdcCleanupInterceptor implements HandlerInterceptor {
+@Mapper(componentModel = "spring")
+public interface GwValidationRuleMapper {
 
-    @Override
-    public void afterCompletion(
-        HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    ValidationRuleDto entityToDto(ValidationRuleEntity entity);
 
-        // Clean Up MDC after each Request.
-        DgcMdc.clear();
-    }
 }
