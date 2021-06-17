@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,6 +46,7 @@ public class ValuesetEntity {
      * Signature of the TrustAnchor.
      */
     @Column(name = "json", nullable = false, length = 1024000)
+    @Lob
     String json;
 
 }
