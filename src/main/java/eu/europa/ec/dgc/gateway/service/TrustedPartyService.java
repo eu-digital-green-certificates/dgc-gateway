@@ -109,6 +109,15 @@ public class TrustedPartyService {
             .map(trustedPartyEntity -> validateCertificateIntegrity(trustedPartyEntity) ? trustedPartyEntity : null);
     }
 
+    /**
+     * Returns a list of onboarded countries.
+     *
+     * @return List of String.
+     */
+    public List<String> getCountryList() {
+        return trustedPartyRepository.getCountryCodeList();
+    }
+
     private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
 
         DgcMdc.put(MDC_PROP_CERT_THUMBPRINT, trustedPartyEntity.getThumbprint());
