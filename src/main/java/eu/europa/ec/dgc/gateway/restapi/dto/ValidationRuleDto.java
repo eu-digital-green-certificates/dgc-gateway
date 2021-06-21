@@ -22,8 +22,12 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
 @Schema(name = "Validation Rule")
+@Setter
+@Getter
 public class ValidationRuleDto {
 
     @Schema(name = "Version of the Rule (Semver)", example = "1.0.0")

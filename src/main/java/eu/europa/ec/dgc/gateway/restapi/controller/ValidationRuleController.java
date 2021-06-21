@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.entity.ValidationRuleEntity;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
@@ -39,6 +40,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +83,10 @@ public class ValidationRuleController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "/{country}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Download all rules of country.",
         tags = {"Validation Rules"},
         parameters = {
@@ -108,12 +114,12 @@ public class ValidationRuleController {
         log.info("Downloading validation rules.");
 
         List<ValidationRuleEntity> validationRuleEntities =
-            validationRuleService.getValidationRulesByCountry(requestedCountryCode);
+            validationRuleService.getActiveValidationRules(requestedCountryCode);
 
         Map<String, List<ValidationRuleDto>> map = new HashMap<>();
 
         validationRuleEntities.forEach(validationRuleEntitiy ->
-            map.computeIfAbsent(validationRuleEntitiy.getCountry(), (k) -> new ArrayList<>())
+            map.computeIfAbsent(validationRuleEntitiy.getRuleId(), (k) -> new ArrayList<>())
                 .add(validationRuleMapper.entityToDto(validationRuleEntitiy)));
 
         DgcMdc.put(MDC_VALIDATION_RULE_DOWNLOAD_AMOUNT, validationRuleEntities.size());
@@ -130,6 +136,10 @@ public class ValidationRuleController {
     @CertificateAuthenticationRequired
     @PostMapping(path = "", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Create a new versions of a rule with id",
         tags = {"Validation Rules"},
         requestBody = @RequestBody(
@@ -175,6 +185,10 @@ public class ValidationRuleController {
                 signedJson.getRawMessage(),
                 authenticatedCountryCode);
         } catch (ValidationRuleService.ValidationRuleCheckException e) {
+            DgcMdc.put("validationRuleUploadError", e.getMessage());
+            DgcMdc.put("validationRuleUploadReason", e.getReason().toString());
+            log.error("Failed to upload validation rule");
+
             switch (e.getReason()) {
                 case INVALID_JSON:
                     throw new DgcgResponseException(
@@ -217,6 +231,10 @@ public class ValidationRuleController {
     @CertificateAuthenticationRequired
     @DeleteMapping(path = "", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Delete all versions of a rule with id",
         tags = {"Validation Rules"},
         requestBody = @RequestBody(

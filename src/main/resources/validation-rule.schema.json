@@ -4,6 +4,7 @@
   "title": "EU DCC Validation Rule",
   "description": "Rule to validate an issued EU Digital Covid Certificate.",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "AffectedFields",
     "Country",
@@ -23,7 +24,7 @@
     "Identifier": {
       "type": "string",
       "description": "The unique rule name",
-      "pattern": "^(GR|VR|TR|RR|IR)-[A-Z]{2}-[1-9]\\d*$"
+      "pattern": "^(GR|VR|TR|RR|IR)-[A-Z]{2}-\\d{4}$"
     },
     "Type": {
       "type": "string",
@@ -37,6 +38,11 @@
       "type": "string",
       "description": "ISO Country Code of rule owner",
       "pattern": "^[A-Z]{2}$"
+    },
+    "Region": {
+      "type": "string",
+      "description": "Additional Region property to precise country property.",
+      "pattern": "^[A-Z0-9]{0,5}$"
     },
     "Version": {
       "type": "string",

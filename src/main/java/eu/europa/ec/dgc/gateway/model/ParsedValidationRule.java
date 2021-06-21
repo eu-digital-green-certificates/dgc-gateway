@@ -1,5 +1,6 @@
 package eu.europa.ec.dgc.gateway.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.ZonedDateTime;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.Data;
  * This class only represents by DGCG required properties of the Validation Rule JSON.
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ParsedValidationRule {
 
     @JsonProperty("Identifier")

@@ -23,7 +23,9 @@ package eu.europa.ec.dgc.gateway.repository;
 import eu.europa.ec.dgc.gateway.entity.ValidationRuleEntity;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import javax.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -34,13 +36,17 @@ import org.springframework.stereotype.Repository;
 @Transactional
 public interface ValidationRuleRepository extends JpaRepository<ValidationRuleEntity, Long> {
 
-    List<ValidationRuleEntity> getAllByCountry(String countryCode);
+    Optional<ValidationRuleEntity> getFirstByRuleIdOrderByIdDesc(String ruleId);
 
-    List<ValidationRuleEntity> getAllByRuleId(String ruleId);
+    @Query("SELECT v.id FROM ValidationRuleEntity v WHERE "
+        + "v.validFrom <= :threshold AND v.ruleId = :ruleId ORDER BY v.id DESC")
+    List<Long> getIdByValidFromIsBeforeAndRuleIdIs(
+        @Param("threshold") ZonedDateTime threshold, @Param("ruleId") String ruleId, Pageable pageable);
 
-    @Modifying
-    @Query("DELETE FROM ValidationRuleEntity  v WHERE v.validTo < :threshold")
-    int deleteValidToOlderThan(@Param("threshold") ZonedDateTime threshold);
+    @Query("SELECT max(v.id) FROM ValidationRuleEntity v WHERE v.country = :country GROUP BY v.ruleId")
+    List<Long> getLatestIds(@Param("country") String countryCode);
+
+    List<ValidationRuleEntity> getByIdIsGreaterThanEqualAndRuleIdIsOrderByIdDesc(Long minimumId, String ruleId);
 
     @Modifying
     @Query("DELETE FROM ValidationRuleEntity v WHERE v.ruleId = :ruleId")

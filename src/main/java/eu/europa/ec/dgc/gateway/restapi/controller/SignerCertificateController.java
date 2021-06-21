@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsCertificateMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
@@ -35,6 +36,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -67,6 +69,10 @@ public class SignerCertificateController {
     @CertificateAuthenticationRequired
     @PostMapping(path = "", consumes = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Uploads Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
         parameters = {
@@ -181,6 +187,10 @@ public class SignerCertificateController {
     @CertificateAuthenticationRequired
     @DeleteMapping(path = "", consumes = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Deletes Signer Certificate of a trusted Issuer",
         tags = {"Signer Information"},
         parameters = {
@@ -296,6 +306,10 @@ public class SignerCertificateController {
     @CertificateAuthenticationRequired
     @PostMapping(path = "/delete", consumes = CmsCertificateMessageConverter.CONTENT_TYPE_CMS_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Deletes Signer Certificate of a trusted Issuer",
         description = "This endpoint is a workaround alias endpoint. This should only be used if it is not possible"
             + " to send http payloads with DELETE requests.",

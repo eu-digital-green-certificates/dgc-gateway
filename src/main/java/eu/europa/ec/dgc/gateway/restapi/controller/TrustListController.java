@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
@@ -36,6 +37,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import java.util.Locale;
 import javax.validation.Valid;
@@ -73,6 +75,10 @@ public class TrustListController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Returns the full list of trusted certificates.",
         tags = {"Trust Lists"},
         responses = {
@@ -109,6 +115,10 @@ public class TrustListController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "/{type}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Returns a filtered list of trusted certificates.",
         tags = {"Trust Lists"},
         parameters = {
@@ -166,6 +176,10 @@ public class TrustListController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "/{type}/{country}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Returns a filtered list of trusted certificates.",
         tags = {"Trust Lists"},
         parameters = {

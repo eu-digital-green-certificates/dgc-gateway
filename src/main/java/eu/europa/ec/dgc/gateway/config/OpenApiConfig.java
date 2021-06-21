@@ -44,6 +44,9 @@ public class OpenApiConfig {
 
     private final Environment environment;
 
+    public static final String SECURITY_SCHEMA_HASH = "Authentication Certificate Hash";
+    public static final String SECURITY_SCHEMA_DISTINGUISH_NAME = "Authentication Certificate Distinguish Name";
+
     @Bean
     OpenAPI openApiInfo() {
         String version;
@@ -60,7 +63,7 @@ public class OpenApiConfig {
         List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
         if (activeProfiles.contains("local")) {
             components = new Components()
-                .addSecuritySchemes("Authentication Certificate Hash", new SecurityScheme()
+                .addSecuritySchemes(SECURITY_SCHEMA_HASH, new SecurityScheme()
                     .type(SecurityScheme.Type.APIKEY)
                     .in(SecurityScheme.In.HEADER)
                     .name(configProperties.getCertAuth().getHeaderFields().getThumbprint())
@@ -70,7 +73,7 @@ public class OpenApiConfig {
                     .type(SecurityScheme.Type.APIKEY)
                     .in(SecurityScheme.In.HEADER)
                     .name(configProperties.getCertAuth().getHeaderFields().getDistinguishedName())
-                    .description("Distinguish Name of Authentication Certificate."
+                    .description(SECURITY_SCHEMA_DISTINGUISH_NAME
                         + "Should contain at least country property. (e.g. C=EU)"));
         }
 

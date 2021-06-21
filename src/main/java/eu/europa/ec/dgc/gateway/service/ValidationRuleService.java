@@ -22,6 +22,7 @@ package eu.europa.ec.dgc.gateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vdurmont.semver4j.Semver;
 import eu.europa.ec.dgc.gateway.config.ValidationRuleSchemaProvider;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
@@ -32,9 +33,11 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +46,7 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -61,13 +65,47 @@ public class ValidationRuleService {
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
 
     /**
-     * Queries the database for Validation Rules filtered by country.
+     * Queries the database for active Validation Rules filtered by country.
+     * If the latest Validation Rule's validity is in future the whole version history of rules between the currently
+     * active and the latest rule will be returned.
      *
      * @param country 2 Digit Country Code
      * @return List of ValidationRule Entities.
      */
-    public List<ValidationRuleEntity> getValidationRulesByCountry(String country) {
-        return validationRuleRepository.getAllByCountry(country);
+    public List<ValidationRuleEntity> getActiveValidationRules(String country) {
+
+        // Getting the IDs of the latest ValidationRuleVersion of each Rule ID.
+        return validationRuleRepository.getLatestIds(country).stream()
+            // Getting the corresponding entity
+            .map(validationRuleRepository::findById)
+            // Resolve Optional
+            .map(Optional::get)
+            // Check if version history is needed for each rule
+            .map(rule -> {
+                if (ZonedDateTime.now().isAfter(rule.getValidFrom())) {
+                    // rule already valid - only return this one
+                    return Collections.singletonList(rule);
+                } else {
+                    // Rule is valid in future, history of this rule is required
+
+                    // Get the ID of the first Entity with this RuleId and ValidFrom is Before now.
+                    List<Long> ids = validationRuleRepository.getIdByValidFromIsBeforeAndRuleIdIs(
+                        ZonedDateTime.now(), rule.getRuleId(), PageRequest.of(0, 1));
+
+                    if (ids.isEmpty()) {
+                        // Rule has no previous version --> just return rule itself
+                        return Collections.singletonList(rule);
+                    } else {
+                        // Return al previous versions and rule itself.
+                        return validationRuleRepository
+                            .getByIdIsGreaterThanEqualAndRuleIdIsOrderByIdDesc(ids.get(0), rule.getRuleId());
+                    }
+                }
+            })
+            // flatten the 2 dimensional list
+            .flatMap(Collection::stream)
+            // return as one dimensional list
+            .collect(Collectors.toList());
     }
 
     /**
@@ -130,9 +168,10 @@ public class ValidationRuleService {
             parsedValidationRule.getType().equals("Acceptance") ? ValidationRuleEntity.ValidationRuleType.ACCEPTANCE
                 : ValidationRuleEntity.ValidationRuleType.INVALIDATION;
 
+        contentCheckRuleIdPrefixMatchType(parsedValidationRule, validationRuleType);
         contentCheckUploaderCountry(parsedValidationRule, authenticatedCountryCode);
-        contentCheckTimestamps(parsedValidationRule, validationRuleType);
-        contentCheckVersion(parsedValidationRule);
+        Optional<ValidationRuleEntity> latestValidationRule = contentCheckVersion(parsedValidationRule);
+        contentCheckTimestamps(parsedValidationRule, validationRuleType, latestValidationRule);
 
         // All checks passed --> Save to DB
         ValidationRuleEntity newValidationRule = new ValidationRuleEntity();
@@ -153,36 +192,64 @@ public class ValidationRuleService {
         return newValidationRule;
     }
 
-    private void contentCheckVersion(ParsedValidationRule parsedValidationRule) throws ValidationRuleCheckException {
-        // Get latest version in DB
-        List<ValidationRuleEntity> validationRules =
-            validationRuleRepository.getAllByRuleId(parsedValidationRule.getIdentifier());
+    private void contentCheckRuleIdPrefixMatchType(
+        ParsedValidationRule parsedValidationRule, ValidationRuleEntity.ValidationRuleType type)
+        throws ValidationRuleCheckException {
 
-        if (validationRules.isEmpty()) {
-            return;
+        if (parsedValidationRule.getIdentifier().startsWith("IR")
+            && type == ValidationRuleEntity.ValidationRuleType.ACCEPTANCE) {
+            throw new ValidationRuleCheckException(ValidationRuleCheckException.Reason.INVALID_RULE_ID,
+                "Acceptance Rule Rule-ID requires prefix other than IR.");
         }
 
-        String latestVersion = validationRules.stream()
-            .max(Comparator.comparing(v -> new Semver(v.getVersion())))
-            .get().getVersion();
-
-        if (new Semver(parsedValidationRule.getVersion()).isLowerThanOrEqualTo(new Semver(latestVersion))) {
-            throw new ValidationRuleCheckException(
-                ValidationRuleCheckException.Reason.INVALID_VERSION,
-                "Version of new rule needs to be greater then old version. Latest Version is ", latestVersion
-            );
+        if (!parsedValidationRule.getIdentifier().startsWith("IR")
+            && type == ValidationRuleEntity.ValidationRuleType.INVALIDATION) {
+            throw new ValidationRuleCheckException(ValidationRuleCheckException.Reason.INVALID_RULE_ID,
+                "Invalidation Rule Rule-ID requires IR prefix.");
         }
     }
 
-    private void contentCheckTimestamps(
-        ParsedValidationRule parsedValidationRule, ValidationRuleEntity.ValidationRuleType type)
+    private Optional<ValidationRuleEntity> contentCheckVersion(ParsedValidationRule parsedValidationRule)
         throws ValidationRuleCheckException {
+        // Get latest version in DB
+        Optional<ValidationRuleEntity> latestValidationRule =
+            validationRuleRepository.getFirstByRuleIdOrderByIdDesc(parsedValidationRule.getIdentifier());
+
+        if (latestValidationRule.isEmpty()) {
+            return latestValidationRule;
+        }
+
+        Semver latestVersion = new Semver(latestValidationRule.get().getVersion());
+        Semver uploadedVersion = new Semver(parsedValidationRule.getVersion());
+
+        if (uploadedVersion.isLowerThanOrEqualTo(latestVersion)) {
+            throw new ValidationRuleCheckException(
+                ValidationRuleCheckException.Reason.INVALID_VERSION,
+                "Version of new rule (%s) needs to be greater then old version (%s)", uploadedVersion, latestVersion
+            );
+        }
+
+        return latestValidationRule;
+    }
+
+    private void contentCheckTimestamps(
+        ParsedValidationRule parsedValidationRule,
+        ValidationRuleEntity.ValidationRuleType type,
+        Optional<ValidationRuleEntity> latestValidationRule) throws ValidationRuleCheckException {
 
         if (!parsedValidationRule.getValidTo().isAfter(parsedValidationRule.getValidFrom())) {
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_TIMESTAMP,
-                "ValidFrom needs to be before ValidTo."
-            );
+                "ValidFrom (%s) needs to be before ValidTo (%s).",
+                parsedValidationRule.getValidFrom().toString(),
+                parsedValidationRule.getValidTo().toString());
+        }
+
+        if (parsedValidationRule.getValidFrom().isAfter(ZonedDateTime.now().plus(2, ChronoUnit.WEEKS))) {
+            throw new ValidationRuleCheckException(
+                ValidationRuleCheckException.Reason.INVALID_TIMESTAMP,
+                "ValidFrom (%s) cannot be more than 2 weeks in future.",
+                parsedValidationRule.getValidFrom().toString());
         }
 
         if (type == ValidationRuleEntity.ValidationRuleType.ACCEPTANCE
@@ -191,7 +258,8 @@ public class ValidationRuleService {
 
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_TIMESTAMP,
-                "ValidFrom needs to be at least 48h in future for Acceptance Validation Rules");
+                "ValidFrom (%s) needs to be at least 48h in future for Acceptance Validation Rules",
+                parsedValidationRule.getValidFrom().toString());
         }
 
         if (type == ValidationRuleEntity.ValidationRuleType.INVALIDATION
@@ -199,16 +267,18 @@ public class ValidationRuleService {
 
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_TIMESTAMP,
-                "ValidFrom needs to be in future for Invalidation Rules");
+                "ValidFrom (%s) needs to be in future for Invalidation Rules",
+                parsedValidationRule.getValidFrom().toString());
         }
 
-        if (parsedValidationRule.getValidFrom().isBefore(parsedValidationRule.getValidTo())) {
+        if (latestValidationRule.isPresent()
+            && parsedValidationRule.getValidFrom().isBefore(latestValidationRule.get().getValidFrom())) {
+
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_TIMESTAMP,
-                "ValidFrom needs to be after ValidTo"
-            );
+                "ValidFrom (%s) needs to be after or equal to ValidFrom (%s) of previous version of the rule.",
+                parsedValidationRule.getValidFrom().toString(), latestValidationRule.get().getValidFrom().toString());
         }
-
     }
 
     private void contentCheckUploaderCountry(ParsedValidationRule parsedValidationRule, String countryCode)
@@ -239,11 +309,14 @@ public class ValidationRuleService {
         } catch (ValidationException validationException) {
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_JSON,
-                "JSON does not align to Validation Rule Schema", validationException.toJSON().toString());
+                "JSON does not align to Validation Rule Schema: %s",
+                String.join(", ", validationException.getAllMessages()));
         }
 
         try {
-            return new ObjectMapper().readValue(json, ParsedValidationRule.class);
+            return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .readValue(json, ParsedValidationRule.class);
         } catch (JsonProcessingException e) {
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_JSON,
@@ -293,6 +366,7 @@ public class ValidationRuleService {
             INVALID_COUNTRY,
             INVALID_TIMESTAMP,
             INVALID_VERSION,
+            INVALID_RULE_ID,
             UPLOADER_CERT_CHECK_FAILED,
         }
     }
