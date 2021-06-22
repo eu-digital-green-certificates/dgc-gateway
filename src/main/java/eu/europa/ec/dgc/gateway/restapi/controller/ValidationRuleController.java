@@ -205,6 +205,9 @@ public class ValidationRuleController {
                 case INVALID_TIMESTAMP:
                     throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid Timestamp(s)",
                         "", e.getMessage());
+                case INVALID_RULE_ID:
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid RuleID",
+                        "", e.getMessage());
                 default:
                     throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x00", "Unexpected Error",
                         "", "");
