@@ -69,7 +69,7 @@ public class OpenApiConfig {
                     .name(configProperties.getCertAuth().getHeaderFields().getThumbprint())
                     .description("SHA256 Hash of Authentication Certificate (HEX encoded, "
                         + "e.g. e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)"))
-                .addSecuritySchemes("Authentication Certificate Distinguish Name", new SecurityScheme()
+                .addSecuritySchemes(SECURITY_SCHEMA_DISTINGUISH_NAME, new SecurityScheme()
                     .type(SecurityScheme.Type.APIKEY)
                     .in(SecurityScheme.In.HEADER)
                     .name(configProperties.getCertAuth().getHeaderFields().getDistinguishedName())

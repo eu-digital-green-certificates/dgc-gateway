@@ -345,8 +345,8 @@
                         <exclude>**/repository/*</exclude>
                         <exclude>**/model/*</exclude>
                         <exclude>**/entity/*</exclude>
-                        <exclude>**/DgcKeyStore.java</exclude>
-                        <exclude>**/ErrorHandler.java</exclude>
+                        <exclude>**/config/*</exclude>
+                        <exclude>**/entity/*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
