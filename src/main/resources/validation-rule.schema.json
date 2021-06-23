@@ -118,14 +118,14 @@
     },
     "ValidFrom": {
       "type": "string",
-      "description": "Start validity of the rule",
-      "format": "ISO 8601 Timestamp (without ms, with timezone)",
+      "description": "Start validity of the rule as ISO 8601 Timestamp (without ms, with timezone)",
+      "format": "date-time",
       "pattern": "^\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d([-+][0-2]\\d:[0-5]\\d|Z)$"
     },
     "ValidTo": {
       "type": "string",
-      "description": "End validity of the rule",
-      "format": "ISO 8601 Timestamp (without ms, with timezone)",
+      "description": "End validity of the rule as ISO 8601 Timestamp (without ms, with timezone)",
+      "format": "date-time",
       "pattern": "^\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d:[0-5]\\d([-+][0-2]\\d:[0-5]\\d|Z)$"
     },
     "AffectedFields": {
@@ -135,7 +135,7 @@
         "type": "string",
         "description": "Affected field of payload"
       },
-      "minLength": 1
+      "minItems": 1
     },
     "Logic": {
       "type": "object",
