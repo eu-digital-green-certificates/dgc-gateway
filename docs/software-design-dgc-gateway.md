@@ -116,7 +116,15 @@ This is a List of all Possible Problem Reports that can be returned.
 | 0x007 | Possible reasons: Wrong Format no CMS, not the correct signing alg missing attributes, invalid signature, certificate not signed by known CA | Parameters send in the request | Contains the exception message |
 | 0x008 | Internal Server Error | Not Available | Not Available |
 | 0x100 | Valueset not found | The requested valueset ID | Not available |
-
+| 0x200 | Invalid JSON | Not Available | Detailed JSON Parse Error Report |
+| 0x210 | Invalid Country sent | Not Available | Detailed information which field is invalid |
+| 0x220 | Invalid Version | Not Available | Detailed information what is wrong about the provided version |
+| 0x230 | Invalid Upload Cert | Upload Cert Subject | Hash of Upload Cert and authenticated Country Code |
+| 0x240 | Invalid Timestamp(s) | Not available | Detailed information which timestamp is wrong and what is expected |
+| 0x250 | Invalid Rule ID | Not available | Detailed information what is wrong with the used Rule ID |
+| 0x260 | CMS Signature is Invalid | Not available | Details about expected CMS |
+| 0x270 | Validation Rule does not exist | Requested ValidationRule ID | You can only delete existing rules. |
+| 0x299 | Unexpected Error | Not available | Ask Support for help |
 
 ## Monitoring
 ## Audit Logging
@@ -195,7 +203,15 @@ These key-value-pairs can be followed by additional attributes. The additional a
 | **General**
 | Uncaught Exception was thrown in DGCG | ERROR | Uncaught exception | exception |
 | **Download Interface**
-| Trust List was downloaded by a country | INFO | Downloaded TrustList | downloadedKeys (Number of Keys), downloadedKeysCountry (Downloader Country), downloadedKeysType (optional) | 
+| Trust List was downloaded by a country | INFO | Downloaded TrustList | downloadedKeys (Number of Keys), downloadedKeysCountry (Downloader Country), downloadedKeysType (optional) |
+| **Validation Rule**
+| A Member State is trying to upload a new ValidationRule | INFO | Upload validation rule. | n/a |
+| Upload of ValidationRule failed | ERROR | Failed to upload validation rule | validationRuleUploadError, validationRuleUploadReason |
+| A Member State has uploaded a new ValidationRule | INFO | Inserted validation rule. | n/a |
+| A Member State is trying to delete a ValidationRule | INFO | Delete validation rules. | n/a |
+| A Member State has deleted ValidationRules | INFO | Deleted validation rules | validationDeleteAmount, validationDownloadId |
+| A Member State is downloading ValidationRules | INFO | Downloading validation rules. | n/a |
+| A Member State has downloaded ValidationRules | INFO | Downloading validation rules. | validationDownloadAmount, validationDownloadRequester, validationDownloadRequested |
 
 
  

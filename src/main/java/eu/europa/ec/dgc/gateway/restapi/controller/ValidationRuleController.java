@@ -172,7 +172,7 @@ public class ValidationRuleController {
         log.info("Upload validation rule.");
 
         if (!signedJson.isVerified()) {
-            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "CMS signature is invalid", "",
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
                 "Submitted string needs to be signed by a valid upload certificate");
         }
 
@@ -192,24 +192,24 @@ public class ValidationRuleController {
             switch (e.getReason()) {
                 case INVALID_JSON:
                     throw new DgcgResponseException(
-                        HttpStatus.BAD_REQUEST, "0x000", "Invalid JSON", "", e.getMessage());
+                        HttpStatus.BAD_REQUEST, "0x200", "Invalid JSON", "", e.getMessage());
                 case INVALID_COUNTRY:
-                    throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
+                    throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x210", "Invalid Country sent", "",
                         e.getMessage());
                 case INVALID_VERSION:
-                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid Version", "",
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x220", "Invalid Version", "",
                         e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
-                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid Upload Cert",
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x230", "Invalid Upload Cert",
                         signedJson.getSignerCertificate().getSubject().toString(), e.getMessage());
                 case INVALID_TIMESTAMP:
-                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid Timestamp(s)",
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x240", "Invalid Timestamp(s)",
                         "", e.getMessage());
                 case INVALID_RULE_ID:
-                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid RuleID",
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x250", "Invalid RuleID",
                         "", e.getMessage());
                 default:
-                    throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x00", "Unexpected Error",
+                    throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x299", "Unexpected Error",
                         "", "");
             }
         }
@@ -275,7 +275,7 @@ public class ValidationRuleController {
         log.info("Delete validation rules.");
 
         if (!signedString.isVerified()) {
-            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "CMS signature is invalid", "",
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
                 "Submitted string needs to be signed by a valid upload certificate");
         }
 
@@ -283,7 +283,7 @@ public class ValidationRuleController {
             validationRuleService.contentCheckUploaderCertificate(
                 signedString.getSignerCertificate(), authenticatedCountryCode);
         } catch (ValidationRuleService.ValidationRuleCheckException e) {
-            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x00", "Invalid Upload certificate", "",
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x230", "Invalid Upload certificate", "",
                 "You have to use a onboarded upload certificate to sign the string");
         }
 
@@ -291,12 +291,12 @@ public class ValidationRuleController {
             validationRuleService.getCountryCodeFromIdString(signedString.getPayloadString());
 
         if (countryCodeFromIdString == null) {
-            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "ID-String is invalid",
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x250", "ID-String is invalid",
                 signedString.getPayloadString(), "Example valid ID-String: GR-EU-11100");
         }
 
         if (!countryCodeFromIdString.equals(authenticatedCountryCode)) {
-            throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid country in ID-String",
+            throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x210", "Invalid country in ID-String",
                 String.format(
                     "Your authenticated country code: %s, Your requested country code: %s",
                     authenticatedCountryCode, countryCodeFromIdString),
@@ -306,7 +306,7 @@ public class ValidationRuleController {
         int deleted = validationRuleService.deleteByRuleId(signedString.getPayloadString());
 
         if (deleted == 0) {
-            throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Validation Roule does not exist",
+            throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x270", "Validation Rule does not exist",
                 String.format("Validation-Rule Id: %s", signedString.getPayloadString()),
                 "You can only delete existing validation rules.");
         }
