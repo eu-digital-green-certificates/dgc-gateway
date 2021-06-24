@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import lombok.Getter;
@@ -34,9 +35,11 @@ public class ValidationRuleDto {
     String version;
 
     @Schema(name = "Rule is valid from")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     ZonedDateTime validFrom;
 
     @Schema(name = "Rule is valid to")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     ZonedDateTime validTo;
 
     @Schema(name = "CMS containing the signed JSON Object with the rule itself")

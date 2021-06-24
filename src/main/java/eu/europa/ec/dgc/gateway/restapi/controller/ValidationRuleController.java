@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.Length;
@@ -107,7 +108,7 @@ public class ValidationRuleController {
         }
     )
     public ResponseEntity<Map<String, List<ValidationRuleDto>>> downloadValidationRules(
-        @PathVariable("country") @Length(max = 2, min = 2) String requestedCountryCode,
+        @Valid @PathVariable("country") @Length(max = 2, min = 2) String requestedCountryCode,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String requesterCountryCode
     ) {
 

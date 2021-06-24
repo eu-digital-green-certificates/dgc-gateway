@@ -52,4 +52,6 @@ public interface ValidationRuleRepository extends JpaRepository<ValidationRuleEn
     @Query("DELETE FROM ValidationRuleEntity v WHERE v.ruleId = :ruleId")
     int deleteByRuleId(@Param("ruleId") String ruleId);
 
+    Optional<ValidationRuleEntity> getByRuleIdAndVersion(String ruleId, String version);
+
 }

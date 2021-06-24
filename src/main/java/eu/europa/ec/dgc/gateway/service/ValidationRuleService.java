@@ -22,7 +22,6 @@ package eu.europa.ec.dgc.gateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vdurmont.semver4j.Semver;
 import eu.europa.ec.dgc.gateway.config.ValidationRuleSchemaProvider;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
@@ -61,6 +60,8 @@ public class ValidationRuleService {
     private final TrustedPartyService trustedPartyService;
 
     private final ValidationRuleSchemaProvider validationRuleSchemaProvider;
+
+    private final ObjectMapper objectMapper;
 
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
 
@@ -314,9 +315,7 @@ public class ValidationRuleService {
         }
 
         try {
-            return new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .readValue(json, ParsedValidationRule.class);
+            return objectMapper.readValue(json, ParsedValidationRule.class);
         } catch (JsonProcessingException e) {
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_JSON,
