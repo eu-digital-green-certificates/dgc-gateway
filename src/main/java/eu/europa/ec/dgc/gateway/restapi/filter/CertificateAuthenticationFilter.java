@@ -22,6 +22,7 @@ package eu.europa.ec.dgc.gateway.restapi.filter;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import java.io.IOException;
@@ -43,7 +44,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -136,7 +136,14 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
         if (headerDistinguishedName == null || headerCertThumbprint == null) {
             log.error("No thumbprint or distinguish name");
             handlerExceptionResolver.resolveException(
-                httpServletRequest, httpServletResponse, null, new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                httpServletRequest,
+                httpServletResponse,
+                null,
+                new DgcgResponseException(
+                    HttpStatus.UNAUTHORIZED,
+                    "0x400",
+                    "No thumbprint or distinguish name",
+                    "", ""));
             return;
         }
 
@@ -151,8 +158,11 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             log.error("Country property is missing");
             handlerExceptionResolver.resolveException(
                 httpServletRequest, httpServletResponse, null,
-                new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Client Certificate must contain country property"));
+                new DgcgResponseException(
+                    HttpStatus.BAD_REQUEST,
+                    "0x401",
+                    "Client Certificate must contain country property",
+                    headerDistinguishedName, ""));
             return;
         }
 
@@ -166,8 +176,12 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             log.error("Unknown client certificate");
             handlerExceptionResolver.resolveException(
                 httpServletRequest, httpServletResponse, null,
-                new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Client is not authorized to access the service"));
+                new DgcgResponseException(
+                    HttpStatus.UNAUTHORIZED,
+                    "0x402",
+                    "Client is not authorized to access the service",
+                    "", ""));
+
             return;
         }
 
