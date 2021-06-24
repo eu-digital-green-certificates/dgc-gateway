@@ -47,12 +47,12 @@
     "Version": {
       "type": "string",
       "description": "Version of the rule (Semver)",
-      "pattern": "^\\d+\\.\\d+\\.\\d+"
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "SchemaVersion": {
       "type": "string",
       "description": "Version of the used schema (Semver)",
-      "pattern": "^\\d+\\.\\d+\\.\\d+"
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "Engine": {
       "type": "string",
@@ -61,7 +61,7 @@
     "EngineVersion": {
       "type": "string",
       "description": "Version of the used engine (Semver)",
-      "pattern": "^\\d+\\.\\d+\\.\\d+"
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "CertificateType": {
       "type": "string",
