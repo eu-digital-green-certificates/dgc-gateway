@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.converter;
 
+import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
 import eu.europa.ec.dgc.signing.SignedStringMessageParser;
 import java.io.IOException;
@@ -33,7 +34,6 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 @Component
 @Slf4j
@@ -91,7 +91,7 @@ public class CmsStringMessageConverter extends AbstractHttpMessageConverter<Sign
         throw new HttpMessageNotWritableException("Outbound Usage of CMS Messages is currently not supported!");
     }
 
-    private ResponseStatusException badRequest(String message) {
-        return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+    private DgcgResponseException badRequest(String message) {
+        return new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x402", message, "", "");
     }
 }
