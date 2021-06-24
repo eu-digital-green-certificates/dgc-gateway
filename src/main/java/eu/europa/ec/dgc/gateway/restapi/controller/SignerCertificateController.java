@@ -127,6 +127,15 @@ public class SignerCertificateController {
 
         log.info("Uploading new verification certificate");
 
+        if (!cms.isVerified()) {
+            throw new DgcgResponseException(
+                HttpStatus.BAD_REQUEST,
+                "0x009",
+                "Invalid CMS Signature",
+                "",
+                "Signature of CMS signed certificate is not validating content of CMS package");
+        }
+
         try {
             signerInformationService.addSignerCertificate(
                 cms.getPayloadCertificate(),
@@ -234,6 +243,15 @@ public class SignerCertificateController {
         DgcMdc.put("payloadCertSubject", cms.getPayloadCertificate().getSubject().toString());
 
         log.info("Revoking verification certificate");
+
+        if (!cms.isVerified()) {
+            throw new DgcgResponseException(
+                HttpStatus.BAD_REQUEST,
+                "0x009",
+                "Invalid CMS Signature",
+                "",
+                "Signature of CMS signed certificate is not validating content of CMS package");
+        }
 
         try {
             signerInformationService.deleteSignerCertificate(
