@@ -147,7 +147,7 @@ class TrustedPartyServiceTest {
         // Create new signature with a random non TrustAnchor certificate
         String newSignature = new SignedCertificateMessageBuilder()
             .withSigningCertificate(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX").getEncoded()), trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX"))
-            .withPayloadCertificate(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode).getEncoded()))
+            .withPayload(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode).getEncoded()))
             .buildAsString(true);
 
         Assertions.assertTrue(certOptional.isPresent());

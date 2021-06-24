@@ -33,6 +33,8 @@ public class DgcConfigProperties {
     private final CertAuth certAuth = new CertAuth();
     private final TrustAnchor trustAnchor = new TrustAnchor();
 
+    private String validationRuleSchema;
+
     @Getter
     @Setter
     public static class TrustAnchor {

@@ -31,7 +31,6 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.stereotype.Service;
@@ -63,11 +62,6 @@ public class TrustedPartyTestHelper {
     private final CertificateUtils certificateUtils;
 
     private final DgcTestKeyStore testKeyStore;
-
-    @PostConstruct
-    public void postConstruct() {
-
-    }
 
     public String getHash(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
         prepareTestCert(type, countryCode);
@@ -116,7 +110,7 @@ public class TrustedPartyTestHelper {
             certificateMap.get(type).get(countryCode).getEncoded());
 
         String signature = new SignedCertificateMessageBuilder()
-            .withPayloadCertificate(new X509CertificateHolder(certificateMap.get(type).get(countryCode).getEncoded()))
+            .withPayload(new X509CertificateHolder(certificateMap.get(type).get(countryCode).getEncoded()))
             .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()), testKeyStore.getTrustAnchorPrivateKey())
             .buildAsString(true);
 

@@ -21,8 +21,8 @@
 package eu.europa.ec.dgc.gateway.restapi.converter;
 
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
-import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
-import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
+import eu.europa.ec.dgc.signing.SignedStringMessageParser;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
@@ -37,30 +37,30 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCertificateDto> {
+public class CmsStringMessageConverter extends AbstractHttpMessageConverter<SignedStringDto> {
 
-    public static final MediaType CONTENT_TYPE_CMS = new MediaType("application", "cms");
-    public static final String CONTENT_TYPE_CMS_VALUE = "application/cms";
+    public static final MediaType CONTENT_TYPE_CMS_TEXT = new MediaType("application", "cms-text");
+    public static final String CONTENT_TYPE_CMS_TEXT_VALUE = "application/cms-text";
 
-    public CmsMessageConverter() {
-        super(CONTENT_TYPE_CMS);
+    public CmsStringMessageConverter() {
+        super(CONTENT_TYPE_CMS_TEXT);
     }
 
     @Override
     protected boolean supports(Class<?> clazz) {
-        return SignedCertificateDto.class.isAssignableFrom(clazz);
+        return SignedStringDto.class.isAssignableFrom(clazz);
     }
 
     @Override
-    protected SignedCertificateDto readInternal(
-        Class<? extends SignedCertificateDto> clazz,
+    protected SignedStringDto readInternal(
+        Class<? extends SignedStringDto> clazz,
         HttpInputMessage inputMessage
     ) throws IOException, HttpMessageNotReadableException {
 
         byte[] inputBytes = inputMessage.getBody().readAllBytes();
-        SignedCertificateMessageParser certificateParser = new SignedCertificateMessageParser(inputBytes);
+        SignedStringMessageParser parser = new SignedStringMessageParser(inputBytes);
 
-        switch (certificateParser.getParserState()) {
+        switch (parser.getParserState()) {
             case FAILURE_INVALID_BASE64:
                 throw badRequest("Invalid Base64 CMS Message");
             case FAILURE_INVALID_CMS:
@@ -71,22 +71,22 @@ public class CmsMessageConverter extends AbstractHttpMessageConverter<SignedCert
                 throw badRequest("CMS Message needs to contain exactly one X509 certificate");
             case FAILURE_CMS_SIGNER_INFO:
                 throw badRequest("CMS Message needs to have exactly 1 signer information.");
-            case FAILURE_CMS_BODY_NO_CERTIFICATE:
-                throw badRequest("CMS Message payload needs to be a DER encoded X509 certificate");
+            case FAILURE_CMS_BODY_PARSING_FAILED:
+                throw badRequest("CMS Message payload needs to be a String");
             default:
         }
 
-        return SignedCertificateDto.builder()
-            .payloadCertificate(certificateParser.getPayloadCertificate())
-            .signerCertificate(certificateParser.getSigningCertificate())
+        return SignedStringDto.builder()
+            .payloadString(parser.getPayload())
+            .signerCertificate(parser.getSigningCertificate())
             .rawMessage(new String(inputBytes, StandardCharsets.UTF_8))
-            .signature(certificateParser.getSignature())
-            .verified(certificateParser.isSignatureVerified())
+            .signature(parser.getSignature())
+            .verified(parser.isSignatureVerified())
             .build();
     }
 
     @Override
-    protected void writeInternal(SignedCertificateDto signedCertificateDto, HttpOutputMessage outputMessage)
+    protected void writeInternal(SignedStringDto signedStringDto, HttpOutputMessage outputMessage)
         throws HttpMessageNotWritableException {
         throw new HttpMessageNotWritableException("Outbound Usage of CMS Messages is currently not supported!");
     }

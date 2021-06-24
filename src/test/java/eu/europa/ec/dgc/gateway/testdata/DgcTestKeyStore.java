@@ -61,11 +61,6 @@ public class DgcTestKeyStore {
 
     /**
      * Creates a KeyStore instance with keys for DGC.
-     *
-     * @return KeyStore Instance
-     * @throws IOException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
      */
     @Bean
     @Primary

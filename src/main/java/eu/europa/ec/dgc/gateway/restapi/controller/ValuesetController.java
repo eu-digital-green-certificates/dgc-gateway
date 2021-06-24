@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
@@ -31,6 +32,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +59,10 @@ public class ValuesetController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "")
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Gets a list of available valuesets.",
         tags = {"Valueset"},
         responses = {
@@ -84,6 +90,10 @@ public class ValuesetController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "/{id}")
     @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
         summary = "Requests a specific valueset by its id.",
         tags = {"Valueset"},
         parameters = @Parameter(in = ParameterIn.PATH, name = "id", description = "Valueset ID"),

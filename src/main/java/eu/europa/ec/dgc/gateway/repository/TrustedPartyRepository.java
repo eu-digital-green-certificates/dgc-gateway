@@ -24,6 +24,7 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity, Long> {
 
@@ -36,5 +37,8 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
 
     Optional<TrustedPartyEntity> getFirstByThumbprintAndCertificateType(
         String thumbprint, TrustedPartyEntity.CertificateType type);
+
+    @Query("SELECT DISTINCT t.country FROM TrustedPartyEntity t")
+    List<String> getCountryCodeList();
 
 }

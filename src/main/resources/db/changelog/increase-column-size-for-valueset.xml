@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
     <changeSet id="1623830062379-1" author="f11h">
-        <modifyDataType columnName="json" newDataType="VARCHAR(1024000)" tableName="valueset"/>
+        <modifyDataType columnName="json" newDataType="clob(1024000)" tableName="valueset"/>
     </changeSet>
 
 </databaseChangeLog>

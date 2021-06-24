@@ -18,35 +18,31 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.entity;
+package eu.europa.ec.dgc.gateway.restapi.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.ZonedDateTime;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
+@Schema(name = "Validation Rule")
 @Setter
-@Entity
-@Table(name = "valueset")
-@AllArgsConstructor
-@NoArgsConstructor
-public class ValuesetEntity {
+@Getter
+public class ValidationRuleDto {
 
-    @Id
-    @Column(name = "id", length = 100)
-    String id;
+    @Schema(name = "Version of the Rule (Semver)", example = "1.0.0")
+    String version;
 
-    /**
-     * Signature of the TrustAnchor.
-     */
-    @Column(name = "json", nullable = false, length = 1024000)
-    @Lob
-    String json;
+    @Schema(name = "Rule is valid from")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+    ZonedDateTime validFrom;
+
+    @Schema(name = "Rule is valid to")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+    ZonedDateTime validTo;
+
+    @Schema(name = "CMS containing the signed JSON Object with the rule itself")
+    String cms;
 
 }

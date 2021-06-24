@@ -20,6 +20,7 @@ springdoc:
     path: /swagger
 
 dgc:
+  validationRuleSchema: classpath:validation-rule.schema.json
   dbencryption:
     initVector: Ho^RDYDuGt0Ki`\x
     password: G&B3zSk|fNE!.Pa9+Xv2kUYRx2zp|@=|
