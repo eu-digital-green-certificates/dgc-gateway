@@ -25,6 +25,7 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -156,7 +157,7 @@ public class TrustedPartyService {
         SignedCertificateMessageParser parser =
             new SignedCertificateMessageParser(trustedPartyEntity.getSignature(), trustedPartyEntity.getRawData());
 
-        if (parser.getParserState() != SignedCertificateMessageParser.ParserState.SUCCESS) {
+        if (parser.getParserState() != SignedMessageParser.ParserState.SUCCESS) {
             DgcMdc.put(MDC_PROP_PARSER_STATE, parser.getParserState().name());
             log.error("TrustAnchor Verification failed.");
             return false;

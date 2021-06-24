@@ -120,7 +120,7 @@ public class ValidationRuleController {
         Map<String, List<ValidationRuleDto>> map = new HashMap<>();
 
         validationRuleEntities.forEach(validationRuleEntitiy ->
-            map.computeIfAbsent(validationRuleEntitiy.getRuleId(), (k) -> new ArrayList<>())
+            map.computeIfAbsent(validationRuleEntitiy.getRuleId(), k -> new ArrayList<>())
                 .add(validationRuleMapper.entityToDto(validationRuleEntitiy)));
 
         DgcMdc.put(MDC_VALIDATION_RULE_DOWNLOAD_AMOUNT, validationRuleEntities.size());
