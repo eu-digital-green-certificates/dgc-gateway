@@ -94,8 +94,12 @@ public class ValidationRuleService {
                         ZonedDateTime.now(), rule.getRuleId(), PageRequest.of(0, 1));
 
                     if (ids.isEmpty()) {
-                        // Rule has no previous version --> just return rule itself
-                        return Collections.singletonList(rule);
+                        // Rule has no older but currently valid version --> return all rules with valid from is greater than today
+
+                        return validationRuleRepository.getByRuleIdAndValidFromIsGreaterThanEqualOrderByIdDesc(
+                            rule.getRuleId(),
+                            ZonedDateTime.now()
+                        );
                     } else {
                         // Return al previous versions and rule itself.
                         return validationRuleRepository

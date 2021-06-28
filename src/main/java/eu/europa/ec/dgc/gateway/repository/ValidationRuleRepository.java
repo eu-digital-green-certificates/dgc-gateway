@@ -43,6 +43,8 @@ public interface ValidationRuleRepository extends JpaRepository<ValidationRuleEn
     List<Long> getIdByValidFromIsBeforeAndRuleIdIs(
         @Param("threshold") ZonedDateTime threshold, @Param("ruleId") String ruleId, Pageable pageable);
 
+    List<ValidationRuleEntity> getByRuleIdAndValidFromIsGreaterThanEqualOrderByIdDesc(String ruleId, ZonedDateTime threshold);
+
     @Query("SELECT max(v.id) FROM ValidationRuleEntity v WHERE v.country = :country GROUP BY v.ruleId")
     List<Long> getLatestIds(@Param("country") String countryCode);
 
