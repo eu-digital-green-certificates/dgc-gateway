@@ -9,4 +9,5 @@
     <include file="db/changelog/add-valueset-table.xml"/>
     <include file="db/changelog/increase-column-size-for-valueset.xml"/>
     <include file="db/changelog/add-validation-rule-table.xml"/>
+    <include file="db/changelog/add-unique-constraints.xml"/>
 </databaseChangeLog>

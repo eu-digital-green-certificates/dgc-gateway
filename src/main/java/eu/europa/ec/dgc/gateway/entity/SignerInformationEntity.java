@@ -63,7 +63,7 @@ public class SignerInformationEntity {
     /**
      * SHA-256 Thumbprint of the certificate (hex encoded).
      */
-    @Column(name = "thumbprint", nullable = false, length = 64)
+    @Column(name = "thumbprint", nullable = false, length = 64, unique = true)
     private String thumbprint;
 
     /**
