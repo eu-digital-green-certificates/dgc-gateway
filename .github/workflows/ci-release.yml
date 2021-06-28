@@ -47,6 +47,7 @@ jobs:
         run: |
           for f in target/*.zip; do gh release upload ${APP_TAG} --clobber $f; done
           gh release upload ${APP_TAG} --clobber target/openapi.json
+          gh release upload ${APP_TAG} --clobber src/main/resources/validation-rule.schema.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: mvn docker
