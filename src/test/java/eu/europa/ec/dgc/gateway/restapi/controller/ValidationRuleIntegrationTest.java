@@ -833,4 +833,93 @@ class ValidationRuleIntegrationTest {
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validFrom").value(vr2.getValidFrom().format(formatter)));
     }
 
+    @Test
+    void testDownloadDbContainsOnlyRulesValidInFutureShouldReturnAll() throws Exception {
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        ValidationRule validationRule1 = getDummyValidationRule();
+        validationRule1.setValidFrom(ZonedDateTime.now().plus(1, ChronoUnit.DAYS));
+
+        String payload1 = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule1))
+            .buildAsString();
+
+        ValidationRuleEntity vr1 = new ValidationRuleEntity();
+        vr1.setRuleId(validationRule1.getIdentifier());
+        vr1.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
+        vr1.setValidTo(validationRule1.getValidTo());
+        vr1.setValidFrom(validationRule1.getValidFrom());
+        vr1.setCountry(validationRule1.getCountry());
+        vr1.setCms(payload1);
+        vr1.setVersion(validationRule1.getVersion());
+
+        validationRuleRepository.save(vr1);
+
+        ValidationRule validationRule2 = getDummyValidationRule();
+        validationRule2.setValidFrom(ZonedDateTime.now().plus(2, ChronoUnit.DAYS));
+        validationRule2.setVersion("1.0.1");
+
+        String payload2 = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule2))
+            .buildAsString();
+
+        ValidationRuleEntity vr2 = new ValidationRuleEntity();
+        vr2.setRuleId(validationRule2.getIdentifier());
+        vr2.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
+        vr2.setValidTo(validationRule2.getValidTo());
+        vr2.setValidFrom(validationRule2.getValidFrom());
+        vr2.setCountry(validationRule2.getCountry());
+        vr2.setCms(payload2);
+        vr2.setVersion(validationRule2.getVersion());
+
+        validationRuleRepository.save(vr2);
+
+        ValidationRule validationRule3 = getDummyValidationRule();
+        validationRule3.setValidFrom(ZonedDateTime.now().plus(3, ChronoUnit.DAYS));
+        validationRule3.setVersion("1.1.0");
+
+        String payload3 = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule3))
+            .buildAsString();
+
+        ValidationRuleEntity vr3 = new ValidationRuleEntity();
+        vr3.setRuleId(validationRule3.getIdentifier());
+        vr3.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule3.getType().toUpperCase(Locale.ROOT)));
+        vr3.setValidTo(validationRule3.getValidTo());
+        vr3.setValidFrom(validationRule3.getValidFrom());
+        vr3.setCountry(validationRule3.getCountry());
+        vr3.setCms(payload3);
+        vr3.setVersion(validationRule3.getVersion());
+
+        validationRuleRepository.save(vr3);
+
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        mockMvc.perform(get("/rules/EU")
+            .accept(MediaType.APPLICATION_JSON_VALUE)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(3))
+            .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr3.getVersion()))
+            .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr3.getCms()))
+            .andExpect(jsonPath("$.['GR-EU-0001'][0].validTo").value(vr3.getValidTo().format(formatter)))
+            .andExpect(jsonPath("$.['GR-EU-0001'][0].validFrom").value(vr3.getValidFrom().format(formatter)))
+            .andExpect(jsonPath("$.['GR-EU-0001'][1].version").value(vr2.getVersion()))
+            .andExpect(jsonPath("$.['GR-EU-0001'][1].cms").value(vr2.getCms()))
+            .andExpect(jsonPath("$.['GR-EU-0001'][1].validTo").value(vr2.getValidTo().format(formatter)))
+            .andExpect(jsonPath("$.['GR-EU-0001'][1].validFrom").value(vr2.getValidFrom().format(formatter)))
+            .andExpect(jsonPath("$.['GR-EU-0001'][2].version").value(vr1.getVersion()))
+            .andExpect(jsonPath("$.['GR-EU-0001'][2].cms").value(vr1.getCms()))
+            .andExpect(jsonPath("$.['GR-EU-0001'][2].validTo").value(vr1.getValidTo().format(formatter)))
+            .andExpect(jsonPath("$.['GR-EU-0001'][2].validFrom").value(vr1.getValidFrom().format(formatter)));
+
+    }
+
 }
