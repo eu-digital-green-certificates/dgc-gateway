@@ -21,8 +21,9 @@
 package eu.europa.ec.dgc.gateway.config;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +46,17 @@ public class ValidationRuleSchemaProvider {
     private Schema validationRuleSchema;
 
     @PostConstruct
-    void setup() throws FileNotFoundException {
-        File schemaFile = ResourceUtils.getFile(configProperties.getValidationRuleSchema());
+    void setup() throws FileNotFoundException, IOException {
+        InputStream schemaInputStream = ResourceUtils.getURL(configProperties.getValidationRuleSchema()).openStream();
 
-        validationRuleSchema = SchemaLoader.builder()
-            .schemaJson(new JSONObject(new JSONTokener(new FileInputStream(schemaFile))))
-            .draftV7Support()
-            .build().load().build();
+        try {
+            validationRuleSchema = SchemaLoader.builder()
+                .schemaJson(new JSONObject(new JSONTokener(schemaInputStream)))
+                .draftV7Support()
+                .build().load().build();
+        } finally {
+            schemaInputStream.close();
+        }
     }
 
 }
