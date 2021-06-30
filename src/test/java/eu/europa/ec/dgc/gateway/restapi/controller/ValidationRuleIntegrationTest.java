@@ -469,6 +469,33 @@ class ValidationRuleIntegrationTest {
     }
 
     @Test
+    void testValidationTimestamps3() throws Exception {
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        ValidationRule validationRule = getDummyValidationRule();
+        validationRule.setValidFrom(ZonedDateTime.now().plus(3, ChronoUnit.DAYS));
+        validationRule.setValidTo(ZonedDateTime.now()
+            .plus(6, ChronoUnit.DAYS)
+            .minus(1, ChronoUnit.SECONDS));
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("0x240"));
+    }
+
+    @Test
     void testValidationRuleId() throws Exception {
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);

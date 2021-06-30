@@ -277,6 +277,15 @@ public class ValidationRuleService {
                 parsedValidationRule.getValidFrom().toString());
         }
 
+        if (parsedValidationRule.getValidFrom().plus(3, ChronoUnit.DAYS)
+            .isAfter(parsedValidationRule.getValidTo())) {
+
+            throw new ValidationRuleCheckException(
+                ValidationRuleCheckException.Reason.INVALID_TIMESTAMP,
+                "Rule Validity must be at least 72h but is %dh",
+                ChronoUnit.HOURS.between(parsedValidationRule.getValidFrom(), parsedValidationRule.getValidTo()));
+        }
+
         if (latestValidationRule.isPresent()
             && parsedValidationRule.getValidFrom().isBefore(latestValidationRule.get().getValidFrom())) {
 
