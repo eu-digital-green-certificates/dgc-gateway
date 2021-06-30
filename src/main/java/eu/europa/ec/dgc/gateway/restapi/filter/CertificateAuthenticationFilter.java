@@ -26,7 +26,6 @@ import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -40,6 +39,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.encoders.DecoderException;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -89,9 +90,9 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
         boolean isHexString;
         // check if it is a hex string
         try {
-            new BigInteger(inputString, 16);
+            Hex.decode(inputString);
             isHexString = true;
-        } catch (NumberFormatException ignored) {
+        } catch (DecoderException ignored) {
             isHexString = false;
         }
 
@@ -104,13 +105,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
                 if (inputString.contains("%")) { // only url decode input string if it contains none base64 characters
                     inputString = URLDecoder.decode(inputString, StandardCharsets.UTF_8);
                 }
-
-                hexString = new BigInteger(1, Base64.getDecoder().decode(inputString)).toString(16);
-
-                if (hexString.length() == 63) {
-                    hexString = "0" + hexString;
-                }
-
+                hexString = Hex.toHexString(Base64.getDecoder().decode(inputString));
                 return hexString;
             } catch (IllegalArgumentException ignored) {
                 log.error("Could not normalize certificate hash.");
