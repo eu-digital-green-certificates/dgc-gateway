@@ -53,7 +53,7 @@ public class CertificateTestUtils {
         validationRule.setLogic(jsonNodeFactory.objectNode().set("field1", jsonNodeFactory.textNode("value1")));
         validationRule.setValidTo(ZonedDateTime.now().plus(1, ChronoUnit.WEEKS));
         validationRule.setValidFrom(ZonedDateTime.now().plus(3, ChronoUnit.DAYS));
-        validationRule.setCertificateType("Vaccination");
+        validationRule.setCertificateType("General");
         validationRule.setDescription(List.of(new ValidationRule.DescriptionItem("en", "de".repeat(10))));
         validationRule.setEngine("CERTLOGIC");
         validationRule.setEngineVersion("1.0.0");
