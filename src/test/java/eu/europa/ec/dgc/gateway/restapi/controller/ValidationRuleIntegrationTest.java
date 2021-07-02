@@ -570,6 +570,82 @@ class ValidationRuleIntegrationTest {
     }
 
     @Test
+    void testValidationRuleInvalidIdPrefix() throws Exception {
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        ValidationRule validationRule = getDummyValidationRule();
+        validationRule.setIdentifier("TR-EU-0001");
+        validationRule.setCertificateType("Vaccination");
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("0x250"));
+
+        validationRule.setIdentifier("VR-EU-0001");
+        validationRule.setCertificateType("Test");
+
+        payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("0x250"));
+
+        validationRule.setIdentifier("RR-EU-0001");
+        validationRule.setCertificateType("Vaccination");
+
+        payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("0x250"));
+
+        validationRule.setIdentifier("GR-EU-0001");
+        validationRule.setCertificateType("Vaccination");
+
+        payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("0x250"));
+    }
+
+    @Test
     void testDelete() throws Exception {
         long validationRulesInDb = validationRuleRepository.count();
 

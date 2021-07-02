@@ -35,6 +35,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -174,6 +175,7 @@ public class ValidationRuleService {
             parsedValidationRule.getType().equals("Acceptance") ? ValidationRuleEntity.ValidationRuleType.ACCEPTANCE
                 : ValidationRuleEntity.ValidationRuleType.INVALIDATION;
 
+        contentCheckRuleIdPrefixMatchCertificateType(parsedValidationRule);
         contentCheckRuleIdPrefixMatchType(parsedValidationRule, validationRuleType);
         contentCheckUploaderCountry(parsedValidationRule, authenticatedCountryCode);
         Optional<ValidationRuleEntity> latestValidationRule = contentCheckVersion(parsedValidationRule);
@@ -196,6 +198,26 @@ public class ValidationRuleService {
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
 
         return newValidationRule;
+    }
+
+    private void contentCheckRuleIdPrefixMatchCertificateType(ParsedValidationRule parsedValidationRule)
+        throws ValidationRuleCheckException {
+
+        Map<String, String> mapping = Map.of(
+            "TR", "Test",
+            "VR", "Vaccination",
+            "RR", "Recovery",
+            "GR", "General"
+        );
+
+        for (Map.Entry<String, String> entry : mapping.entrySet()) {
+            if (parsedValidationRule.getIdentifier().startsWith(entry.getKey())
+                && !parsedValidationRule.getCertificateType().equals(entry.getValue())) {
+
+                throw new ValidationRuleCheckException(ValidationRuleCheckException.Reason.INVALID_RULE_ID,
+                    String.format("ID must start with %s for %s Rules", entry.getKey(), entry.getValue()));
+            }
+        }
     }
 
     private void contentCheckRuleIdPrefixMatchType(
