@@ -205,21 +205,19 @@ These key-value-pairs can be followed by additional attributes. The additional a
 | **Download Interface**
 | Trust List was downloaded by a country | INFO | Downloaded TrustList | downloadedKeys (Number of Keys), downloadedKeysCountry (Downloader Country), downloadedKeysType (optional) |
 | **Validation Rule**
-| A Member State is trying to upload a new ValidationRule | INFO | Upload validation rule. | n/a |
-| Upload of ValidationRule failed | ERROR | Failed to upload validation rule | validationRuleUploadError, validationRuleUploadReason |
-| A Member State has uploaded a new ValidationRule | INFO | Inserted validation rule. | n/a |
-| A Member State is trying to delete a ValidationRule | INFO | Delete validation rules. | n/a |
-| A Member State has deleted ValidationRules | INFO | Deleted validation rules | validationDeleteAmount, validationDownloadId |
-| A Member State is downloading ValidationRules | INFO | Downloading validation rules. | n/a |
-| A Member State has downloaded ValidationRules | INFO | Downloading validation rules. | validationDownloadAmount, validationDownloadRequester, validationDownloadRequested |
+| A Member State is trying to upload a new ValidationRule | INFO | Rule Upload Request | n/a |
+| Upload of ValidationRule failed | ERROR | Rule Upload Failed | validationRuleUploadError, validationRuleUploadReason |
+| A Member State has uploaded a new ValidationRule | INFO | Rule Upload Success | n/a |
+| A Member State is trying to delete a ValidationRule | INFO | Rule Delete Request | n/a |
+| A Member State has deleted ValidationRules | INFO | Rule Delete Success | validationDeleteAmount, validationDownloadId |
+| A Member State is downloading ValidationRules | INFO | Rule Download Request | n/a |
+| A Member State has downloaded ValidationRules | INFO |Rule Download Success | validationDownloadAmount, validationDownloadRequester, validationDownloadRequested |
 
-
- 
 # Integration into Data Center Infrastructure
 
 ## Load Balancer Integration
-The load balancer terminates TLS, executes the mutual TLS authentication 
-and forwards the http request to a worker node.
+
+The load balancer terminates TLS, executes the mutual TLS authentication and forwards the http request to a worker node.
 
 The IP of the load balancer is assigned to registered domain name.
 

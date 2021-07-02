@@ -112,7 +112,7 @@ public class ValidationRuleController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String requesterCountryCode
     ) {
 
-        log.info("Downloading validation rules.");
+        log.info("Rule Download Request");
 
         List<ValidationRuleEntity> validationRuleEntities =
             validationRuleService.getActiveValidationRules(requestedCountryCode);
@@ -126,7 +126,7 @@ public class ValidationRuleController {
         DgcMdc.put(MDC_VALIDATION_RULE_DOWNLOAD_AMOUNT, validationRuleEntities.size());
         DgcMdc.put(MDC_VALIDATION_RULE_DOWNLOAD_REQUESTER, requesterCountryCode);
         DgcMdc.put(MDC_VALIDATION_RULE_DOWNLOAD_REQUESTED, requestedCountryCode);
-        log.info("Downloaded validation rules.");
+        log.info("Rule Download Success");
 
         return ResponseEntity.ok(map);
     }
@@ -170,7 +170,7 @@ public class ValidationRuleController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String thumbprint
     ) {
 
-        log.info("Upload validation rule.");
+        log.info("Rule Upload Request");
 
         if (!signedJson.isVerified()) {
             throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
@@ -188,7 +188,7 @@ public class ValidationRuleController {
         } catch (ValidationRuleService.ValidationRuleCheckException e) {
             DgcMdc.put("validationRuleUploadError", e.getMessage());
             DgcMdc.put("validationRuleUploadReason", e.getReason().toString());
-            log.error("Failed to upload validation rule");
+            log.error("Rule Upload Failed");
 
             switch (e.getReason()) {
                 case INVALID_JSON:
@@ -216,7 +216,7 @@ public class ValidationRuleController {
         }
 
 
-        log.info("Inserted validation rule.");
+        log.info("Rule Upload Success");
 
         auditService.addAuditEvent(
             authenticatedCountryCode,
@@ -273,7 +273,7 @@ public class ValidationRuleController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String thumbprint
     ) {
 
-        log.info("Delete validation rules.");
+        log.info("Rule Delete Request");
 
         if (!signedString.isVerified()) {
             throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
@@ -314,7 +314,7 @@ public class ValidationRuleController {
 
         DgcMdc.put(MDC_VALIDATION_RULE_DELETE_AMOUNT, deleted);
         DgcMdc.put(MDC_VALIDATION_RULE_DELETE_ID, signedString.getPayloadString());
-        log.info("Deleted validation rules.");
+        log.info("Rule Delete Success");
 
         auditService.addAuditEvent(
             authenticatedCountryCode,
