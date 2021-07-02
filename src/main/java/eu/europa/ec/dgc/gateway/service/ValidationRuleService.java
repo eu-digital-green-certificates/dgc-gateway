@@ -122,13 +122,7 @@ public class ValidationRuleService {
      * @return amount of deleted entities.
      */
     public int deleteByRuleId(String ruleId) {
-        int deleted = validationRuleRepository.deleteByRuleId(ruleId);
-
-        DgcMdc.put("deletedAmount", deleted);
-        DgcMdc.put("ruleId", ruleId);
-        log.info("Deleted Validation Rules");
-
-        return deleted;
+        return validationRuleRepository.deleteByRuleId(ruleId);
     }
 
     /**
