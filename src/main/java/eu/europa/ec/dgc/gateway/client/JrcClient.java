@@ -18,18 +18,25 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.repository;
+package eu.europa.ec.dgc.gateway.client;
 
-import eu.europa.ec.dgc.gateway.entity.ValuesetEntity;
-import java.util.List;
-import javax.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import eu.europa.ec.dgc.gateway.model.JrcRatValuesetResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@Transactional
-public interface ValuesetRepository extends JpaRepository<ValuesetEntity, String> {
+@FeignClient(
+    name = "jrcClient",
+    url = "${dgc.jrc.url}",
+    configuration = JrcClientConfig.class)
+public interface JrcClient {
 
-    @Query("SELECT v.id FROM ValuesetEntity v")
-    List<String> getIds();
-
+    /**
+     * This method gets a the RAT values from JRC API.
+     *
+     * @return List of RAT values.
+     */
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    JrcRatValuesetResponse downloadRatValues();
 }

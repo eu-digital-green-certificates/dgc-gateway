@@ -18,18 +18,29 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.repository;
+package eu.europa.ec.dgc.gateway.model;
 
-import eu.europa.ec.dgc.gateway.entity.ValuesetEntity;
-import java.util.List;
-import javax.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.ZonedDateTime;
+import lombok.Data;
 
-@Transactional
-public interface ValuesetRepository extends JpaRepository<ValuesetEntity, String> {
+@Data
+public class RatValueset {
 
-    @Query("SELECT v.id FROM ValuesetEntity v")
-    List<String> getIds();
+    @JsonProperty("display")
+    String display;
 
+    @JsonProperty("lang")
+    String lang = "en";
+
+    @JsonProperty("active")
+    Boolean active;
+
+    @JsonProperty("system")
+    String system = "https://covid-19-diagnostics.jrc.ec.europa.eu/devices";
+
+    @JsonProperty("version")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z", locale = "en-en")
+    ZonedDateTime version;
 }

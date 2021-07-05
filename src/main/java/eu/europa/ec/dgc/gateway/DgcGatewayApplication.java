@@ -21,15 +21,21 @@
 package eu.europa.ec.dgc.gateway;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * The Application class.
  */
 @SpringBootApplication
+@EnableFeignClients
+@EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "PT30S")
 @EnableConfigurationProperties(DgcConfigProperties.class)
 public class DgcGatewayApplication extends SpringBootServletInitializer {
 
