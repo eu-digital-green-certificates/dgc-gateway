@@ -135,7 +135,8 @@ public class ValidationRuleController {
      * Endpoint to upload a Validation Rule.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
+    @PostMapping(path = "", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
             @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
@@ -177,7 +178,7 @@ public class ValidationRuleController {
                 "Submitted string needs to be signed by a valid upload certificate");
         }
 
-        ValidationRuleEntity createdValidationRule = null;
+        ValidationRuleEntity createdValidationRule;
 
         try {
             createdValidationRule = validationRuleService.addValidationRule(
@@ -233,7 +234,8 @@ public class ValidationRuleController {
      * Endpoint to delete a Validation Rule.
      */
     @CertificateAuthenticationRequired
-    @DeleteMapping(path = "", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
+    @DeleteMapping(path = "", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
             @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
@@ -324,5 +326,52 @@ public class ValidationRuleController {
             "Deleted Validation Rule with ID " + signedString.getPayloadString());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    /**
+     * Alias endpoint to delete a Validation Rule.
+     */
+    @CertificateAuthenticationRequired
+    @PostMapping(path = "/delete", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
+    @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        summary = "Delete all versions of a rule with id (Alias Endpoint for DELETE)",
+        tags = {"Validation Rules"},
+        requestBody = @RequestBody(
+            required = true,
+            description = "CMS Signed String representing the Rule ID. Needs to be signed with valid Upload Certificate"
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "204",
+                description = "Delete successful."
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad data submitted. See ProblemReport for more details.",
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
+            ),
+            @ApiResponse(
+                responseCode = "403",
+                description = "You are not allowed to delete these validation rules.",
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Validation rule not found.",
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
+            )
+        }
+    )
+    public ResponseEntity<Void> deleteValidationRulesAliasEndpoint(
+        @org.springframework.web.bind.annotation.RequestBody SignedStringDto signedString,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String authenticatedCountryCode,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String thumbprint
+    ) {
+        return deleteValidationRules(signedString, authenticatedCountryCode, thumbprint);
     }
 }
