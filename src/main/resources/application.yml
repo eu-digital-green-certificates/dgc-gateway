@@ -30,7 +30,6 @@ dgc:
   jrc:
     url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat
     proxy:
-      enabled: true
       host: ${https.proxyHost:}
       port: ${https.proxyPort:-1}
       username: ${https.proxyUser:}

@@ -95,9 +95,13 @@ public class RatValuesetUpdateService {
         }
 
         for (JrcRatValueset device : jrcResponse.getDeviceList()) {
-            JrcRatValueset.HscListHistory latestHistoryEntry = device.getHscListHistory().stream()
-                .max(Comparator.comparing(x -> x.getListDate().toEpochSecond()))
-                .orElse(null);
+            JrcRatValueset.HscListHistory latestHistoryEntry = null;
+
+            if (device.getHscListHistory() != null) {
+                latestHistoryEntry = device.getHscListHistory().stream()
+                    .max(Comparator.comparing(x -> x.getListDate().toEpochSecond()))
+                    .orElse(null);
+            }
 
             if (latestHistoryEntry == null) {
                 DgcMdc.put("valuesetId", device.getIdDevice());

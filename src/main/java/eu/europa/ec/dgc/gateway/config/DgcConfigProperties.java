@@ -49,7 +49,6 @@ public class DgcConfigProperties {
     @Setter
     public static class ProxyConfig {
 
-        private boolean enabled = false;
         private String host;
         private int port = -1;
         private String username;

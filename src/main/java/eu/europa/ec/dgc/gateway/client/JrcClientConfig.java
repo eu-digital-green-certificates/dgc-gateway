@@ -56,7 +56,9 @@ public class JrcClientConfig {
         httpClientBuilder.setSSLContext(SSLContext.getDefault());
         httpClientBuilder.setSSLHostnameVerifier(new DefaultHostnameVerifier());
 
-        if (config.getJrc().getProxy().isEnabled()) {
+        if (config.getJrc().getProxy().getHost() != null
+            && config.getJrc().getProxy().getPort() != -1
+            && !config.getJrc().getProxy().getHost().isEmpty()) {
             log.info("Using Proxy for JRC Connection");
             // Set proxy
             httpClientBuilder.setProxy(new HttpHost(
@@ -84,7 +86,7 @@ public class JrcClientConfig {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
             }
         } else {
-            log.info("Using not proxy for JRC Connection");
+            log.info("Using no proxy for JRC Connection");
         }
 
         return new ApacheHttpClient(httpClientBuilder.build());
