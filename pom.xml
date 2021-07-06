@@ -57,7 +57,7 @@
         <semver4j.version>3.1.0</semver4j.version>
         <json-schema.version>1.12.3</json-schema.version>
         <shedlock.version>4.20.0</shedlock.version>
-        <spring.cloud.version>2020.0.1</spring.cloud.version>
+        <spring.cloud.version>2020.0.3</spring.cloud.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
