@@ -27,6 +27,13 @@ management:
   server:
     port: -1
 dgc:
+  jrc:
+    url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat
+    proxy:
+      host: ${https.proxyHost:}
+      port: ${https.proxyPort:-1}
+      username: ${https.proxyUser:}
+      password: ${https.proxyPassword:}
   validationRuleSchema: classpath:validation-rule.schema.json
   trustAnchor:
     keyStorePath: /ec/prod/app/san/dgc/dgc-ta.jks

@@ -18,18 +18,16 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.repository;
+package eu.europa.ec.dgc.gateway.config;
 
-import eu.europa.ec.dgc.gateway.entity.ValuesetEntity;
-import java.util.List;
-import javax.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-@Transactional
-public interface ValuesetRepository extends JpaRepository<ValuesetEntity, String> {
-
-    @Query("SELECT v.id FROM ValuesetEntity v")
-    List<String> getIds();
-
+@Configuration
+@Profile("!test")
+@EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "PT30S")
+public class SchedulerConfig {
 }

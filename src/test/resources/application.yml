@@ -20,6 +20,8 @@ springdoc:
     path: /swagger
 
 dgc:
+  jrc:
+    url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat
   validationRuleSchema: classpath:validation-rule.schema.json
   dbencryption:
     initVector: Ho^RDYDuGt0Ki`\x

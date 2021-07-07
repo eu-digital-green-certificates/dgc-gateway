@@ -25,6 +25,7 @@ import eu.europa.ec.dgc.gateway.repository.ValuesetRepository;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,26 @@ public class ValuesetService {
         log.info("Requesting Value Set.");
 
         return valuesetRepository.findById(id).map(ValuesetEntity::getJson);
+    }
+
+    /**
+     * Sets the JSON-Value of a ValueSet.
+     * If a Valueset with the given ID does not exists it will be created.
+     *
+     * @param id    ValueSet-ID
+     * @param value JSON String containing Valueset.
+     */
+    @Transactional
+    public void updateValueSet(String id, String value) {
+        log.info("Updating Valueset.");
+
+        Optional<ValuesetEntity> valuesetEntityOptional = valuesetRepository.findById(id);
+
+        ValuesetEntity valuesetEntity = valuesetEntityOptional.orElse(new ValuesetEntity());
+        valuesetEntity.setId(id);
+        valuesetEntity.setJson(value);
+
+        valuesetRepository.save(valuesetEntity);
     }
 
 }
