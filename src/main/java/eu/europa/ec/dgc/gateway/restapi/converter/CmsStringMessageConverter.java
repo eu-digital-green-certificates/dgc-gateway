@@ -41,9 +41,11 @@ public class CmsStringMessageConverter extends AbstractHttpMessageConverter<Sign
 
     public static final MediaType CONTENT_TYPE_CMS_TEXT = new MediaType("application", "cms-text");
     public static final String CONTENT_TYPE_CMS_TEXT_VALUE = "application/cms-text";
+    public static final MediaType CONTENT_TYPE_CMS = new MediaType("application", "cms");
+    public static final String CONTENT_TYPE_CMS_VALUE = "application/cms";
 
     public CmsStringMessageConverter() {
-        super(CONTENT_TYPE_CMS_TEXT);
+        super(CONTENT_TYPE_CMS_TEXT, CONTENT_TYPE_CMS);
     }
 
     @Override

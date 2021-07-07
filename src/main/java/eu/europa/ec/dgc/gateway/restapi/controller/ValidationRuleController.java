@@ -135,7 +135,8 @@ public class ValidationRuleController {
      * Endpoint to upload a Validation Rule.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
+    @PostMapping(path = "", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
             @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
@@ -177,7 +178,7 @@ public class ValidationRuleController {
                 "Submitted string needs to be signed by a valid upload certificate");
         }
 
-        ValidationRuleEntity createdValidationRule = null;
+        ValidationRuleEntity createdValidationRule;
 
         try {
             createdValidationRule = validationRuleService.addValidationRule(
@@ -233,7 +234,8 @@ public class ValidationRuleController {
      * Endpoint to delete a Validation Rule.
      */
     @CertificateAuthenticationRequired
-    @DeleteMapping(path = "", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
+    @DeleteMapping(path = "", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
             @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
@@ -330,7 +332,8 @@ public class ValidationRuleController {
      * Alias endpoint to delete a Validation Rule.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(path = "/delete", consumes = CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE)
+    @PostMapping(path = "/delete", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
             @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
