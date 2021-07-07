@@ -1025,4 +1025,61 @@ class ValidationRuleIntegrationTest {
 
     }
 
+    @Test
+    void testDeleteAliasEndpoint() throws Exception {
+        long validationRulesInDb = validationRuleRepository.count();
+
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        ValidationRule validationRule = getDummyValidationRule();
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isCreated());
+
+        validationRule.setVersion("1.0.1");
+
+        payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(validationRule))
+            .buildAsString();
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isCreated());
+
+        Assertions.assertEquals(validationRulesInDb + 2, validationRuleRepository.count());
+
+        String deletePayload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(validationRule.getIdentifier())
+            .buildAsString();
+
+        mockMvc.perform(post("/rules/delete")
+            .content(deletePayload)
+            .contentType("application/cms-text")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isNoContent());
+
+        Assertions.assertEquals(validationRulesInDb, validationRuleRepository.count());
+    }
+
 }
