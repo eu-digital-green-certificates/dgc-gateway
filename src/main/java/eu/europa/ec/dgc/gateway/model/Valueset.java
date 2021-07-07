@@ -18,18 +18,24 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.repository;
+package eu.europa.ec.dgc.gateway.model;
 
-import eu.europa.ec.dgc.gateway.entity.ValuesetEntity;
-import java.util.List;
-import javax.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Transactional
-public interface ValuesetRepository extends JpaRepository<ValuesetEntity, String> {
+@Data
+@AllArgsConstructor
+public class Valueset<T, R> {
 
-    @Query("SELECT v.id FROM ValuesetEntity v")
-    List<String> getIds();
+    @JsonProperty("valueSetId")
+    String id;
 
+    @JsonProperty("valueSetDate")
+    LocalDate date;
+
+    @JsonProperty("valueSetValues")
+    Map<T, R> value;
 }

@@ -1124,5 +1124,4 @@ class ValidationRuleIntegrationTest {
 
         assertEquals(validationRule, parsedValidationRule);
     }
-
 }

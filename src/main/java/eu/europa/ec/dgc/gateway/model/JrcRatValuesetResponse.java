@@ -18,18 +18,21 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.repository;
+package eu.europa.ec.dgc.gateway.model;
 
-import eu.europa.ec.dgc.gateway.entity.ValuesetEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.ZonedDateTime;
 import java.util.List;
-import javax.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import lombok.Data;
 
-@Transactional
-public interface ValuesetRepository extends JpaRepository<ValuesetEntity, String> {
+@Data
+public class JrcRatValuesetResponse {
 
-    @Query("SELECT v.id FROM ValuesetEntity v")
-    List<String> getIds();
+    @JsonProperty("extracted_on")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z")
+    ZonedDateTime extractedOn;
 
+    @JsonProperty("deviceList")
+    List<JrcRatValueset> deviceList;
 }

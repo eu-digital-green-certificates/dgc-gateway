@@ -11,4 +11,5 @@
     <include file="db/changelog/add-validation-rule-table.xml"/>
     <include file="db/changelog/add-unique-constraints.xml"/>
     <include file="db/changelog/fix-certificate-thumbprints.xml"/>
+    <include file="db/changelog/add-shedlock-table.xml"/>
 </databaseChangeLog>
