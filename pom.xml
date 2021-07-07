@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.4.7</version>
+        <version>2.5.2</version>
         <relativePath/>
     </parent>
 
@@ -44,16 +44,16 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- dependencies -->
         <owasp.version>6.1.6</owasp.version>
-        <spring.boot.version>2.4.7</spring.boot.version>
+        <spring.boot.version>2.5.2</spring.boot.version>
         <spring.test.version>5.3.8</spring.test.version>
-        <spring.security.version>5.4.6</spring.security.version>
+        <spring.security.version>5.5.1</spring.security.version>
         <lombok.version>1.18.20</lombok.version>
-        <liquibase.version>4.3.3</liquibase.version>
+        <liquibase.version>4.4.0</liquibase.version>
         <springdoc.version>1.5.9</springdoc.version>
-        <junit.version>5.7.1</junit.version>
+        <junit.version>5.7.2</junit.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
-        <mockito.version>3.9.0</mockito.version>
-        <bcpkix.version>1.68</bcpkix.version>
+        <mockito.version>3.11.2</mockito.version>
+        <bcpkix.version>1.69</bcpkix.version>
         <semver4j.version>3.1.0</semver4j.version>
         <json-schema.version>1.12.3</json-schema.version>
         <shedlock.version>4.20.0</shedlock.version>
@@ -62,9 +62,9 @@
         <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
         <plugin.sonar.version>3.6.1.1688</plugin.sonar.version>
-        <plugin.jacoco.version>0.8.6</plugin.jacoco.version>
-        <plugin.os-maven.version>1.7.0</plugin.os-maven.version>
-        <junit-platform.version>1.0.1</junit-platform.version>
+        <plugin.jacoco.version>0.8.7</plugin.jacoco.version>
+        <plugin.os-maven.version>1.7.</plugin.os-maven.version>
+        <junit-platform.version>1.7.2</junit-platform.version>
         <surefire.version>3.0.0-M5</surefire.version>
         <!-- license -->
         <license.projectName>EU Digital Green Certificate Gateway Service / dgc-gateway</license.projectName>
