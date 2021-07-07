@@ -42,9 +42,9 @@ ThirdParty Licenses
 | commons-logging:commons-logging:1.2 | The Apache Software License, Version 2.0 |
 | commons-validator:commons-validator:1.6 | Apache License, Version 2.0 |
 | io.github.classgraph:classgraph:4.8.69 | The MIT License (MIT) |
-| io.github.openfeign:feign-core:10.10.1 | The Apache Software License, Version 2.0 |
-| io.github.openfeign:feign-httpclient:11.2 | The Apache Software License, Version 2.0 |
-| io.github.openfeign:feign-slf4j:10.10.1 | The Apache Software License, Version 2.0 |
+| io.github.openfeign:feign-core:10.12 | The Apache Software License, Version 2.0 |
+| io.github.openfeign:feign-httpclient:10.12 | The Apache Software License, Version 2.0 |
+| io.github.openfeign:feign-slf4j:10.12 | The Apache Software License, Version 2.0 |
 | io.github.openfeign.form:feign-form:3.8.0 | The Apache Software License, Version 2.0 |
 | io.github.openfeign.form:feign-form-spring:3.8.0 | The Apache Software License, Version 2.0 |
 | io.micrometer:micrometer-core:1.6.7 | The Apache Software License, Version 2.0 |
@@ -64,6 +64,9 @@ ThirdParty Licenses
 | mysql:mysql-connector-java:8.0.25 | The GNU General Public License, v2 with FOSS exception |
 | net.bytebuddy:byte-buddy:1.10.22 | Apache License, Version 2.0 |
 | net.bytebuddy:byte-buddy-agent:1.10.22 | Apache License, Version 2.0 |
+| net.javacrumbs.shedlock:shedlock-core:4.20.0 | The Apache Software License, Version 2.0 |
+| net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.20.0 | The Apache Software License, Version 2.0 |
+| net.javacrumbs.shedlock:shedlock-spring:4.20.0 | The Apache Software License, Version 2.0 |
 | net.minidev:accessors-smart:2.3.1 | The Apache Software License, Version 2.0 |
 | net.minidev:json-smart:2.3.1 | The Apache Software License, Version 2.0 |
 | org.apache.commons:commons-lang3:3.11 | Apache License, Version 2.0 |
@@ -142,16 +145,16 @@ ThirdParty Licenses
 | org.springframework.boot:spring-boot-starter-web:2.4.7 | Apache License, Version 2.0 |
 | org.springframework.boot:spring-boot-test:2.4.7 | Apache License, Version 2.0 |
 | org.springframework.boot:spring-boot-test-autoconfigure:2.4.7 | Apache License, Version 2.0 |
-| org.springframework.cloud:spring-cloud-commons:3.0.2 | Apache License, Version 2.0 |
-| org.springframework.cloud:spring-cloud-context:3.0.2 | Apache License, Version 2.0 |
-| org.springframework.cloud:spring-cloud-openfeign-core:3.0.2 | Apache License, Version 2.0 |
-| org.springframework.cloud:spring-cloud-starter:3.0.2 | Apache License, Version 2.0 |
-| org.springframework.cloud:spring-cloud-starter-openfeign:3.0.2 | Apache License, Version 2.0 |
+| org.springframework.cloud:spring-cloud-commons:3.0.3 | Apache License, Version 2.0 |
+| org.springframework.cloud:spring-cloud-context:3.0.3 | Apache License, Version 2.0 |
+| org.springframework.cloud:spring-cloud-openfeign-core:3.0.3 | Apache License, Version 2.0 |
+| org.springframework.cloud:spring-cloud-starter:3.0.3 | Apache License, Version 2.0 |
+| org.springframework.cloud:spring-cloud-starter-openfeign:3.0.3 | Apache License, Version 2.0 |
 | org.springframework.data:spring-data-commons:2.4.9 | Apache License, Version 2.0 |
 | org.springframework.data:spring-data-jpa:2.4.9 | Apache License, Version 2.0 |
 | org.springframework.security:spring-security-core:5.4.6 | The Apache Software License, Version 2.0 |
 | org.springframework.security:spring-security-crypto:5.4.6 | The Apache Software License, Version 2.0 |
-| org.springframework.security:spring-security-rsa:1.0.9.RELEASE | Apache 2.0 |
+| org.springframework.security:spring-security-rsa:1.0.10.RELEASE | Apache 2.0 |
 | org.springframework.security:spring-security-web:5.4.6 | The Apache Software License, Version 2.0 |
 | org.webjars:swagger-ui:3.49.0 | Apache 2.0 |
 | org.webjars:webjars-locator-core:0.46 | MIT |
