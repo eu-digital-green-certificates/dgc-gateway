@@ -35,6 +35,26 @@ public class DgcConfigProperties {
 
     private String validationRuleSchema;
 
+    private JrcConfig jrc = new JrcConfig();
+
+    @Getter
+    @Setter
+    public static class JrcConfig {
+        private String url;
+        private Integer interval = 21_600_000;
+        private ProxyConfig proxy = new ProxyConfig();
+    }
+
+    @Getter
+    @Setter
+    public static class ProxyConfig {
+
+        private String host;
+        private int port = -1;
+        private String username;
+        private String password;
+    }
+
     @Getter
     @Setter
     public static class TrustAnchor {
