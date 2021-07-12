@@ -171,6 +171,52 @@ class ValidationRuleIntegrationTest {
     }
 
     @Test
+    void testSuccessfulUploadWithourRegionProperty() throws Exception {
+        long validationRulesInDb = validationRuleRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
+
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        ValidationRule validationRule = getDummyValidationRule();
+        validationRule.setRegion(null);
+        String json = objectMapper.writeValueAsString(validationRule);
+        json = json.replace("\"Region\":null,", "");
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(json)
+            .buildAsString();
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        )
+            .andExpect(status().isCreated());
+
+        Assertions.assertEquals(validationRulesInDb + 1, validationRuleRepository.count());
+        Optional<ValidationRuleEntity> createdValidationRule =
+            validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
+
+        Assertions.assertTrue(createdValidationRule.isPresent());
+
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
+        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(), createdValidationRule.get().getValidFrom().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(), createdValidationRule.get().getValidTo().toEpochSecond());
+        Assertions.assertEquals(validationRule.getCountry(), createdValidationRule.get().getCountry());
+        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT), createdValidationRule.get().getValidationRuleType().toString());
+
+        SignedStringMessageParser parser = new SignedStringMessageParser(createdValidationRule.get().getCms());
+        ValidationRule parsedValidationRule = objectMapper.readValue(parser.getPayload(), ValidationRule.class);
+
+        assertEquals(validationRule, parsedValidationRule);
+    }
+
+    @Test
     void testJsonSchemaValidation() throws Exception {
         X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
