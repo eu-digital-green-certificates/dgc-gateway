@@ -20,10 +20,16 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import eu.europa.ec.dgc.gateway.restapi.dto.ValidationRuleDto;
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.converter.ResolvedSchema;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import java.util.Arrays;
 import java.util.List;
@@ -76,6 +82,16 @@ public class OpenApiConfig {
                     .description(SECURITY_SCHEMA_DISTINGUISH_NAME
                         + "Should contain at least country property. (e.g. C=EU)"));
         }
+
+        ResolvedSchema validationRuleSchema = ModelConverters.getInstance().resolveAsResolvedSchema(
+            new AnnotatedType(ValidationRuleDto.class).resolveAsRef(false));
+
+        ArraySchema validationRuleArraySchema = new ArraySchema();
+        validationRuleArraySchema.setItems(validationRuleSchema.schema);
+
+        components.addSchemas(validationRuleSchema.schema.getName(), validationRuleSchema.schema);
+        components.addSchemas("ValidationRuleDownloadResponse",
+            new ObjectSchema().additionalProperties(validationRuleArraySchema));
 
         return new OpenAPI()
             .info(new Info()

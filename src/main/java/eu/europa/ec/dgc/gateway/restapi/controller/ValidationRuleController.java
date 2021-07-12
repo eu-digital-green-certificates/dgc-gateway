@@ -26,7 +26,7 @@ import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
-import eu.europa.ec.dgc.gateway.restapi.dto.ValidationRuleDownloadResponseDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.ValidationRuleDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
 import eu.europa.ec.dgc.gateway.restapi.mapper.GwValidationRuleMapper;
@@ -42,7 +42,9 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -101,12 +103,12 @@ public class ValidationRuleController {
                 description = "Download successful.",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ValidationRuleDownloadResponseDto.class)
+                    schema = @Schema(ref = "#/components/schemas/ValidationRuleDownloadStruct")
                 )
             )
         }
     )
-    public ResponseEntity<ValidationRuleDownloadResponseDto> downloadValidationRules(
+    public ResponseEntity<Map<String, List<ValidationRuleDto>>> downloadValidationRules(
         @Valid @PathVariable("country") @Length(max = 2, min = 2) String requestedCountryCode,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String requesterCountryCode
     ) {
@@ -116,7 +118,7 @@ public class ValidationRuleController {
         List<ValidationRuleEntity> validationRuleEntities =
             validationRuleService.getActiveValidationRules(requestedCountryCode);
 
-        ValidationRuleDownloadResponseDto map = new ValidationRuleDownloadResponseDto();
+        Map<String, List<ValidationRuleDto>> map = new HashMap<>();
 
         validationRuleEntities.forEach(validationRuleEntitiy ->
             map.computeIfAbsent(validationRuleEntitiy.getRuleId(), k -> new ArrayList<>())
