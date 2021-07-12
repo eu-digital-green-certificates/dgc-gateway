@@ -26,23 +26,23 @@ import java.time.ZonedDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-@Schema(name = "Validation Rule")
+@Schema(name = "ValidationRule")
 @Setter
 @Getter
 public class ValidationRuleDto {
 
-    @Schema(name = "Version of the Rule (Semver)", example = "1.0.0")
+    @Schema(description = "Version of the Rule (Semver)", example = "1.0.0")
     String version;
 
-    @Schema(name = "Rule is valid from")
+    @Schema(description = "Rule is valid from")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     ZonedDateTime validFrom;
 
-    @Schema(name = "Rule is valid to")
+    @Schema(description = "Rule is valid to")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     ZonedDateTime validTo;
 
-    @Schema(name = "CMS containing the signed JSON Object with the rule itself")
+    @Schema(description = "CMS containing the signed JSON Object with the rule itself")
     String cms;
 
 }
