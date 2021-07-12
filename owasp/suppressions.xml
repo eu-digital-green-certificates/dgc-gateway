@@ -14,4 +14,9 @@
     <notes>see https://tomcat.apache.org/security-9.html#Apache_Tomcat_9.x_vulnerabilities vulnerability is fixed in tomcat 9.0.38</notes>
     <cve>CVE-2020-13943</cve>
   </suppress>
+  <suppress>
+    <notes>see https://nvd.nist.gov/vuln/detail/CVE-2020-10693 vulnerability is fixed in hibernate validator 6.0.20/ 6.1.5 - we are using 6.2.0.FINAL</notes>
+    <cve>CVE-2020-10693</cve>
+  </suppress>
+  
 </suppressions>
