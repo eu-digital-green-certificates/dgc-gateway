@@ -102,7 +102,8 @@ public class ValidationRuleController {
                 responseCode = "200",
                 description = "Download successful.",
                 content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(ref = "#/components/schemas/ValidationRuleDownloadResponse")
                 )
             )
         }
