@@ -21,6 +21,7 @@
 package eu.europa.ec.dgc.gateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vdurmont.semver4j.Semver;
 import eu.europa.ec.dgc.gateway.config.ValidationRuleSchemaProvider;
@@ -345,6 +346,7 @@ public class ValidationRuleService {
         }
 
         try {
+            objectMapper.configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, true);
             return objectMapper.readValue(json, ParsedValidationRule.class);
         } catch (JsonProcessingException e) {
             throw new ValidationRuleCheckException(
