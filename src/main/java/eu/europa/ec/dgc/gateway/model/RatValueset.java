@@ -43,4 +43,8 @@ public class RatValueset {
     @JsonProperty("version")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z", locale = "en-en")
     ZonedDateTime version;
+
+    @JsonProperty("validUntil")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z", locale = "en-en")
+    ZonedDateTime validUntil;
 }
