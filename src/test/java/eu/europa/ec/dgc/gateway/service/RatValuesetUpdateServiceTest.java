@@ -370,6 +370,101 @@ class RatValuesetUpdateServiceTest {
         assertEquals(rat2, updatedValueset.getValue().get(RAT2_ID));
     }
 
+    @Test
+    void testRatValuesetUpdateLatestAllHistoryEntriesAreInFuture() throws JsonProcessingException {
+        JrcRatValueset.Manufacturer manufacturer = new JrcRatValueset.Manufacturer();
+        manufacturer.setId("1111");
+        manufacturer.setCountry("eu");
+        manufacturer.setName("Manufacturer Name");
+        manufacturer.setWebsite("https://example.org");
+
+        JrcRatValueset.HscListHistory history1 = new JrcRatValueset.HscListHistory();
+        history1.setInCommonList(false);
+        history1.setInMutualRecognition(true);
+        history1.setListDate(ZonedDateTime.now().plus(3, ChronoUnit.DAYS));
+
+        JrcRatValueset.HscListHistory history2 = new JrcRatValueset.HscListHistory();
+        history2.setInCommonList(true);
+        history2.setInMutualRecognition(true);
+        history2.setListDate(ZonedDateTime.now().plus(1, ChronoUnit.DAYS));
+
+        JrcRatValueset jrcValueset = new JrcRatValueset();
+        jrcValueset.setIdDevice(RAT1_ID);
+        jrcValueset.setCommercialName("New Com Name");
+        jrcValueset.setManufacturer(manufacturer);
+        jrcValueset.setHscListHistory(List.of(history1, history2));
+
+        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
+        jrcResponse.setExtractedOn(ZonedDateTime.now());
+        jrcResponse.setDeviceList(List.of(jrcValueset));
+
+        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+
+        ratValuesetUpdateService.update();
+
+        String updatedValuesetJson = valuesetService.getValueSetById(RAT_VALUESET_ID).orElseThrow();
+        Valueset<String, RatValueset> updatedValueset = objectMapper.readValue(updatedValuesetJson, typeReference);
+
+        Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
+        Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
+        Assertions.assertNull(updatedValueset.getValue().get(RAT1_ID).getActive());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertNull(updatedValueset.getValue().get(RAT1_ID).getVersion());
+        assertEquals(history1.getListDate(), updatedValueset.getValue().get(RAT1_ID).getValidUntil());
+    }
+
+    @Test
+    void testRatValuesetUpdateLatestHistoryEntryNotInFuture() throws JsonProcessingException {
+        JrcRatValueset.Manufacturer manufacturer = new JrcRatValueset.Manufacturer();
+        manufacturer.setId("1111");
+        manufacturer.setCountry("eu");
+        manufacturer.setName("Manufacturer Name");
+        manufacturer.setWebsite("https://example.org");
+
+        JrcRatValueset.HscListHistory history1 = new JrcRatValueset.HscListHistory();
+        history1.setInCommonList(false);
+        history1.setInMutualRecognition(true);
+        history1.setListDate(ZonedDateTime.now().minus(3, ChronoUnit.DAYS));
+
+        JrcRatValueset.HscListHistory history2 = new JrcRatValueset.HscListHistory();
+        history2.setInCommonList(true);
+        history2.setInMutualRecognition(true);
+        history2.setListDate(ZonedDateTime.now().minus(1, ChronoUnit.DAYS));
+
+        JrcRatValueset.HscListHistory history3 = new JrcRatValueset.HscListHistory();
+        history3.setInCommonList(true);
+        history3.setInMutualRecognition(true);
+        history3.setListDate(ZonedDateTime.now().plus(1, ChronoUnit.DAYS));
+
+        JrcRatValueset jrcValueset = new JrcRatValueset();
+        jrcValueset.setIdDevice(RAT1_ID);
+        jrcValueset.setCommercialName("New Com Name");
+        jrcValueset.setManufacturer(manufacturer);
+        jrcValueset.setHscListHistory(List.of(history1, history2, history3));
+
+        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
+        jrcResponse.setExtractedOn(ZonedDateTime.now());
+        jrcResponse.setDeviceList(List.of(jrcValueset));
+
+        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+
+        ratValuesetUpdateService.update();
+
+        String updatedValuesetJson = valuesetService.getValueSetById(RAT_VALUESET_ID).orElseThrow();
+        Valueset<String, RatValueset> updatedValueset = objectMapper.readValue(updatedValuesetJson, typeReference);
+
+        Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
+        Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
+        Assertions.assertEquals(history2.getInCommonList(), updatedValueset.getValue().get(RAT1_ID).getActive());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        assertEquals(history2.getListDate(), updatedValueset.getValue().get(RAT1_ID).getVersion());
+        assertEquals(history3.getListDate(), updatedValueset.getValue().get(RAT1_ID).getValidUntil());
+    }
+
+    void assertEquals(ZonedDateTime expected, ZonedDateTime given) {
+        Assertions.assertEquals(expected.toEpochSecond(), given.toEpochSecond());
+    }
+
     void assertEquals(RatValueset expected, RatValueset given) {
         Assertions.assertEquals(expected.getVersion().toEpochSecond(), given.getVersion().toEpochSecond());
         Assertions.assertEquals(expected.getActive(), given.getActive());

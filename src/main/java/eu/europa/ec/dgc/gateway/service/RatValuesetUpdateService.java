@@ -32,6 +32,7 @@ import eu.europa.ec.dgc.gateway.model.Valueset;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import feign.FeignException;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Optional;
@@ -95,9 +96,20 @@ public class RatValuesetUpdateService {
         }
 
         for (JrcRatValueset device : jrcResponse.getDeviceList()) {
+            JrcRatValueset.HscListHistory latestHistoryEntryNotInFuture = null;
             JrcRatValueset.HscListHistory latestHistoryEntry = null;
+            long now = ZonedDateTime.now().toEpochSecond();
 
             if (device.getHscListHistory() != null) {
+
+                latestHistoryEntryNotInFuture = device.getHscListHistory().stream()
+                    .sorted(Comparator
+                        .comparing((JrcRatValueset.HscListHistory x) -> x.getListDate().toEpochSecond())
+                        .reversed())
+                    .dropWhile(x -> x.getListDate().toEpochSecond() > now)
+                    .findFirst()
+                    .orElse(null);
+
                 latestHistoryEntry = device.getHscListHistory().stream()
                     .max(Comparator.comparing(x -> x.getListDate().toEpochSecond()))
                     .orElse(null);
@@ -113,8 +125,20 @@ public class RatValuesetUpdateService {
 
                 valuesetInDb.setDisplay(
                     String.format("%s, %s", device.getManufacturer().getName(), device.getCommercialName()));
-                valuesetInDb.setVersion(latestHistoryEntry.getListDate());
-                valuesetInDb.setActive(latestHistoryEntry.getInCommonList());
+
+                if (latestHistoryEntryNotInFuture != null) {
+                    valuesetInDb.setActive(latestHistoryEntryNotInFuture.getInCommonList());
+                    valuesetInDb.setVersion(latestHistoryEntryNotInFuture.getListDate());
+                } else {
+                    valuesetInDb.setActive(null);
+                    valuesetInDb.setVersion(null);
+                }
+
+                if (latestHistoryEntry.getListDate().toEpochSecond() < now) {
+                    valuesetInDb.setValidUntil(null);
+                } else {
+                    valuesetInDb.setValidUntil(latestHistoryEntry.getListDate());
+                }
             }
         }
 
