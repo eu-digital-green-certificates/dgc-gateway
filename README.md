@@ -247,30 +247,35 @@ curl -X GET http://localhost:8080/trustList -H "accept: application/json" -H "X-
 That command will return something looking like this (but with large base64 strings)
 
 ```
-[{
-	"kid":"OX2p6xdGeis=",
-	"timestamp":"2021-05-05T12:54:49Z",
-	"country":"NL",
-	"certificateType":"AUTHENTICATION",
-	"thumbprint":"397da9eb17467a2b3b83704ab6490a540bef43e84f06a6bd885e6621572da401",
-	"signature":"<snip>",
-	"rawData":"<snip>"
-},{
-	"kid":"eljMhaG8/ss=",
-	"timestamp":"2021-05-05T12:57:26Z",
-	"country":"NL",
-	"certificateType":"UPLOAD",
-	"thumbprint":"7a58cc85a1bcfecb1bc69822cc2a72dfb4fbc9fe23d588fa9b0660b929d368f9",
-	"signature":"<snip>",
-	"rawData":"<snip>"
-},{
-"kid":"pdRBv6f9vCs=",
-"timestamp":"2021-05-05T12:57:36Z",
-"country":"NL",
-"certificateType":"CSCA",
-"thumbprint":"a5d441bfa7fdbc2b64b73fb1d78e801bc131d670f6e97218a1625098b3ced707",
-"signature":"<snip>",
-"rawData":"<snip>"}]
+[
+  {
+    "kid":"OX2p6xdGeis=",
+    "timestamp":"2021-05-05T12:54:49Z",
+    "country":"NL",
+    "certificateType":"AUTHENTICATION",
+    "thumbprint":"397da9eb17467a2b3b83704ab6490a540bef43e84f06a6bd885e6621572da401",
+    "signature":"<snip>",
+    "rawData":"<snip>"
+  },
+  {
+    "kid":"eljMhaG8/ss=",
+    "timestamp":"2021-05-05T12:57:26Z",
+    "country":"NL",
+    "certificateType":"UPLOAD",
+    "thumbprint":"7a58cc85a1bcfecb1bc69822cc2a72dfb4fbc9fe23d588fa9b0660b929d368f9",
+    "signature":"<snip>",
+    "rawData":"<snip>"
+  },
+  {
+    "kid":"pdRBv6f9vCs=",
+    "timestamp":"2021-05-05T12:57:36Z",
+    "country":"NL",
+    "certificateType":"CSCA",
+    "thumbprint":"a5d441bfa7fdbc2b64b73fb1d78e801bc131d670f6e97218a1625098b3ced707",
+    "signature":"<snip>",
+    "rawData":"<snip>"
+  }
+]
 ```
 
 NOTE: the url uses mixed cases; it's `trustList` not `trustlist`!
