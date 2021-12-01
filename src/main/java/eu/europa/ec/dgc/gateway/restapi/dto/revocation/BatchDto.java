@@ -41,8 +41,8 @@ public class BatchDto {
     private ZonedDateTime expires;
 
 
-    @Schema(description = "Base64 encoded KID of the DSC used to sign the Batch.")
-    @Length(min = 12, max = 12)
+    @Schema(description = "Base64 encoded KID of the DSC used to sign the Batch. Use UNKNOWN_KID if kid is not known.")
+    @Length(min = 11, max = 12)
     private String kid;
 
     @Schema(description = "Hash Type of the provided entries")

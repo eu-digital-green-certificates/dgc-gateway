@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import javax.validation.constraints.Pattern;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 @Data
 public class BatchListDto {
@@ -45,24 +46,13 @@ public class BatchListDto {
         private String batchId;
 
         @Schema(description = "2-Digit ISO 3166 Country Code")
+        @Length(min = 2, max = 2)
         private String country;
 
         @Schema(description = "Date corresponding to the lastEvent")
         private ZonedDateTime date;
 
-        @Schema(description = "Last event that has happened to the batch item")
-        private BatchListItemEventDto lastEvent;
-    }
-
-    public enum BatchListItemEventDto {
-
-        @Schema(description = "Batch was deleted by uploader. Will be finally deleted within a few days.")
-        DELETED,
-
-        @Schema(description = "The batch was resigned by the uploader.")
-        RESIGNED,
-
-        @Schema(description = "The batch was uploaded by the member state.")
-        ADDED
+        @Schema(description = "When true, the entry will be finally removed from the query results after 7 days.")
+        private Boolean deleted;
     }
 }

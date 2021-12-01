@@ -22,6 +22,8 @@ package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
+import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDeleteRequestDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchListDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
@@ -99,6 +101,9 @@ public class CertificateRevocationListController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Endpoint to download Revocation Batch.
+     */
     @CertificateAuthenticationRequired
     @GetMapping(value = "/{batchId}", produces = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
@@ -138,6 +143,9 @@ public class CertificateRevocationListController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Endpoint to upload Revocation Batch.
+     */
     @CertificateAuthenticationRequired
     @PostMapping(value = "/{batchId}", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
@@ -172,11 +180,14 @@ public class CertificateRevocationListController {
     )
     public ResponseEntity<Void> uploadBatch(
         @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId,
-        @Valid @RequestBody BatchDto batch) {
+        @Valid @RequestBody SignedStringDto batch) {
 
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Endpoint to delete Revocation Batch.
+     */
     @CertificateAuthenticationRequired
     @DeleteMapping(value = "/{batchId}", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
@@ -200,7 +211,7 @@ public class CertificateRevocationListController {
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             description = "The Batch ID as signed CMS.",
-            content = @Content(schema = @Schema(implementation = String.class, format = "UUID", pattern = UUID_REGEX))
+            content = @Content(schema = @Schema(implementation = BatchDeleteRequestDto.class))
         ),
         responses = {
             @ApiResponse(
@@ -213,7 +224,7 @@ public class CertificateRevocationListController {
     )
     public ResponseEntity<Void> deleteBatch(
         @Valid @Pattern(regexp = UUID_REGEX) @PathVariable("batchId") String batchId,
-        @Valid @Pattern(regexp = UUID_REGEX) @RequestBody String sigBatchId) {
+        @Valid @Pattern(regexp = UUID_REGEX) @RequestBody SignedStringDto batchDeleteRequest) {
 
         return ResponseEntity.ok().build();
     }
