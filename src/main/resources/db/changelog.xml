@@ -12,4 +12,5 @@
     <include file="db/changelog/add-unique-constraints.xml"/>
     <include file="db/changelog/fix-certificate-thumbprints.xml"/>
     <include file="db/changelog/add-shedlock-table.xml"/>
+    <include file="db/changelog/add-revocation-batch-table.xml"/>
 </databaseChangeLog>
