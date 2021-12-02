@@ -147,7 +147,7 @@ public class CertificateRevocationListController {
      * Endpoint to upload Revocation Batch.
      */
     @CertificateAuthenticationRequired
-    @PostMapping(value = "/{batchId}", consumes = {
+    @PostMapping(value = "", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
@@ -157,14 +157,6 @@ public class CertificateRevocationListController {
         tags = {"Revocation"},
         summary = "Upload a new Batch",
         description = "Endpoint to upload a new Batch of certificate hashes for revocation.",
-        parameters = {
-            @Parameter(
-                in = ParameterIn.PATH,
-                name = "batchId",
-                description = "ID of the batch to upload",
-                schema = @Schema(implementation = String.class, format = "UUID", pattern = UUID_REGEX),
-                required = true)
-        },
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             content = @Content(schema = @Schema(implementation = BatchDto.class))
@@ -178,9 +170,7 @@ public class CertificateRevocationListController {
                 description = "Batch already exists.")
         }
     )
-    public ResponseEntity<Void> uploadBatch(
-        @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId,
-        @Valid @RequestBody SignedStringDto batch) {
+    public ResponseEntity<Void> uploadBatch(@Valid @RequestBody SignedStringDto batch) {
 
         return ResponseEntity.ok().build();
     }
@@ -189,7 +179,7 @@ public class CertificateRevocationListController {
      * Endpoint to delete Revocation Batch.
      */
     @CertificateAuthenticationRequired
-    @DeleteMapping(value = "/{batchId}", consumes = {
+    @DeleteMapping(value = "", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
         security = {
@@ -200,14 +190,6 @@ public class CertificateRevocationListController {
         summary = "Delete a Batch",
         description = "Deletes a batch of hashes for certificate revocation. "
             + "Batch will be marked as Deleted and deletion will follow up within 7 days.",
-        parameters = {
-            @Parameter(
-                in = ParameterIn.PATH,
-                name = "batchId",
-                description = "ID of the batch to delete",
-                schema = @Schema(implementation = String.class, format = "UUID", pattern = UUID_REGEX),
-                required = true)
-        },
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             description = "The Batch ID as signed CMS.",
@@ -223,10 +205,19 @@ public class CertificateRevocationListController {
         }
     )
     public ResponseEntity<Void> deleteBatch(
-        @Valid @Pattern(regexp = UUID_REGEX) @PathVariable("batchId") String batchId,
         @Valid @Pattern(regexp = UUID_REGEX) @RequestBody SignedStringDto batchDeleteRequest) {
 
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Alternative endpoint to delete recovation batches.
+     */
+    @PostMapping(value = "/delete", consumes = {
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
+    public ResponseEntity<Void> deleteBatchAlternativeEndpoint(
+        @Valid @Pattern(regexp = UUID_REGEX) @RequestBody SignedStringDto batchDeleteRequest) {
+
+        return deleteBatch(batchDeleteRequest);
+    }
 }
