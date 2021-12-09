@@ -55,7 +55,8 @@ public class BatchDto {
     @Data
     public static class BatchEntryDto {
 
-        @Schema(description = "Hash of the Entry")
+        @Schema(description = "Base64 encoded first 128 Bits of the hash of the Entry")
+        @Length(min = 24, max = 24)
         private String hash;
 
     }
