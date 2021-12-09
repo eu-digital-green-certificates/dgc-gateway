@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/crl")
+@RequestMapping("/revocation-list")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -137,7 +137,7 @@ public class CertificateRevocationListController {
                 description = "Batch already deleted.")
         }
     )
-    public ResponseEntity<BatchDto> downloadBatch(
+    public ResponseEntity<String> downloadBatch(
         @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId) {
 
         return ResponseEntity.ok().build();
@@ -211,7 +211,7 @@ public class CertificateRevocationListController {
     }
 
     /**
-     * Alternative endpoint to delete recovation batches.
+     * Alternative endpoint to delete revocation batches.
      */
     @PostMapping(value = "/delete", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
