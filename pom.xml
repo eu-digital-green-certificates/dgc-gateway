@@ -57,7 +57,7 @@
         <semver4j.version>3.1.0</semver4j.version>
         <json-schema.version>1.13.0</json-schema.version>
         <shedlock.version>4.25.0</shedlock.version>
-        <spring.cloud.version>2020.0.3</spring.cloud.version>
+        <spring.cloud.version>3.0.5</spring.cloud.version>
         <slf4j.version>1.7.32</slf4j.version>
         <log4j2.version>2.15.0</log4j2.version>
         <!-- plugins -->
@@ -154,7 +154,7 @@
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>dgc-lib</artifactId>
-            <version>1.1.3</version>
+            <version>1.1.4.1</version>
         </dependency>
         <dependency>
             <groupId>com.vdurmont</groupId>
@@ -195,6 +195,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <dependency>
+           <groupId>org.springframework.cloud</groupId>
+           <artifactId>spring-cloud-openfeign-dependencies</artifactId>
+           <version>3.0.5</version>
+           <type>pom</type>
+           <scope>import</scope>
+         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
