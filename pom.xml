@@ -154,7 +154,7 @@
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>dgc-lib</artifactId>
-            <version>1.1.4.1</version>
+            <version>1.1.5</version>
         </dependency>
         <dependency>
             <groupId>com.vdurmont</groupId>
