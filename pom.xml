@@ -199,8 +199,6 @@
            <groupId>org.springframework.cloud</groupId>
            <artifactId>spring-cloud-openfeign-dependencies</artifactId>
            <version>3.0.5</version>
-           <type>pom</type>
-           <scope>import</scope>
          </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
