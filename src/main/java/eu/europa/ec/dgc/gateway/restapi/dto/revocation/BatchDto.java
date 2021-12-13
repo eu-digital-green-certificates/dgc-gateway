@@ -24,11 +24,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 @Schema(description = "Batch entry with list of revoked certificates.")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class BatchDto {
 
     @Schema(description = "ISO 3166 2-Digit Country Code")
@@ -49,10 +54,12 @@ public class BatchDto {
     private HashTypeDto hashType;
 
     @Schema(description = "List of revoked certificate hashes")
-    @Length(min = 1, max = 1000)
+    @Size(min = 1, max = 1000)
     private List<BatchEntryDto> entries;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class BatchEntryDto {
 
         @Schema(description = "Base64 encoded first 128 Bits of the hash of the Entry")

@@ -21,12 +21,15 @@
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
+import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDeleteRequestDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchListDto;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
+import eu.europa.ec.dgc.gateway.service.RevocationListService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -41,12 +44,14 @@ import javax.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +63,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @Slf4j
 public class CertificateRevocationListController {
+
+    private final RevocationListService revocationListService;
 
     public static final String UUID_REGEX =
         "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
@@ -170,9 +177,43 @@ public class CertificateRevocationListController {
                 description = "Batch already exists.")
         }
     )
-    public ResponseEntity<Void> uploadBatch(@Valid @RequestBody SignedStringDto batch) {
+    public ResponseEntity<Void> uploadBatch(
+        @RequestBody SignedStringDto batch,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
 
-        return ResponseEntity.ok().build();
+        if (!batch.isVerified()) {
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
+                "Submitted string needs to be signed by a valid upload certificate");
+        }
+
+        try {
+            revocationListService.addRevocationBatch(
+                batch.getPayloadString(),
+                batch.getSignerCertificate(),
+                batch.getRawMessage(),
+                countryCode
+            );
+        } catch (RevocationListService.RevocationBatchServiceException e) {
+            log.error("Upload of Revocation Batch failed: {}, {}", e.getReason(), e.getMessage());
+
+            switch (e.getReason()) {
+                case INVALID_JSON:
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "JSON Could not be parsed", "",
+                        e.getMessage());
+                case INVALID_JSON_VALUES:
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "Batch has invalid values.", "",
+                        e.getMessage());
+                case INVALID_COUNTRY:
+                    throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
+                        e.getMessage());
+                case UPLOADER_CERT_CHECK_FAILED:
+                    throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
+                        batch.getSignerCertificate().getSubject().toString(), "Certificate used to sign the batch "
+                        + "is not a valid/ allowed upload certificate for your country.");
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     /**
@@ -205,19 +246,55 @@ public class CertificateRevocationListController {
         }
     )
     public ResponseEntity<Void> deleteBatch(
-        @Valid @Pattern(regexp = UUID_REGEX) @RequestBody SignedStringDto batchDeleteRequest) {
+        @RequestBody SignedStringDto batchDeleteRequest,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
 
-        return ResponseEntity.ok().build();
+        if (!batchDeleteRequest.isVerified()) {
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
+                "Submitted string needs to be signed by a valid upload certificate");
+        }
+
+        try {
+            revocationListService.deleteRevocationBatch(
+                batchDeleteRequest.getPayloadString(),
+                batchDeleteRequest.getSignerCertificate(),
+                countryCode);
+        } catch (RevocationListService.RevocationBatchServiceException e) {
+            switch (e.getReason()) {
+                case INVALID_JSON:
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "JSON Could not be parsed", "",
+                        e.getMessage());
+                case INVALID_JSON_VALUES:
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000",
+                        "Delete Request has invalid values.", "",
+                        e.getMessage());
+                case INVALID_COUNTRY:
+                    throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
+                        e.getMessage());
+                case NOT_FOUND:
+                    throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Batch does not exists.", "",
+                        e.getMessage());
+                case UPLOADER_CERT_CHECK_FAILED:
+                    throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
+                        batchDeleteRequest.getSignerCertificate().getSubject().toString(),
+                        "Certificate used to sign the batch is not a valid/ allowed"
+                            + " upload certificate for your country.");
+            }
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     /**
      * Alternative endpoint to delete revocation batches.
      */
+    @CertificateAuthenticationRequired
     @PostMapping(value = "/delete", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     public ResponseEntity<Void> deleteBatchAlternativeEndpoint(
-        @Valid @Pattern(regexp = UUID_REGEX) @RequestBody SignedStringDto batchDeleteRequest) {
+        @RequestBody SignedStringDto batchDeleteRequest,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
 
-        return deleteBatch(batchDeleteRequest);
+        return deleteBatch(batchDeleteRequest, countryCode);
     }
 }

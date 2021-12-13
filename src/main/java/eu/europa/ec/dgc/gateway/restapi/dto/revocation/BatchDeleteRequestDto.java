@@ -22,10 +22,14 @@ package eu.europa.ec.dgc.gateway.restapi.dto.revocation;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Schema(description = "Object to identify a batch to delete.")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class BatchDeleteRequestDto {
 
     @Schema(description = "Unique Identifier of the Batch", format = "UUID")
