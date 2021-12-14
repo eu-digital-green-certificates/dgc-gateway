@@ -57,7 +57,7 @@
         <semver4j.version>3.1.0</semver4j.version>
         <json-schema.version>1.13.0</json-schema.version>
         <shedlock.version>4.25.0</shedlock.version>
-        <spring.cloud.version>2020.0.3</spring.cloud.version>
+        <spring.cloud.version>2021.0.0</spring.cloud.version>
         <slf4j.version>1.7.32</slf4j.version>
         <log4j2.version>2.15.0</log4j2.version>
         <!-- plugins -->
