@@ -1,5 +1,5 @@
 <h1 align="center">
-   EU Digital COVID Certificate Gateway
+   DDCC Gateway
 </h1>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 ## About
 
-This repository contains the source code of the EU Digital COVID Certificate Gateway (DGCG).
+This repository contains the source code of the DDCC Gateway.
 
 DGCG is used to share validation and verification information across all national backend servers. By using DGCG,
 backend-to-backend integration is facilitated, and countries can onboard incrementally, while the national backends
