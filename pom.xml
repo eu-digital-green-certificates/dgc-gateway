@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.2</version>
+        <version>2.5.7</version>
         <relativePath/>
     </parent>
 
@@ -44,7 +44,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- dependencies -->
         <owasp.version>6.1.6</owasp.version>
-        <spring.boot.version>2.5.3</spring.boot.version>
+        <spring.boot.version>2.5.7</spring.boot.version>
         <spring.test.version>5.3.9</spring.test.version>
         <spring.security.version>5.5.1</spring.security.version>
         <lombok.version>1.18.20</lombok.version>
@@ -58,6 +58,8 @@
         <json-schema.version>1.13.0</json-schema.version>
         <shedlock.version>4.25.0</shedlock.version>
         <spring.cloud.version>2020.0.3</spring.cloud.version>
+        <slf4j.version>1.7.32</slf4j.version>
+        <log4j2.version>2.15.0</log4j2.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
