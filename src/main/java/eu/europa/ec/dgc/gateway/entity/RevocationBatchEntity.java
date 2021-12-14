@@ -101,7 +101,7 @@ public class RevocationBatchEntity {
     private String signedBatch;
 
     /**
-     * Available types of Hash
+     * Available types of Hash.
      */
     public enum RevocationHashType {
         SIGNATURE,
