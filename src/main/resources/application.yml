@@ -43,6 +43,8 @@ dgc:
     header-fields:
       thumbprint: X-SSL-Client-SHA256
       distinguished-name: X-SSL-Client-DN
+  revocation:
+    delete-threshold: 14
 springdoc:
   api-docs:
     enabled: false
