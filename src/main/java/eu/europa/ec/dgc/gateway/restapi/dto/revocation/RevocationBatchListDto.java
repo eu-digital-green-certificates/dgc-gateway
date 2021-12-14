@@ -24,11 +24,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import java.util.List;
 import javax.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 @Data
-public class BatchListDto {
+public class RevocationBatchListDto {
 
     @Schema(description = "The result is limited by default to 10K. If the flag ‘more’ is set to true, "
         + "the response indicates that more batches are available for download. "
@@ -36,10 +38,12 @@ public class BatchListDto {
     private Boolean more;
 
     @Schema(description = "The List of batches available since the provided date")
-    private List<BatchListItemDto> batches;
+    private List<RevocationBatchListItemDto> batches;
 
     @Data
-    public static class BatchListItemDto {
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RevocationBatchListItemDto {
 
         @Schema(description = "Unique Identifier of the Batch", format = "UUID")
         @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")

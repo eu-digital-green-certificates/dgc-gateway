@@ -3,7 +3,7 @@ package eu.europa.ec.dgc.gateway.restapi.dto.revocation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Type of hash for revocation lists")
-public enum HashTypeDto {
+public enum RevocationHashTypeDto {
 
     @Schema(description = "The hash is calculated over the UCI string encoded in "
         + "UTF-8 and converted to a byte array.")

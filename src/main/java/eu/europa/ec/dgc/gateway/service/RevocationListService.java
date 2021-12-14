@@ -24,20 +24,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.entity.RevocationBatchEntity;
+import eu.europa.ec.dgc.gateway.entity.RevocationBatchProjection;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import eu.europa.ec.dgc.gateway.model.RevocationBatchDownload;
+import eu.europa.ec.dgc.gateway.model.RevocationBatchList;
 import eu.europa.ec.dgc.gateway.repository.RevocationBatchRepository;
-import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDeleteRequestDto;
-import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDeleteRequestDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -48,6 +54,8 @@ import org.springframework.validation.Validator;
 @Slf4j
 @RequiredArgsConstructor
 public class RevocationListService {
+
+    private static final int MAX_BATCH_LIST_SIZE = 1000;
 
     private final RevocationBatchRepository revocationBatchRepository;
 
@@ -80,8 +88,8 @@ public class RevocationListService {
      * @param signerCertificate        the certificate which was used to sign the message
      * @param cms                      the cms containing the JSON
      * @param authenticatedCountryCode the country code of the uploader country from cert authentication
-     * @throws RevocationBatchServiceException if validation check has failed. The exception contains
-     *                                         a reason property with detailed information why the validation has failed.
+     * @throws RevocationBatchServiceException if validation check has failed. The exception contains a reason property
+     *                                         with detailed information why the validation has failed.
      */
     public RevocationBatchEntity addRevocationBatch(
         String uploadedRevocationBatch,
@@ -91,7 +99,7 @@ public class RevocationListService {
     ) throws RevocationBatchServiceException {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
-        BatchDto parsedBatch = contentCheckValidJson(uploadedRevocationBatch, BatchDto.class);
+        RevocationBatchDto parsedBatch = contentCheckValidJson(uploadedRevocationBatch, RevocationBatchDto.class);
         contentCheckValidValues(parsedBatch);
         contentCheckUploaderCountry(parsedBatch, authenticatedCountryCode);
 
@@ -131,8 +139,8 @@ public class RevocationListService {
      * @param batchIdJson              the JSON String with the id of the batch to delete.
      * @param signerCertificate        the certificate which was used to sign the message
      * @param authenticatedCountryCode the country code of the uploader country from cert authentication
-     * @throws RevocationBatchServiceException if validation check has failed. The exception contains
-     *                                         a reason property with detailed information why the validation has failed.
+     * @throws RevocationBatchServiceException if validation check has failed. The exception contains a reason property
+     *                                         with detailed information why the validation has failed.
      */
     public void deleteRevocationBatch(
         String batchIdJson,
@@ -141,7 +149,8 @@ public class RevocationListService {
     ) throws RevocationBatchServiceException {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
-        BatchDeleteRequestDto parsedDeleteRequest = contentCheckValidJson(batchIdJson, BatchDeleteRequestDto.class);
+        RevocationBatchDeleteRequestDto parsedDeleteRequest =
+            contentCheckValidJson(batchIdJson, RevocationBatchDeleteRequestDto.class);
         contentCheckValidValuesForDeletion(parsedDeleteRequest);
 
         Optional<RevocationBatchEntity> entityInDb =
@@ -157,9 +166,14 @@ public class RevocationListService {
                 "Revocation Batch does not belong to your country");
         }
 
+        if (entityInDb.get().getDeleted()) {
+            throw new RevocationBatchServiceException(RevocationBatchServiceException.Reason.GONE,
+                "Revocation Batch is already deleted.");
+        }
+
         log.info("Deleting Revocation Batch with Batch ID {} from DB", parsedDeleteRequest.getBatchId());
 
-        revocationBatchRepository.delete(entityInDb.get());
+        revocationBatchRepository.markBatchAsDeleted(parsedDeleteRequest.getBatchId());
 
         auditService.addAuditEvent(
             authenticatedCountryCode,
@@ -172,7 +186,60 @@ public class RevocationListService {
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
     }
 
-    private void contentCheckUploaderCountry(BatchDto parsedBatch, String countryCode)
+    /**
+     * Returns a RevocationBatchList with Revocation Batches later than given threshold date.
+     * Result is limited to 1000 entries.
+     *
+     * @param thresholdDate date to filter the entries.
+     * @return RevocationBatchList with entries and more flag set to true if more batches exists.
+     */
+    public RevocationBatchList getRevocationBatchList(ZonedDateTime thresholdDate) {
+
+        RevocationBatchList batchList = new RevocationBatchList();
+
+        List<RevocationBatchProjection> entityList =
+            revocationBatchRepository.getAllByChangedGreaterThanEqualOrderByChangedAsc(
+                thresholdDate, PageRequest.ofSize(MAX_BATCH_LIST_SIZE + 1));
+
+        batchList.setMore(entityList.size() > MAX_BATCH_LIST_SIZE);
+        batchList.setBatches(entityList.stream()
+            .limit(MAX_BATCH_LIST_SIZE)
+            .map(revocationBatchEntity -> new RevocationBatchList.RevocationBatchListItem(
+                revocationBatchEntity.getBatchId(),
+                revocationBatchEntity.getCountry(),
+                revocationBatchEntity.getChanged(),
+                revocationBatchEntity.getDeleted()
+            ))
+            .collect(Collectors.toList())
+        );
+
+        return batchList;
+    }
+
+    /**
+     * Download a single revocation batch with the corresponding CMS.
+     *
+     * @param batchId Batch ID of the Batch to download.
+     * @return Object holding the CMS and BatchID.
+     * @throws RevocationBatchServiceException if Download fails with information about the reason.
+     */
+    public RevocationBatchDownload getRevocationBatch(String batchId) throws RevocationBatchServiceException {
+        Optional<RevocationBatchEntity> entity = revocationBatchRepository.getByBatchId(batchId);
+
+        if (entity.isEmpty()) {
+            throw new RevocationBatchServiceException(
+                RevocationBatchServiceException.Reason.NOT_FOUND, "Batch not found");
+        }
+
+        if (entity.get().getDeleted()) {
+            throw new RevocationBatchServiceException(
+                RevocationBatchServiceException.Reason.GONE, "Batch already deleted.");
+        }
+
+        return new RevocationBatchDownload(entity.get().getBatchId(), entity.get().getSignedBatch());
+    }
+
+    private void contentCheckUploaderCountry(RevocationBatchDto parsedBatch, String countryCode)
         throws RevocationBatchServiceException {
         if (!parsedBatch.getCountry().equals(countryCode)) {
             throw new RevocationBatchServiceException(
@@ -194,11 +261,11 @@ public class RevocationListService {
     }
 
 
-    private void contentCheckValidValues(BatchDto parsedBatch) throws RevocationBatchServiceException {
+    private void contentCheckValidValues(RevocationBatchDto parsedBatch) throws RevocationBatchServiceException {
 
         ArrayList<String> errorMessages = new ArrayList<>();
 
-        Errors errors = new BeanPropertyBindingResult(parsedBatch, BatchDto.class.getName());
+        Errors errors = new BeanPropertyBindingResult(parsedBatch, RevocationBatchDto.class.getName());
         validator.validate(parsedBatch, errors);
 
         if (errors.hasErrors()) {
@@ -209,8 +276,8 @@ public class RevocationListService {
         }
 
         for (int i = 0; i < parsedBatch.getEntries().size(); i++) {
-            Errors batchEntryErrors =
-                new BeanPropertyBindingResult(parsedBatch.getEntries().get(i), BatchDto.BatchEntryDto.class.getName());
+            Errors batchEntryErrors = new BeanPropertyBindingResult(parsedBatch.getEntries().get(i),
+                RevocationBatchDto.BatchEntryDto.class.getName());
 
             validator.validate(parsedBatch.getEntries().get(i), batchEntryErrors);
 
@@ -229,12 +296,13 @@ public class RevocationListService {
         }
     }
 
-    private void contentCheckValidValuesForDeletion(BatchDeleteRequestDto parsedDeleteRequest)
+    private void contentCheckValidValuesForDeletion(RevocationBatchDeleteRequestDto parsedDeleteRequest)
         throws RevocationBatchServiceException {
 
         ArrayList<String> errorMessages = new ArrayList<>();
 
-        Errors errors = new BeanPropertyBindingResult(parsedDeleteRequest, BatchDeleteRequestDto.class.getName());
+        Errors errors =
+            new BeanPropertyBindingResult(parsedDeleteRequest, RevocationBatchDeleteRequestDto.class.getName());
         validator.validate(parsedDeleteRequest, errors);
 
         if (errors.hasErrors()) {
@@ -294,7 +362,8 @@ public class RevocationListService {
             INVALID_JSON_VALUES,
             INVALID_COUNTRY,
             UPLOADER_CERT_CHECK_FAILED,
-            NOT_FOUND
+            NOT_FOUND,
+            GONE
         }
     }
 

@@ -34,7 +34,7 @@ import org.hibernate.validator.constraints.Length;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BatchDto {
+public class RevocationBatchDto {
 
     @Schema(description = "ISO 3166 2-Digit Country Code")
     @Length(min = 2, max = 2)
@@ -51,7 +51,7 @@ public class BatchDto {
     private String kid;
 
     @Schema(description = "Hash Type of the provided entries")
-    private HashTypeDto hashType;
+    private RevocationHashTypeDto hashType;
 
     @Schema(description = "List of revoked certificate hashes")
     @Size(min = 1, max = 1000)

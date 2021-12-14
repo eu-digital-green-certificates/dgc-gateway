@@ -21,8 +21,12 @@
 package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.RevocationBatchEntity;
+import eu.europa.ec.dgc.gateway.entity.RevocationBatchProjection;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -38,5 +42,21 @@ public interface RevocationBatchRepository extends JpaRepository<RevocationBatch
     int deleteByBatchId(@Param("batchId") String batchId);
 
     Optional<RevocationBatchEntity> getByBatchId(String batchId);
+
+    @Modifying
+    @Query("UPDATE RevocationBatchEntity r SET r.signedBatch = null, r.deleted = true, "
+        + "r.changed = current_timestamp WHERE r.batchId = :batchId")
+    int markBatchAsDeleted(@Param("batchId") String batchId);
+
+    @Modifying
+    @Query("UPDATE RevocationBatchEntity r SET r.signedBatch = null, r.deleted = true, "
+        + "r.changed = current_timestamp WHERE r.deleted = false AND r.expires < :threshold")
+    int markExpiredBatchesAsDeleted(@Param("threshold") ZonedDateTime threshold);
+
+    @Modifying
+    @Query("DELETE FROM RevocationBatchEntity r WHERE r.deleted = true AND r.changed < :threshold")
+    int deleteDeletedBatchesOlderThan(@Param("threshold") ZonedDateTime threshold);
+
+    List<RevocationBatchProjection> getAllByChangedGreaterThanEqualOrderByChangedAsc(ZonedDateTime date, Pageable page);
 
 }

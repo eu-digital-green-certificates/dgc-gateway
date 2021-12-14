@@ -18,22 +18,30 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.restapi.dto.revocation;
+package eu.europa.ec.dgc.gateway.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.constraints.Pattern;
+import java.time.ZonedDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Schema(description = "Object to identify a batch to delete.")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BatchDeleteRequestDto {
+public class RevocationBatchList {
 
-    @Schema(description = "Unique Identifier of the Batch", format = "UUID")
-    @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
-    private String batchId;
+    private Boolean more;
 
+    private List<RevocationBatchListItem> batches;
+
+    @Data
+    @AllArgsConstructor
+    public static class RevocationBatchListItem {
+
+        private String batchId;
+
+        private String country;
+
+        private ZonedDateTime date;
+
+        private Boolean deleted;
+    }
 }

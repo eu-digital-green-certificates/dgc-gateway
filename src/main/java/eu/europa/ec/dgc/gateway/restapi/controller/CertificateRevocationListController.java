@@ -22,13 +22,15 @@ package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
+import eu.europa.ec.dgc.gateway.model.RevocationBatchDownload;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
-import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDeleteRequestDto;
-import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchDto;
-import eu.europa.ec.dgc.gateway.restapi.dto.revocation.BatchListDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDeleteRequestDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchListDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
+import eu.europa.ec.dgc.gateway.restapi.mapper.RevocationBatchMapper;
 import eu.europa.ec.dgc.gateway.service.RevocationListService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,8 +45,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,6 +70,8 @@ public class CertificateRevocationListController {
 
     private final RevocationListService revocationListService;
 
+    private final RevocationBatchMapper revocationBatchMapper;
+
     public static final String UUID_REGEX =
         "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
 
@@ -73,8 +79,7 @@ public class CertificateRevocationListController {
      * Endpoint to download Revocation Batch List.
      */
     @CertificateAuthenticationRequired
-    @GetMapping(path = "", produces = {
-        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
+    @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         security = {
             @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
@@ -96,16 +101,28 @@ public class CertificateRevocationListController {
             @ApiResponse(
                 responseCode = "200",
                 description = "Response contains the batch list.",
-                content = @Content(schema = @Schema(implementation = BatchListDto.class))),
+                content = @Content(schema = @Schema(implementation = RevocationBatchListDto.class))),
             @ApiResponse(
                 responseCode = "204",
                 description = "No Content if no data is available later than provided If-Modified-Since header.")
         }
     )
-    public ResponseEntity<BatchListDto> downloadBatchList(
-        @Valid @RequestHeader(HttpHeaders.IF_MODIFIED_SINCE) ZonedDateTime ifModifiedSince) {
+    public ResponseEntity<RevocationBatchListDto> downloadBatchList(
+        @Valid @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        @RequestHeader(HttpHeaders.IF_MODIFIED_SINCE) ZonedDateTime ifModifiedSince) {
 
-        return ResponseEntity.ok().build();
+        if (ifModifiedSince.isAfter(ZonedDateTime.now())) {
+            throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "", "IfModifiedSince must be in past", "", "");
+        }
+
+        RevocationBatchListDto revocationBatchListDto =
+            revocationBatchMapper.toDto(revocationListService.getRevocationBatchList(ifModifiedSince));
+
+        if (revocationBatchListDto.getBatches().isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(revocationBatchListDto);
+        }
     }
 
     /**
@@ -134,7 +151,7 @@ public class CertificateRevocationListController {
             @ApiResponse(
                 responseCode = "200",
                 description = "Response contains the batch.",
-                content = @Content(schema = @Schema(implementation = BatchDto.class)),
+                content = @Content(schema = @Schema(implementation = RevocationBatchDto.class)),
                 headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID")),
             @ApiResponse(
                 responseCode = "404",
@@ -147,7 +164,28 @@ public class CertificateRevocationListController {
     public ResponseEntity<String> downloadBatch(
         @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId) {
 
-        return ResponseEntity.ok().build();
+        try {
+            RevocationBatchDownload download = revocationListService.getRevocationBatch(batchId);
+
+            return ResponseEntity
+                .ok()
+                .header(HttpHeaders.ETAG, download.getBatchId())
+                .body(download.getSignedCms());
+
+        } catch (RevocationListService.RevocationBatchServiceException e) {
+            switch (e.getReason()) {
+                case GONE:
+                    throw new DgcgResponseException(HttpStatus.GONE, "0x000", "Batch already deleted.", "",
+                        e.getMessage());
+                case NOT_FOUND:
+                    throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Batch does not exist.", "",
+                        e.getMessage());
+                default:
+                    throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
+                        "", "");
+
+            }
+        }
     }
 
     /**
@@ -166,7 +204,7 @@ public class CertificateRevocationListController {
         description = "Endpoint to upload a new Batch of certificate hashes for revocation.",
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
-            content = @Content(schema = @Schema(implementation = BatchDto.class))
+            content = @Content(schema = @Schema(implementation = RevocationBatchDto.class))
         ),
         responses = {
             @ApiResponse(
@@ -210,6 +248,9 @@ public class CertificateRevocationListController {
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
                         batch.getSignerCertificate().getSubject().toString(), "Certificate used to sign the batch "
                         + "is not a valid/ allowed upload certificate for your country.");
+                default:
+                    throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
+                        "", "");
             }
         }
 
@@ -234,7 +275,7 @@ public class CertificateRevocationListController {
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
             description = "The Batch ID as signed CMS.",
-            content = @Content(schema = @Schema(implementation = BatchDeleteRequestDto.class))
+            content = @Content(schema = @Schema(implementation = RevocationBatchDeleteRequestDto.class))
         ),
         responses = {
             @ApiResponse(
@@ -274,11 +315,17 @@ public class CertificateRevocationListController {
                 case NOT_FOUND:
                     throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Batch does not exists.", "",
                         e.getMessage());
+                case GONE:
+                    throw new DgcgResponseException(HttpStatus.GONE, "0x000", "Batch is already deleted.", "",
+                        e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
                         batchDeleteRequest.getSignerCertificate().getSubject().toString(),
                         "Certificate used to sign the batch is not a valid/ allowed"
                             + " upload certificate for your country.");
+                default:
+                    throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
+                        "", "");
             }
         }
 
