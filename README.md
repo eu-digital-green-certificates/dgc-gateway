@@ -34,8 +34,8 @@
 
 This repository contains the source code of the DDCC Gateway.
 
-DGCG is used to share validation and verification information across all national backend servers. By using DGCG,
-backend-to-backend integration is facilitated, and countries can onboard incrementally, while the national backends
+DGCG is used to share business rules, value sets, validation and verification information across all national backend servers. By using DDCCG,
+backend-to-backend integration is facilitated, and countries and regions can onboard incrementally, while the national backends
 retain flexibility and can control data processing of their users.
 
 #
