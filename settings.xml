@@ -4,7 +4,7 @@
   <interactiveMode>false</interactiveMode>
   <servers>
     <server>
-      <id>dgc-github</id>
+      <id>who-github</id>
       <username>${app.packages.username}</username>
       <password>${app.packages.password}</password>
     </server>
