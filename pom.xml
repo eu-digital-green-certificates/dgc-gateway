@@ -370,6 +370,7 @@
                     <excludes>
                         <exclude>**/DgcGatewayApplication.java</exclude>
                         <exclude>**/restapi/dto/*</exclude>
+                        <exclude>**/restapi/dto/**/*</exclude>
                         <exclude>**/restapi/mapper/*</exclude>
                         <exclude>**/repository/*</exclude>
                         <exclude>**/model/*</exclude>
