@@ -41,6 +41,7 @@ ThirdParty Licenses
 | commons-io:commons-io:2.11.0 | Apache License, Version 2.0 |
 | commons-logging:commons-logging:1.2 | The Apache Software License, Version 2.0 |
 | commons-validator:commons-validator:1.6 | Apache License, Version 2.0 |
+| eu.europa.ec.dgc:ddcc-gateway-lib:1.1.7 | Unknown license |
 | io.github.classgraph:classgraph:4.8.116 | The MIT License (MIT) |
 | io.github.openfeign:feign-core:11.7 | The Apache Software License, Version 2.0 |
 | io.github.openfeign:feign-httpclient:11.7 | The Apache Software License, Version 2.0 |
