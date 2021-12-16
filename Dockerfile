@@ -2,7 +2,7 @@ FROM adoptopenjdk:11-jre-hotspot
 
 WORKDIR /
 
-COPY [ "./target/docker/dgcg.jar", "/ddccg.jar" ]
+COPY [ "./target/docker/ddccg.jar", "/ddccg.jar" ]
 
 ENV JAVA_OPTS="$JAVA_OPTS -Xms256M -Xmx1G"
 
