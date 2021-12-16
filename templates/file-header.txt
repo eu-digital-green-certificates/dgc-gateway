@@ -1,6 +1,7 @@
 /*-
  * ---license-start
  * eu-digital-green-certificates / dgc-gateway
+ * WorldHealthOrganization / ddcc-gateway
  * ---
  * Copyright (C) 2021 T-Systems International GmbH and all other contributors
  * ---

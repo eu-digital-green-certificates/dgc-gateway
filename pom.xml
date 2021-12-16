@@ -12,19 +12,19 @@
     </parent>
 
     <groupId>eu.europa.ec.dgc</groupId>
-    <artifactId>dgc-gateway</artifactId>
+    <artifactId>ddcc-gateway</artifactId>
     <version>latest</version>
     <packaging>${packaging.format}</packaging>
 
-    <name>dgc-gateway</name>
-    <description>European Digital Green Certificate Gateway Service project.</description>
+    <name>ddcc-gateway</name>
+    <description>Digital Documentation Covid Certificate Gateway project.</description>
     <organization>
         <name>T-Systems International GmbH</name>
     </organization>
 
     <repositories>
         <repository>
-            <id>dgc-github</id>
+            <id>who-github</id>
             <url>https://maven.pkg.github.com/${github.organization}/*</url>
         </repository>
         <repository>
@@ -64,27 +64,28 @@
         <plugin.jacoco.version>0.8.7</plugin.jacoco.version>
         <plugin.os-maven.version>1.7.0</plugin.os-maven.version>
         <!-- license -->
-        <license.projectName>EU Digital Green Certificate Gateway Service / dgc-gateway</license.projectName>
-        <license.inceptionYear>2021</license.inceptionYear>
+        <license.projectName>WHO Digital Documentation Covid Certificate Gateway Service / ddcc-gateway
+        </license.projectName>
+        <license.inceptionYear>2022</license.inceptionYear>
         <license.licenseName>apache_v2</license.licenseName>
         <!-- github -->
-        <github.organization>eu-digital-green-certificates</github.organization>
-        <github.project>dgc-gateway</github.project>
+        <github.organization>WorldHealthOrganization</github.organization>
+        <github.project>ddcc-gateway</github.project>
         <!-- sonar -->
-        <sonar.organization>eu-digital-green-certificates</sonar.organization>
+        <sonar.organization>WorldHealthOrganization</sonar.organization>
         <sonar.projectKey>${sonar.organization}_${project.artifactId}</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
-    <url>https://github.com/eu-digital-green-certificates/dgc-gateway</url>
+    <url>https://github.com/WorldHealthOrganization/ddcc-gateway</url>
     <ciManagement>
-        <url>https://github.com/eu-digital-green-certificates/dgc-gateway/actions?query=workflow%3Aci</url>
+        <url>https://github.com/WorldHealthOrganization/ddcc-gateway/actions?query=workflow%3Aci</url>
     </ciManagement>
     <issueManagement>
-        <url>https://github.com/eu-digital-green-certificates/dgc-gateway/issues</url>
+        <url>https://github.com/WorldHealthOrganization/ddcc-gateway/issues</url>
     </issueManagement>
     <scm>
-        <url>https://github.com/eu-digital-green-certificates/dgc-gateway</url>
+        <url>https://github.com/WorldHealthOrganization/ddcc-gateway/dgc-gateway</url>
     </scm>
 
     <profiles>
@@ -101,7 +102,7 @@
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <configuration>
                             <outputDirectory>${project.build.directory}/docker</outputDirectory>
-                            <finalName>dgcg</finalName>
+                            <finalName>ddccg</finalName>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -128,7 +129,7 @@
 
     <distributionManagement>
         <repository>
-            <id>dgc-github</id>
+            <id>who-github</id>
             <url>https://maven.pkg.github.com/${github.organization}/${github.project}</url>
         </repository>
     </distributionManagement>
@@ -487,7 +488,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>DGCG001_ACC-${project.version}</finalName>
+                            <finalName>DDCCG001_ACC-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/assembly/assembly.xml</descriptor>
@@ -502,7 +503,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>DGCG001_ACC-${project.version}</finalName>
+                            <finalName>DDCCG001_ACC-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/assembly/assembly.xml</descriptor>
@@ -517,7 +518,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>DGCG001_PRD-${project.version}</finalName>
+                            <finalName>DDCCG001_PRD-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/assembly/assembly.xml</descriptor>
@@ -532,7 +533,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>DGCG001_TST-${project.version}</finalName>
+                            <finalName>DDCCG001_TST-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>src/assembly/assembly.xml</descriptor>

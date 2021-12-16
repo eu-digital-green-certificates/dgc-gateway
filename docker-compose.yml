@@ -13,9 +13,9 @@ services:
     networks:
       persistence:
 
-  dgc-gateway:
+  ddcc-gateway:
     build: .
-    image: eu-digital-green-certificates/dgc-gateway
+    image: world-health-organization/ddcc-gateway
     volumes:
       - ./certs:/ec/prod/app/san/dgc
     ports:
