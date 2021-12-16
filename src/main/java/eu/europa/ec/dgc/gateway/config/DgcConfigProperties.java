@@ -37,6 +37,8 @@ public class DgcConfigProperties {
 
     private JrcConfig jrc = new JrcConfig();
 
+    private Revocation revocation = new Revocation();
+
     @Getter
     @Setter
     public static class JrcConfig {
@@ -76,5 +78,11 @@ public class DgcConfigProperties {
             private String thumbprint;
             private String distinguishedName;
         }
+    }
+
+    @Getter
+    @Setter
+    public static class Revocation {
+        private int deleteThreshold = 14;
     }
 }

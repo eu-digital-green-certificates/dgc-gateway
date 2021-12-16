@@ -356,7 +356,7 @@ class RatValuesetUpdateServiceTest {
     @Test
     void testRatValuesetUpdateShouldNotUpdateWhenRequestFails() throws JsonProcessingException {
 
-        doThrow(new FeignException.Unauthorized("", dummyRequest, null))
+        doThrow(new FeignException.Unauthorized("", dummyRequest, null, null))
             .when(jrcClientMock).downloadRatValues();
 
         ratValuesetUpdateService.update();
