@@ -1,8 +1,8 @@
 /*-
  * ---license-start
- * EU Digital Green Certificate Gateway Service / dgc-gateway
+ * WHO Digital Documentation Covid Certificate Gateway Service / ddcc-gateway
  * ---
- * Copyright (C) 2021 T-Systems International GmbH and all other contributors
+ * Copyright (C) 2022 T-Systems International GmbH and all other contributors
  * ---
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.PostConstruct;
@@ -46,7 +44,7 @@ public class ValidationRuleSchemaProvider {
     private Schema validationRuleSchema;
 
     @PostConstruct
-    void setup() throws FileNotFoundException, IOException {
+    void setup() throws IOException {
         InputStream schemaInputStream = ResourceUtils.getURL(configProperties.getValidationRuleSchema()).openStream();
 
         try {
