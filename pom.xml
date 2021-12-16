@@ -85,7 +85,7 @@
         <url>https://github.com/WorldHealthOrganization/ddcc-gateway/issues</url>
     </issueManagement>
     <scm>
-        <url>https://github.com/WorldHealthOrganization/ddcc-gateway/dgc-gateway</url>
+        <url>https://github.com/WorldHealthOrganization/ddcc-gateway</url>
     </scm>
 
     <profiles>
@@ -149,7 +149,7 @@
     <dependencies>
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
-            <artifactId>dgc-lib</artifactId>
+            <artifactId>ddcc-gateway-lib</artifactId>
             <version>1.1.7</version>
         </dependency>
         <dependency>
@@ -469,7 +469,7 @@
                         <fileSet>
                             <directory>${project.build.directory}</directory>
                             <includes>
-                                <include>dgc*</include>
+                                <include>ddcc*</include>
                             </includes>
                         </fileSet>
                     </fileSets>

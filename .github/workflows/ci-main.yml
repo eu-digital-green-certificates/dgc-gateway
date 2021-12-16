@@ -47,18 +47,18 @@ jobs:
       - name: Upload ZIP for TST
         uses: actions/upload-artifact@v2
         with:
-          name: DGCG001_TST
-          path: target/DGCG001_TST*
+          name: DDCCG001_TST
+          path: target/DDCCG001_TST*
       - name: Upload ZIP for ACC
         uses: actions/upload-artifact@v2
         with:
-          name: DGCG001_ACC
-          path: target/DGCG001_ACC*
+          name: DDCCG001_ACC
+          path: target/DDCCG001_ACC*
       - name: Upload ZIP for PRD
         uses: actions/upload-artifact@v2
         with:
-          name: DGCG001_PRD
-          path: target/DGCG001_PRD*
+          name: DDCCG001_PRD
+          path: target/DDCCG001_PRD*
   build-docker:
     runs-on: ubuntu-20.04
     steps:
