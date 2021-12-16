@@ -427,7 +427,7 @@
                     <outputDirectory>.</outputDirectory>
                     <thirdPartyFilename>THIRD-PARTY.md</thirdPartyFilename>
                     <fileTemplate>templates/third-party.ftl</fileTemplate>
-                    <excludedArtifacts>dgc-lib</excludedArtifacts>
+                    <excludedArtifacts>ddcc-gateway-lib</excludedArtifacts>
                 </configuration>
             </plugin>
             <plugin>
