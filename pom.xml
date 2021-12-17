@@ -59,7 +59,7 @@
         <shedlock.version>4.25.0</shedlock.version>
         <spring.cloud.version>2020.0.3</spring.cloud.version>
         <slf4j.version>1.7.32</slf4j.version>
-        <log4j2.version>2.15.0</log4j2.version>
+        <log4j2.version>2.16.0</log4j2.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
