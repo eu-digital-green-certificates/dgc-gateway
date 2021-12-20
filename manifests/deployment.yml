@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "ddccservices-56e3"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "ddccservices-56e3"
+  template:
+    metadata:
+      labels:
+        app: "ddccservices-56e3"
+    spec:
+      containers:
+        - name: "ddccservices-56e3"
+          image: "ddccsrv.azurecr.io/ddccservices"
+          ports:
+          - containerPort: 8080
