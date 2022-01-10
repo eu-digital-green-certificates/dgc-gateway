@@ -57,6 +57,6 @@ public interface RevocationBatchRepository extends JpaRepository<RevocationBatch
     @Query("DELETE FROM RevocationBatchEntity r WHERE r.deleted = true AND r.changed < :threshold")
     int deleteDeletedBatchesOlderThan(@Param("threshold") ZonedDateTime threshold);
 
-    List<RevocationBatchProjection> getAllByChangedGreaterThanEqualOrderByChangedAsc(ZonedDateTime date, Pageable page);
+    List<RevocationBatchProjection> getAllByChangedGreaterThanOrderByChangedAsc(ZonedDateTime date, Pageable page);
 
 }

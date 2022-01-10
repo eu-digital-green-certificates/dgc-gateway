@@ -198,7 +198,7 @@ public class RevocationListService {
         RevocationBatchList batchList = new RevocationBatchList();
 
         List<RevocationBatchProjection> entityList =
-            revocationBatchRepository.getAllByChangedGreaterThanEqualOrderByChangedAsc(
+            revocationBatchRepository.getAllByChangedGreaterThanOrderByChangedAsc(
                 thresholdDate, PageRequest.ofSize(MAX_BATCH_LIST_SIZE + 1));
 
         batchList.setMore(entityList.size() > MAX_BATCH_LIST_SIZE);
