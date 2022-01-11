@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.restapi.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,8 +64,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -139,13 +142,14 @@ public class CertificateRevocationListIntegrationTest {
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isCreated());
+        MvcResult mvcResult = mockMvc.perform(post("/revocation-list")
+            .content(payload)
+            .contentType("application/cms")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+        ).andReturn();
+
+        Assertions.assertEquals(HttpStatus.CREATED.value(), mvcResult.getResponse().getStatus());
 
         Assertions.assertEquals(revocationBatchesInDb + 1, revocationBatchRepository.count());
         Optional<RevocationBatchEntity> createdRevocationBatch =
@@ -161,6 +165,7 @@ public class CertificateRevocationListIntegrationTest {
         Assertions.assertEquals(countryCode, createdRevocationBatch.get().getCountry());
         Assertions.assertEquals(revocationBatchDto.getHashType().name(), createdRevocationBatch.get().getType().name());
         Assertions.assertEquals(revocationBatchDto.getKid(), createdRevocationBatch.get().getKid());
+        Assertions.assertEquals(createdRevocationBatch.get().getBatchId(), mvcResult.getResponse().getHeader(HttpHeaders.ETAG));
         Assertions.assertEquals(36, createdRevocationBatch.get().getBatchId().length());
 
         SignedStringMessageParser parser = new SignedStringMessageParser(createdRevocationBatch.get().getSignedBatch());
@@ -191,6 +196,7 @@ public class CertificateRevocationListIntegrationTest {
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
             .andExpect(status().isBadRequest());
+
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
@@ -230,7 +236,8 @@ public class CertificateRevocationListIntegrationTest {
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
@@ -270,7 +277,8 @@ public class CertificateRevocationListIntegrationTest {
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
@@ -310,7 +318,8 @@ public class CertificateRevocationListIntegrationTest {
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
-            .andExpect(status().isForbidden());
+            .andExpect(status().isForbidden())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
