@@ -21,6 +21,7 @@
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
+import eu.europa.ec.dgc.gateway.entity.RevocationBatchEntity;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.model.RevocationBatchDownload;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
@@ -209,7 +210,8 @@ public class CertificateRevocationListController {
         responses = {
             @ApiResponse(
                 responseCode = "201",
-                description = "Batch created."),
+                description = "Batch created.",
+                headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID of created Batch")),
             @ApiResponse(
                 responseCode = "409",
                 description = "Batch already exists.")
@@ -224,13 +226,17 @@ public class CertificateRevocationListController {
                 "Submitted string needs to be signed by a valid upload certificate");
         }
 
+        String batchId;
+
         try {
-            revocationListService.addRevocationBatch(
+            RevocationBatchEntity entity = revocationListService.addRevocationBatch(
                 batch.getPayloadString(),
                 batch.getSignerCertificate(),
                 batch.getRawMessage(),
                 countryCode
             );
+
+            batchId = entity.getBatchId();
         } catch (RevocationListService.RevocationBatchServiceException e) {
             log.error("Upload of Revocation Batch failed: {}, {}", e.getReason(), e.getMessage());
 
@@ -254,7 +260,10 @@ public class CertificateRevocationListController {
             }
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .header(HttpHeaders.ETAG, batchId)
+            .build();
     }
 
     /**
