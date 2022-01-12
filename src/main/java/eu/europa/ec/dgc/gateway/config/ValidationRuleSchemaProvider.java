@@ -20,8 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.PostConstruct;
@@ -46,7 +44,7 @@ public class ValidationRuleSchemaProvider {
     private Schema validationRuleSchema;
 
     @PostConstruct
-    void setup() throws FileNotFoundException, IOException {
+    void setup() throws IOException {
         InputStream schemaInputStream = ResourceUtils.getURL(configProperties.getValidationRuleSchema()).openStream();
 
         try {

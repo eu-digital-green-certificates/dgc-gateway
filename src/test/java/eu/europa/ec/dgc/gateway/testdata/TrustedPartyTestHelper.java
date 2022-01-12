@@ -28,6 +28,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,6 +77,17 @@ public class TrustedPartyTestHelper {
     public PrivateKey getPrivateKey(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
         prepareTestCert(type, countryCode);
         return privateKeyMap.get(type).get(countryCode);
+    }
+
+    public void setRoles(String countryCode, TrustedPartyEntity.CertificateRoles... roles) throws Exception {
+        String hash = getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        TrustedPartyEntity entity = trustedPartyRepository.getFirstByThumbprintAndCertificateType(
+            hash, TrustedPartyEntity.CertificateType.AUTHENTICATION).orElseThrow();
+
+        entity.setCertificateRoles(Arrays.asList(roles));
+
+        trustedPartyRepository.save(entity);
     }
 
     private void prepareTestCert(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {

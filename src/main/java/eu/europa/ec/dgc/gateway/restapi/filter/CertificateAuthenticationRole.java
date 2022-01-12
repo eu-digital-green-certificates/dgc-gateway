@@ -20,19 +20,10 @@
 
 package eu.europa.ec.dgc.gateway.restapi.filter;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public enum CertificateAuthenticationRole {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface CertificateAuthenticationRequired {
-
-    /**
-     * List of {@link CertificateAuthenticationRole} which are required to access this endpoint.
-     * All mentioned roles must be assigned to the certificate.
-     */
-    CertificateAuthenticationRole[] requiredRoles() default {};
+    RevocationListReader,
+    RevocationUploader,
+    RevocationDeleter
 
 }

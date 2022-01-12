@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,6 +115,11 @@ public class CertificateRevocationListIntegrationTest {
 
     }
 
+    @AfterEach
+    public void teardown() throws Exception {
+        trustedPartyTestHelper.setRoles(countryCode);
+    }
+
     @Test
     void testSuccessfulUpload() throws Exception {
         long revocationBatchesInDb = revocationBatchRepository.count();
@@ -141,6 +147,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         MvcResult mvcResult = mockMvc.perform(post("/revocation-list")
             .content(payload)
@@ -188,6 +195,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
                 .content(payload)
@@ -229,6 +237,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
                 .content(payload)
@@ -270,6 +279,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
                 .content(payload)
@@ -311,6 +321,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
                 .content(payload)
@@ -353,6 +364,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -401,6 +413,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(post("/revocation-list/delete")
                 .content(payload)
@@ -444,6 +457,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -483,6 +497,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -522,6 +537,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -563,6 +579,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, "XX");
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -604,6 +621,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -645,6 +663,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -686,6 +705,7 @@ public class CertificateRevocationListIntegrationTest {
             .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
                 .content(payload)
@@ -720,6 +740,7 @@ public class CertificateRevocationListIntegrationTest {
         }
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list")
                 .accept("application/json")
@@ -800,6 +821,7 @@ public class CertificateRevocationListIntegrationTest {
     void testDownloadBatchListFailedNoIfModifiedSince() throws Exception {
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list")
                 .accept("application/json")
@@ -813,6 +835,7 @@ public class CertificateRevocationListIntegrationTest {
     void testDownloadBatchListFailedIfModifiedSinceInFuture() throws Exception {
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list")
                 .accept("application/json")
@@ -852,6 +875,7 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchRepository.save(entity);
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/" + entity.getBatchId())
                 .accept("application/cms")
@@ -875,6 +899,7 @@ public class CertificateRevocationListIntegrationTest {
     @Test
     void testDownloadRevocationBatchInvalidBatchId() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/thisIsNotAnUUID")
                 .accept("application/cms")
@@ -899,6 +924,7 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchRepository.save(entity);
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/" + entity.getBatchId())
                 .accept("application/cms")
@@ -912,6 +938,7 @@ public class CertificateRevocationListIntegrationTest {
     void testDownloadRevocationBatchNotFound() throws Exception {
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/" + UUID.randomUUID())
                 .accept("application/cms")
@@ -958,5 +985,95 @@ public class CertificateRevocationListIntegrationTest {
         Assertions.assertEquals(expected.getDeleted(), actual.getDeleted());
         Assertions.assertEquals(expected.getId(), expected.getId());
         Assertions.assertEquals(expected.getSignedBatch(), expected.getSignedBatch());
+    }
+
+    @Test
+    void testDownloadBatchListRequiresCorrectRole() throws Exception {
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
+
+        mockMvc.perform(get("/revocation-list")
+                .accept("application/json")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                .header(HttpHeaders.IF_MODIFIED_SINCE, OffsetDateTime.now().toString())
+            )
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testDeleteRevocationBatchRequiresCorrectRole() throws Exception {
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(UUID.randomUUID().toString());
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+            .buildAsString();
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
+
+        mockMvc.perform(delete("/revocation-list")
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/revocation-list/delete")
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testUploadRequiresCorrectRole() throws Exception {
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        RevocationBatchDto revocationBatchDto = new RevocationBatchDto();
+        revocationBatchDto.setCountry(countryCode);
+        revocationBatchDto.setExpires(ZonedDateTime.now().plusDays(7));
+        revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
+        revocationBatchDto.setKid("UNKNOWN_KID");
+        revocationBatchDto.setEntries(List.of(new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa")));
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+            .buildAsString();
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
+
+        mockMvc.perform(post("/revocation-list")
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isForbidden())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
+    }
+
+    @Test
+    void testDownloadRevocationBatchRequiresCorrectRole() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
+
+        mockMvc.perform(get("/revocation-list/" + UUID.randomUUID())
+                .accept("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isForbidden());
     }
 }
