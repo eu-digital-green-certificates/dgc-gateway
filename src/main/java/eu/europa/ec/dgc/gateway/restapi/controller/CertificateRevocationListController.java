@@ -31,6 +31,7 @@ import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchListDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRole;
 import eu.europa.ec.dgc.gateway.restapi.mapper.RevocationBatchMapper;
 import eu.europa.ec.dgc.gateway.service.RevocationListService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,7 +80,7 @@ public class CertificateRevocationListController {
     /**
      * Endpoint to download Revocation Batch List.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationListReader)
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         security = {
@@ -129,7 +130,7 @@ public class CertificateRevocationListController {
     /**
      * Endpoint to download Revocation Batch.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationListReader)
     @GetMapping(value = "/{batchId}", produces = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
@@ -192,7 +193,7 @@ public class CertificateRevocationListController {
     /**
      * Endpoint to upload Revocation Batch.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationUploader)
     @PostMapping(value = "", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
@@ -269,7 +270,7 @@ public class CertificateRevocationListController {
     /**
      * Endpoint to delete Revocation Batch.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationDeleter)
     @DeleteMapping(value = "", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
@@ -344,7 +345,7 @@ public class CertificateRevocationListController {
     /**
      * Alternative endpoint to delete revocation batches.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationDeleter)
     @PostMapping(value = "/delete", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     public ResponseEntity<Void> deleteBatchAlternativeEndpoint(

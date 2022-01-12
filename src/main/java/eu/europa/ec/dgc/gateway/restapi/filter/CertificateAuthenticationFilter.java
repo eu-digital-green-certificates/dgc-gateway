@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.restapi.filter;
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
+import eu.europa.ec.dgc.gateway.restapi.mapper.CertificateRoleMapper;
 import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import java.io.IOException;
@@ -64,6 +65,8 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
     private final TrustedPartyService trustedPartyService;
 
     private final HandlerExceptionResolver handlerExceptionResolver;
+
+    private final CertificateRoleMapper certificateRoleMapper;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -180,11 +183,56 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (!checkRequiredRoles(httpServletRequest, certFromDb.get())) {
+            log.error("Missing permissions to access this endpoint.");
+            handlerExceptionResolver.resolveException(
+                httpServletRequest, httpServletResponse, null,
+                new DgcgResponseException(
+                    HttpStatus.FORBIDDEN,
+                    "0x403",
+                    "Client is not authorized to access the endpoint",
+                    "", ""));
+
+            return;
+        }
+
         log.info("Successful Authentication");
         httpServletRequest.setAttribute(REQUEST_PROP_COUNTRY, distinguishNameMap.get("C"));
         httpServletRequest.setAttribute(REQUEST_PROP_THUMBPRINT, headerCertThumbprint);
 
         filterChain.doFilter(httpServletRequest, httpServletResponse);
+    }
+
+    private boolean checkRequiredRoles(HttpServletRequest request, TrustedPartyEntity entity) {
+        HandlerExecutionChain handlerExecutionChain;
+        try {
+            handlerExecutionChain = requestMap.getHandler(request);
+        } catch (Exception e) {
+            log.error("Failed to extract required roles from request.");
+            return false;
+        }
+
+        if (handlerExecutionChain == null) {
+            log.error("Failed to extract required roles from request.");
+            return false;
+        }
+
+        CertificateAuthenticationRole[] requiredRoles = ((HandlerMethod) handlerExecutionChain.getHandler())
+            .getMethod().getAnnotation(CertificateAuthenticationRequired.class).requiredRoles();
+
+        if (requiredRoles.length == 0) {
+            log.debug("Endpoint requires no special roles.");
+            return true;
+        }
+
+        for (CertificateAuthenticationRole requiredRole : requiredRoles) {
+            if (!entity.getCertificateRoles().contains(certificateRoleMapper.dtoToEntity(requiredRole))) {
+                log.error("Role {} is required to access endpoint", requiredRole.name());
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
