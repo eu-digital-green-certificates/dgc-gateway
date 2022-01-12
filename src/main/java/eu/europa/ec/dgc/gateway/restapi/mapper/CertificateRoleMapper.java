@@ -24,16 +24,13 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRole;
 import org.mapstruct.Mapper;
 import org.mapstruct.ValueMapping;
-import org.mapstruct.ValueMappings;
 
 @Mapper(componentModel = "spring")
 public interface CertificateRoleMapper {
 
-    @ValueMappings({
-        @ValueMapping(source = "RevocationListReader", target = "REVOCATION_LIST_READER"),
-        @ValueMapping(source = "RevocationUploader", target = "REVOCATION_UPLOADER"),
-        @ValueMapping(source = "RevocationDeleter", target = "REVOCATION_DELETER")
-    })
+    @ValueMapping(source = "RevocationListReader", target = "REVOCATION_LIST_READER")
+    @ValueMapping(source = "RevocationUploader", target = "REVOCATION_UPLOADER")
+    @ValueMapping(source = "RevocationDeleter", target = "REVOCATION_DELETER")
     TrustedPartyEntity.CertificateRoles dtoToEntity(CertificateAuthenticationRole dto);
 
 }
