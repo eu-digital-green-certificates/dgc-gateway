@@ -11,7 +11,9 @@
             <column name="trusted_party_entity_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="role" type="VARCHAR"/>
+            <column name="role" type="VARCHAR(22)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <addForeignKeyConstraint baseColumnNames="trusted_party_entity_id" baseTableName="trusted_party_roles"

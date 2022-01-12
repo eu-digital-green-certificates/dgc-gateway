@@ -88,7 +88,7 @@ public class TrustedPartyEntity {
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "trusted_party_roles")
-    @Column(name = "role")
+    @Column(name = "role", length = 22, nullable = false)
     List<CertificateRoles> certificateRoles;
 
     public enum CertificateType {
