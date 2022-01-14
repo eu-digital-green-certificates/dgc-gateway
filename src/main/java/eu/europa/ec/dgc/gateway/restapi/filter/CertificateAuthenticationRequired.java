@@ -28,4 +28,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface CertificateAuthenticationRequired {
+
+    /**
+     * List of {@link CertificateAuthenticationRole} which are required to access this endpoint.
+     * All mentioned roles must be assigned to the certificate.
+     */
+    CertificateAuthenticationRole[] requiredRoles() default {};
+
 }

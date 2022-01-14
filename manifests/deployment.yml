@@ -1,7 +1,7 @@
 apiVersion : apps/v1
 kind: Deployment
 metadata:
-  name: ddccgateway 
+  name: ddccgateway
 spec:
   replicas: 1
   selector:
@@ -10,10 +10,10 @@ spec:
   template:
     metadata:
       labels:
-        app: ddccgateway 
+        app: ddccgateway
     spec:
       containers:
-        - name: ddccgateway 
+        - name: ddccgateway
           image: ddccsrv.azurecr.io/ddccgateway
           ports:
           - containerPort: 8080
