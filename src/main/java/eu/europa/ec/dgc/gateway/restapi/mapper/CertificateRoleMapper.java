@@ -18,21 +18,19 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.restapi.filter;
+package eu.europa.ec.dgc.gateway.restapi.mapper;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRole;
+import org.mapstruct.Mapper;
+import org.mapstruct.ValueMapping;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface CertificateAuthenticationRequired {
+@Mapper(componentModel = "spring")
+public interface CertificateRoleMapper {
 
-    /**
-     * List of {@link CertificateAuthenticationRole} which are required to access this endpoint.
-     * All mentioned roles must be assigned to the certificate.
-     */
-    CertificateAuthenticationRole[] requiredRoles() default {};
+    @ValueMapping(source = "RevocationListReader", target = "REVOCATION_LIST_READER")
+    @ValueMapping(source = "RevocationUploader", target = "REVOCATION_UPLOADER")
+    @ValueMapping(source = "RevocationDeleter", target = "REVOCATION_DELETER")
+    TrustedPartyEntity.CertificateRoles dtoToEntity(CertificateAuthenticationRole dto);
 
 }

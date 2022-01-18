@@ -21,10 +21,14 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
+import java.util.List;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -81,6 +85,12 @@ public class TrustedPartyEntity {
     @Enumerated(EnumType.STRING)
     CertificateType certificateType;
 
+    @Enumerated(EnumType.STRING)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "trusted_party_roles")
+    @Column(name = "role", length = 22, nullable = false)
+    List<CertificateRoles> certificateRoles;
+
     public enum CertificateType {
         /**
          * Certificate which the member state is using to authenticate at DGC Gateway (NBTLS).
@@ -96,5 +106,22 @@ public class TrustedPartyEntity {
          * Country Signing Certificate Authority certificate (NBCSCA).
          */
         CSCA
+    }
+
+    public enum CertificateRoles {
+        /**
+         * User with this certificate is allowed to download Revocation List.
+         */
+        REVOCATION_LIST_READER,
+
+        /**
+         * User with this certificate is allowed to upload Revocation List.
+         */
+        REVOCATION_UPLOADER,
+
+        /**
+         * User with this certificate is allowed to delete Revocation List.
+         */
+        REVOCATION_DELETER
     }
 }

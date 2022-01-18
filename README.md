@@ -41,9 +41,10 @@ retain flexibility and can control data processing of their users.
 #
 ## Licensing
 
-Copyright (C) 2021 T-Systems International GmbH and all other contributors
+Copyright (C) 2021 - 2022 T-Systems International GmbH and all other contributors
 
-Licensed under the **Apache License, Version 2.0** (the "License"); you may not use this file except in compliance with the License.
+Licensed under the **Apache License, Version 2.0** (the "License"); you may not use this file except in compliance with
+the License.
 
 You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0.
 
