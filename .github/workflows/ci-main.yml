@@ -111,6 +111,10 @@ jobs:
           --file ./Dockerfile
           --tag "${APP_PACKAGES_URL}:${APP_VERSION}";
           docker push "${APP_PACKAGES_URL}:${APP_VERSION}";
+        env:
+          APP_PACKAGES_URL: ghcr.io/worldhealthorganization/ddcc-gateway/ddcc-gateway
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/delete-package-versions@v2
         with:
           package-name: ${APP_PACKAGES_URL}
