@@ -3,7 +3,9 @@ on:
   push:
     branches:
       - main
-jobs:
+  workflow_dispatch:
+  
+jobs: 
   build:
     runs-on: ubuntu-20.04
     steps:
@@ -110,7 +112,15 @@ jobs:
           --tag "${APP_PACKAGES_URL}:${APP_VERSION}";
           docker push "${APP_PACKAGES_URL}:${APP_VERSION}";
         env:
-          APP_PACKAGES_URL: docker.pkg.github.com/worldhealthorganization/ddcc-gateway/ddcc-gateway
+          APP_PACKAGES_URL: ghcr.io/worldhealthorganization/ddcc-gateway/ddcc-gateway
+          APP_PACKAGES_USERNAME: ${{ github.actor }}
+          APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/delete-package-versions@v2
+        with:
+          package-name: ${APP_PACKAGES_URL}
+          min-versions-to-keep: 3
+        env:
+          APP_PACKAGES_URL: ghcr.io/worldhealthorganization/ddcc-gateway/ddcc-gateway
           APP_PACKAGES_USERNAME: ${{ github.actor }}
           APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
   license:
@@ -146,3 +156,4 @@ jobs:
           git add .
           git diff --quiet && git diff --staged --quiet || git commit -m "Update License Header and Third Party Notices"
           git push
+
