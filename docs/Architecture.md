@@ -43,3 +43,15 @@ The current implementation of EU DCCG is, as said before, a one level system whi
 
 The  DDCCG should realize this enhancement of the current implementation of DCCG with the purpose to create a network between multiple  Gateways for exchanging DDCC associated public key material, value sets and business rules between different parties (authority, non-authority, commercial etc.). Every Gateway can connect to every other Gateway by manually configuring the list of connections and trust relationships. To manage the connections and their download behavior a new component federator is introduced. The Federator is a microservice acting in the role of an automated download client between two Gateways and fulfilling all responsibilities of trusted data exchange. 
 
+![DDCC Gateway Design - Federated Implementations](pictures/architecture/ArchitectureVision.drawio.png)
+
+The backbone for this data exchange is the functionality of the current connector library which connects to the gateway and provides for the consumer the most necessary functionalities. This library is enhanced by the functionality to connect multiple gateways instead of one.
+
+# Use Cases
+## Bilateral Onboarding
+With the functionality of the connector library, the first use case can be to connect as a trusted party to multiple gateways for downloading/uploading content. This requires onboarding on both gateways. 
+
+![DDCC Gateway Use Case - Bilateral Onboarding](pictures/architecture/ArchitectureVision.drawio.png)
+
+
+
