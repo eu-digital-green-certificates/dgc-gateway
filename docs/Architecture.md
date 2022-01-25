@@ -53,5 +53,48 @@ With the functionality of the connector library, the first use case can be to co
 
 ![DDCC Gateway Use Case - Bilateral Onboarding](pictures/architecture/ArchitectureVision.drawio.png)
 
+## Peer to Peer Exchange
+In the peer to peer setup, two or more gateways are able to exchange their data bi directional. The source and the target gateway enable each other to download the data. All exchanged data will be appended to the existing data within the gateway. This can include the data of third party gateways, if permitted by the data exchange agreement between two gateways. 
+
+![DDCC Gateway Use Case - Peer-to-Peer](pictures/architecture/P2PExchange.drawio.png)
+
+## Primary-Secondary Exchange
+The primary-secondary exchange setup declares one or several gateway as primary source, and a set of gateways as secondaries . Within this mode, the secondaries will download the data of the primary and append it to their own dataset or replace the own dataset with the downloaded data. The primary ignores the data of the secondaries, which means that the secondaries act just as read copies of the primary gateway. The leading national backends can connect to the primary gateway and upload the data to the one primary gateway. 
+
+![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/P2PExchange.drawio.png)
+
+## Combined Sources Exchange
+Within this mode, the gateway will download from multiple gateways the data and append it to its own data set. This results in a combined collection.  
+
+![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/CombinedSources.drawio.png)
+
+## Trust Mediator
+The gateway content can be used to establish trust between attendees which are just loosely coupled. E.g. Verifier Devices which are known by Trusted Party A, but not directly known by Trusted Party B.
+
+![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/ImplicitTrustRelation.drawio.png)
+
+To establish the trust between them, a trust mediator can be generated which relies on the trustlist of the gateway. The mediator can then use this information to decide whether the trust relationship is given or not. For instance, the interceptor can check if a signature of a JWT was created by the public key of a certificate which was signed by an onboarded CSCA. When the CSCA is onboarded and trusted, it proves that the signature was made by someone which has the trust of this CSCA. The trust for this attendee is then also given. 
+
+![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/ExplicitTrustRelation.drawio.png)
+
+# Architecture Overview
+## Metadata Exchange
+A critical role of a DDCC Gateway is to provide an interoperable means for exchanging key metadata in support of digital covid certificates using the HL7 FHIR standards. This includes, in particular:
+- <b>Value Sets</b> should be shared using the transactions defined in the IHE Sharing Value Sets and Concept Maps (SVCM) profile and including the following resources:
+  - HL7 FHIR ValueSet resources for the sharing of codings and terminologies referenced by the various digital covid certificate specifications (e.g. allowed vaccines or tests).   - HL7 FHIR ConceptMaps may be used to provide mappings between jurisdictionally defined coding and those within the DDCC specification. 
+- <b>Business Rules</b> should follow the ![Knowledge Artifact](https://docs.google.com/presentation/d/1Bb6oA-4_qPYwvg6iQcZS8CNL1XvdT0R30Vmv9zIstPs/edit#slide=id.gcb76b23c16_2_169) and ![Clinical Decision Support infrastructure](https://build.fhir.org/clinicalreasoning-cds-on-fhir.html) including the following resources:
+  - HL7 FHIR Library resources for sharing libraries of business rules expressed using Clinical Quality Language (CQL)
+  - HL7 FHIR PlanDefinition resources for indicating which business rule should be executed based on the relevant validation or continuity of care use cases.
+  
+To abstract these requirements, the DDCC gateway will introduce a new functionality called “Trusted References”, which allows it to share any kind of service endpoint without sharing the content itself. For backwards compatibility, the functionality for the DCC Business Rules and Value Sets remain in the architecture, but can be configured to be disabled. The explicit endpoints for business rules and value sets will be replaced by the trusted references, because the wide variance of medical content should be left to fhir server implementations instead of implementing each service in the gateway itself.  
+
+## Public Key Exchange
+A critical role of a DDCC Gateway is to provide a way to share public keys that are used to sign digital covid certificates as well as a means to provide lists of revoked public key certificates.
+
+## Reference Exchange
+To ensure that all attendees in the system have the precise knowledge about important sources e.g. FHIR value sets or Business Rule, the gateway provides the functionality to store securely and trustfull references. These references can be stored in the format of URLs.
+
+## Issuer Exchange
+For some Credential Types  e.g. Verifiable Credentials is necessary to ensure the trust into issuers of those Credentials. The most credentials carry an issuer id like an http url or any did where the public key material is behind to verify these credentials. To provide a trusted list of these issuers, the gateway provides functionality to upload issuer IDs.  
 
 
