@@ -38,12 +38,16 @@ The current DCC Gateway design is fully focused on the trust establishment betwe
 The current design of the EU DCC Gateway is a single centralized system which establishes trust between DCC participants and enables business rules,value sets and revocation lists to be shared. If another region in the world establishes such a gateway, there is currently no way in the architecture to exchange these trusted data between the two gateways. In the new architecture within the DDCC context, the architecture shall be updated such that multiple gateways can be connected to each other. This shall allow in the future the creation of groups which can be enabled step by step in a wider range to establish a federation. For instance the gateway content can be interesting to non-authority parties e.g. airlines, which wants to have a read only copy of the gateway content. This can be established by onboarding the airline in a gateway which was specially setup for this purpose and is connected to the official gateway. To achieve this goal, the architecture must support multiple operation modes e.g. Primary-Secondary. 
 The current implementation of EU DCCG is, as said before, a one level system which serves as a central hub for storing and managing the information gathered from the Trusted Parties.
 
+<p align="center">
+  <img src="pictures/architecture/CurrentView.drawio.png" alt="EU DCC Gateway Design - Central Implementation" style="width:400px;"/>
+</p>
 
-![EU DCC Gateway Design - Central Implementation](pictures/architecture/CurrentView.drawio.png)
 
 The  DDCCG should realize this enhancement of the current implementation of DCCG with the purpose to create a network between multiple  Gateways for exchanging DDCC associated public key material, value sets and business rules between different parties (authority, non-authority, commercial etc.). Every Gateway can connect to every other Gateway by manually configuring the list of connections and trust relationships. To manage the connections and their download behavior a new component federator is introduced. The Federator is a microservice acting in the role of an automated download client between two Gateways and fulfilling all responsibilities of trusted data exchange. 
 
-![DDCC Gateway Design - Federated Implementations](pictures/architecture/ArchitectureVision.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/ArchitectureVision.drawio.png" alt="DDCC Gateway Design - Federated Implementations" style="width:400px;"/>
+</p>
 
 The backbone for this data exchange is the functionality of the current connector library which connects to the gateway and provides for the consumer the most necessary functionalities. This library is enhanced by the functionality to connect multiple gateways instead of one.
 
@@ -51,31 +55,44 @@ The backbone for this data exchange is the functionality of the current connecto
 ## Bilateral Onboarding
 With the functionality of the connector library, the first use case can be to connect as a trusted party to multiple gateways for downloading/uploading content. This requires onboarding on both gateways. 
 
-![DDCC Gateway Use Case - Bilateral Onboarding](pictures/architecture/ArchitectureVision.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/ArchitectureVision.drawio.png" alt="DDCC Gateway Use Case - Bilateral Onboarding" style="width:400px;"/>
+</p>
+
 
 ## Peer to Peer Exchange
 In the peer to peer setup, two or more gateways are able to exchange their data bi directional. The source and the target gateway enable each other to download the data. All exchanged data will be appended to the existing data within the gateway. This can include the data of third party gateways, if permitted by the data exchange agreement between two gateways. 
 
-![DDCC Gateway Use Case - Peer-to-Peer](pictures/architecture/P2PExchange.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/P2PExchange.drawio.png" alt="DDCC Gateway Use Case - Peer-to-Peer" style="width:400px;"/>
+</p>
 
 ## Primary-Secondary Exchange
 The primary-secondary exchange setup declares one or several gateway as primary source, and a set of gateways as secondaries . Within this mode, the secondaries will download the data of the primary and append it to their own dataset or replace the own dataset with the downloaded data. The primary ignores the data of the secondaries, which means that the secondaries act just as read copies of the primary gateway. The leading national backends can connect to the primary gateway and upload the data to the one primary gateway. 
 
-![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/P2PExchange.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/PrimarySecondaryExchange.drawio.png" alt="DDCC Gateway Use Case - Primary-Secondary Exchange" style="width:400px;"/>
+</p>
 
 ## Combined Sources Exchange
 Within this mode, the gateway will download from multiple gateways the data and append it to its own data set. This results in a combined collection.  
 
-![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/CombinedSources.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/CombinedSources.drawio.png" alt="DDCC Gateway Use Case - Primary-Secondary" style="width:400px;"/>
+</p>
 
 ## Trust Mediator
 The gateway content can be used to establish trust between attendees which are just loosely coupled. E.g. Verifier Devices which are known by Trusted Party A, but not directly known by Trusted Party B.
 
-![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/ImplicitTrustRelation.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/ImplicitTrustRelation.drawio.png" alt="DDCC Gateway Use Case - Implict Trust Relation" style="width:400px;"/>
+</p>
 
 To establish the trust between them, a trust mediator can be generated which relies on the trustlist of the gateway. The mediator can then use this information to decide whether the trust relationship is given or not. For instance, the interceptor can check if a signature of a JWT was created by the public key of a certificate which was signed by an onboarded CSCA. When the CSCA is onboarded and trusted, it proves that the signature was made by someone which has the trust of this CSCA. The trust for this attendee is then also given. 
 
-![DDCC Gateway Use Case - Primary-Secondary](pictures/architecture/ExplicitTrustRelation.drawio.png)
+<p align="center">
+  <img src="pictures/architecture/ExplicitTrustRelation.drawio.png" alt="DDCC Gateway Use Case - Excplicit Trust Relation" style="width:400px;"/>
+</p>
 
 # Architecture Overview
 ## Metadata Exchange
