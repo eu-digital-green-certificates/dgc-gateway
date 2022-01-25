@@ -167,7 +167,7 @@ The current trust model of the DCC Gateway supports just the connection of multi
 To realize the architecture vision, the gateway trust model will be enhanced for the federator to support multiple trust anchors. For this purpose the DDCC Federator will be onboarded in the source gateway with an NB<sub>TLS</sub> and NB<sub>UP</sub> certificate to access the gateway content. In the destination gateway, the trust anchor of the source gateway is configured (and signed by the operator) to accept the source content as valid. If the verification is successful, the content will be added as a subset to the existing gateway content. The connected national backends can then download all information by activating the federation option, to get the content from both gateways. The trust chain can be verified about the trust anchor of the connected gateway and the trust list of onboarded trust anchors.
 
 <p align="center">
-  <img src="pictures/architecture/MultipleTrustAnchors.png" alt="DDCC Gateway Implementation- Multiple Trust Anchor" style="width:400px;"/>
+  <img src="pictures/architecture/MultipleTrustAnchor.png" alt="DDCC Gateway Implementation- Multiple Trust Anchor" style="width:400px;"/>
 </p>
 
 <b>Note</b>: The Federator acts as a special kind of “National Backend”, therefore all NB associated certificates excepting the NB<sub>UP</sub> will be onboarded normally. 
