@@ -99,7 +99,7 @@ To establish the trust between them, a trust mediator can be generated which rel
 A critical role of a DDCC Gateway is to provide an interoperable means for exchanging key metadata in support of digital covid certificates using the HL7 FHIR standards. This includes, in particular:
 - <b>Value Sets</b> should be shared using the transactions defined in the IHE Sharing Value Sets and Concept Maps (SVCM) profile and including the following resources:
   - HL7 FHIR ValueSet resources for the sharing of codings and terminologies referenced by the various digital covid certificate specifications (e.g. allowed vaccines or tests).   - HL7 FHIR ConceptMaps may be used to provide mappings between jurisdictionally defined coding and those within the DDCC specification. 
-- <b>Business Rules</b> should follow the ![Knowledge Artifact](https://docs.google.com/presentation/d/1Bb6oA-4_qPYwvg6iQcZS8CNL1XvdT0R30Vmv9zIstPs/edit#slide=id.gcb76b23c16_2_169) and ![Clinical Decision Support infrastructure](https://build.fhir.org/clinicalreasoning-cds-on-fhir.html) including the following resources:
+- <b>Business Rules</b> should follow the [Knowledge Artifact](https://docs.google.com/presentation/d/1Bb6oA-4_qPYwvg6iQcZS8CNL1XvdT0R30Vmv9zIstPs/edit#slide=id.gcb76b23c16_2_169) and [Clinical Decision Support infrastructure](https://build.fhir.org/clinicalreasoning-cds-on-fhir.html) including the following resources:
   - HL7 FHIR Library resources for sharing libraries of business rules expressed using Clinical Quality Language (CQL)
   - HL7 FHIR PlanDefinition resources for indicating which business rule should be executed based on the relevant validation or continuity of care use cases.
   
@@ -113,5 +113,93 @@ To ensure that all attendees in the system have the precise knowledge about impo
 
 ## Issuer Exchange
 For some Credential Types  e.g. Verifiable Credentials is necessary to ensure the trust into issuers of those Credentials. The most credentials carry an issuer id like an http url or any did where the public key material is behind to verify these credentials. To provide a trusted list of these issuers, the gateway provides functionality to upload issuer IDs.  
+
+## Concept
+To realize the architectural vision, the existing DCC Gateway will be enhanced by a microservice which implements the DDCC Federator component. This federator component is deployed next to the gateway and handles the communication to other federators. Each of the federator is able to download the data of other components. An upload of data to other federators is not foreseen (each gateway downloads over a federator). The trusted consumers can decide, if they use the federation information and must explicitly activate this feature. To summarize, the federator acts in the role of a gateway connector/synchronizer and in the role of an interface provider for accessing the federated data.
+
+<p align="center">
+  <img src="pictures/architecture/ArchitectureOverview.drawio.png" alt="DDCC Gateway Use Case - Implict Trust Relation" style="width:400px;"/>
+</p>
+
+<b>Note</b>: The DCC Gateway core architecture remains untouched. Just backwards compatible enhancements will be introduced to support the federation.
+
+## Connection Establishment to the Gateway
+The DDCC specification provides interoperable standards for exchanging of metadata content such as trusted references, trusted certificates and signer certificates between systems via a DDCC Gateway.  The management of this metadata is done over Trusted Systems which will need a connection/proxying or facade service to the DDCC Gateway (“DDCCG Mediator”). This mediator must be onboarded and trusted by the operator of the DDCC Gateway before a up/download of content is possible. Technically can this be a script, a backend system or an OpenHIM mediator. The main tasks of this kind of software is to establish a mTLS connection to the gateway, do the signing of the uploaded content (e.g. CMS) and upload signed DSCs, revocation entries or releasing business rules. Which procedure is used behind that channel in the background is not the scope of this system. There can be manual release processes, automatic decisions or any kind of other processes, but it must be ensured that the trusted channel and the security of the used certificates for upload/tls connection are not compromised.
+
+## Options for Bridging to other Systems
+For bridging existing systems to the DDCC Gateway, for instances PKDs or any other systems which contain PKI certificates (e.g. ICAO), Business Rules or Value Sets (e.g. FHIR Servers), it’s necessary to set up a bridge tool which is translating the received entries of the origin system to the HL7 FHIR / Rest API of the gateway. For example, to translate an LDAP based Public Key directory to the gateway, it would be an option to set up a script/mediator to extract the DSCs and upload it automatically to the gateway. Please note that in this case all CSCAs must be onboarded already before the upload can work. 
+
+Under special circumstances it could be an option to set up an adapter directly on top of the gateway database, when some “mass data transactions” or heavy synchronisations are necessary. The DDCC Gateway itself supports JDBC which is able to accept other databases than mysql. For instance if a Cassandra, MongoDb or CouchDB is used and a JDBC driver is available, the data can be replicated across multiple nodes. 
+
+<b>Note</b>: Database Replications have their own behavior and the functionality of the gateway can not cover each available database. Therefore use this JDBC feature only if necessary and at your own risk.
+
+# Building Blocks
+The DDCC Gateway consists of the DCC Gateway enhanced by callback mechanisms and additional trust list sources. A new federator component with the download client and a federation api, a proxy for outgoing calls and an interface to the routes of the different services. 
+
+<p align="center">
+  <img src="pictures/architecture/BuildingBlocks.drawio.png" alt="DDCC Gateway Building Blocks" style="width:400px;"/>
+</p>
+
+# Trust Model
+## Overview
+The trust model of the gateway is based on the [PKI certificate governance of the DCC Gateway](https://github.com/eu-digital-green-certificates/dgc-overview/blob/main/guides/certificate-governance.md). All security relevant items are uploaded in signed CMS format and secured by different kinds of PKI certificates as defined by the PKI certificate governance. The central items of the trust model are the CSCA to protect the Document Signer Certificates and the CMS messages to protect the uploaded content.
+## CSCA & DSC
+To sign digital covid certificates, a Document Signer Certificate (“DSC”) is created by an issuing authority. Each authority distributes their DSCs to verifiers, so that this DSC can be used to prove the validity of an issued certificate. To establish a trust chain between used DSCs and the distributors of the national trust lists, each of the DSC is signed by a root authority (“CSCA”) to verify the authenticity of the DSC itself. For security reasons, the CSCA is declared as air gapped, and the public part later on boarded into the gateway. During the onboarding, the CSCA is signed by the operator of the gateway to give the trust in the initial check. After this onboarding, each incoming DSC can be checked against the trusted CSCA. The operator signature (signed by DCCG<sub>TA</sub>) establishes the trust into different certificates like the uploader certificate and the TLS authentication certificate as defined by the certificate governance.
+
+<p align="center">
+  <img src="pictures/architecture/PKITrustModel.drawio.png" alt="DDCC PKI Trust Model" style="width:400px;"/>
+</p>
+
+## CMS Usage
+To support multiple content in the gateway in the same security level, the trust model introduces CMS as a generic container for security relevant items. The CMS format allows it to standardize signing and encryption regardless of the content, for single or multiple recipients.
+
+<p align="center">
+  <img src="pictures/architecture/CMSUsage.png" alt="CMS Usage" style="width:400px;"/>
+</p>
+
+## Enhancement
+The current trust model of the DCC Gateway supports just the connection of multiple backends and the exchange of content between them as in the picture below.
+
+<p align="center">
+  <img src="pictures/architecture/SingleTrustAnchor.png" alt="DDCC Gateway Implementation- Single Trust Anchor" style="width:400px;"/>
+</p>
+
+To realize the architecture vision, the gateway trust model will be enhanced for the federator to support multiple trust anchors. For this purpose the DDCC Federator will be onboarded in the source gateway with an NB<sub>TLS</sub> and NB<sub>UP</sub> certificate to access the gateway content. In the destination gateway, the trust anchor of the source gateway is configured (and signed by the operator) to accept the source content as valid. If the verification is successful, the content will be added as a subset to the existing gateway content. The connected national backends can then download all information by activating the federation option, to get the content from both gateways. The trust chain can be verified about the trust anchor of the connected gateway and the trust list of onboarded trust anchors.
+
+<p align="center">
+  <img src="pictures/architecture/MultipleTrustAnchors.png" alt="DDCC Gateway Implementation- Multiple Trust Anchor" style="width:400px;"/>
+</p>
+
+<b>Note</b>: The Federator acts as a special kind of “National Backend”, therefore all NB associated certificates excepting the NB<sub>UP</sub> will be onboarded normally. 
+
+## Raw Public Keys
+The trust model doesn’t support raw public keys due to security reasons especially in cases: 
+
+Raw Keys can not be verified for validity
+Raw can not be verified by the source (e.g. Root Authority)
+Raw Keys can be created and shared easily and a bad governance “opens the door” to all participants in the trust network
+
+All raw keys must be therefore converted to an x509 certificate wrapper to be a DSC on the gateway, which must be signed by a properly onboarded CSCA. The verifying of an covid certificate is not affected by this, as long as the correct KID is applied during the upload (and in the certificate). 
+
+## DSC Limitation
+
+For legacy support, or any need for differentiation in the verification process e.g. for correct issuers, differentiation in kid calculation etc. It’s recommended that the DSCs contain the following OIDs in the extended key usage field:
+
+|Field|Value|Description|
+|-----|-----|-----------|
+|extendedKeyUsage|1.3.6.1.4.1.1847.2021.1.1|For Test Issuers|
+|extendedKeyUsage|1.3.6.1.4.1.1847.2021.1.2|For Vaccination Issuers|
+|extendedKeyUsage|1.3.6.1.4.1.1847.2021.1.3|For Recovery Issuers|
+|extendedKeyUsage|1.3.6.1.4.1.1847.2022.1.20|For raw keys of DIVOC|
+|extendedKeyUsage|1.3.6.1.4.1.1847.2022.1.21|For raw key of SHC|
+|extendedKeyUsage|1.3.6.1.4.1.1847.2022.1.22|For raw keys in DCCs (calculate kid on Public Key only)|
+
+The usage of the OID can limit the scope of a Document Signer Certificate during the verification process (if supported by the verifier app). For instance, fraudulent issued vaccination digital covid certificates by test labs, are then not valid, because they are just signed by an DSC limited to test issuers. 
+
+Another usage of the OID can be to indicate that this certificate is just a wrapper around raw keys to have an verification indicator. 
+
+Other limitations on the DSC can be defined later on, when new use cases arise.
+
+<b>Note</b>: All extendedKey usages should be well documented on github to avoid confusion about the usage. Each necessary attribute should be set to support the verification process in the best way.
 
 
