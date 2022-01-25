@@ -202,4 +202,50 @@ Other limitations on the DSC can be defined later on, when new use cases arise.
 
 <b>Note</b>: All extendedKey usages should be well documented on github to avoid confusion about the usage. Each necessary attribute should be set to support the verification process in the best way.
 
+# Federator Architecture
+## Overview
+The federator is designed as a new sub component which can be hosted as micro service or within the gateway in one deployment. This behavior can be configured during the installation. Overall the federator offers the functionality for automated download of gateway or federation content. The downloaded content is stored in the gateway database to provide the content to the gateways federation endpoints. Trusted parties can download from these endpoints then the federated data.
 
+## Black-box View
+
+<p align="center">
+  <img src="pictures/architecture/BlackBoxView.drawio.png" alt="Blackbox View of the System" style="width:400px;"/>
+</p>
+
+## Whitebox View
+
+<p align="center">
+  <img src="pictures/architecture/WhiteBoxView.drawio.png" alt="Blackbox View of the System" style="width:400px;"/>
+</p>
+
+## Data Model
+### Federator Configuration
+
+<b>Note</b>: Each Federation Route of the Gateway must be configured manually for explicit download, to avoid misunderstandings in configuration. This is important for security reasons. All trust anchors must be onboarded otherwise the content is filtered out.
+
+|Field|Type|Description|
+|---|---|---|
+|ID|int|Unique ID of the table row|
+|GatewayId|GUID|Unique ID of the other origin gateway.|
+|GatewayEndpoint|Varchar|URL of the other Gateway|
+|GatewayKid|Varchar|KID of the onboarded Origin Gateway Certificate (DGCGTLS)|
+|GatewayPublicKey|Varchar|ECDSA Public Key of the Gateway Signature|
+|AuthenticationKID|Varchar Array|KIDs of the onboarded DCCGTLS.|
+|TrustAnchorKIDs|Varchar Array|KIDs of the onboarded Trust Anchor (DCCGTA)|
+|DownloadTarget|String|FEDERATION or GATEWAYONLY|
+|Mode|int|Enum for the download mode. APPEND or OVERRIDE.The append mode adds the downloaded data to the existing data set (existing federation data will be replaced). Override deletes the existing datasets (excepting the own NB TLS, Trust anchors and federation configurations) |
+|Signature|Varchar|Trust Anchor Signature|
+
+### Download Scheduler
+
+|Field|Type|Description|
+|GatewayID|GUID|Unique ID of the Gateway|
+|DownloadInterval|int|Download Interval|
+|LastDownload|TimeStamp|Last Time of Download|
+|Retry|boolean|Retry Flag|
+|Failed Retries|int|Number of failed Retries|
+
+
+
+## Endpoints 
+To use the federated data, the gateway will be enhanced by federation endpoints which are modified variants of the common GET routes. By using this new endpoints, the common content is modified returned: 
