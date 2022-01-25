@@ -239,13 +239,121 @@ The federator is designed as a new sub component which can be hosted as micro se
 ### Download Scheduler
 
 |Field|Type|Description|
+|-----|----|-----------|
 |GatewayID|GUID|Unique ID of the Gateway|
 |DownloadInterval|int|Download Interval|
 |LastDownload|TimeStamp|Last Time of Download|
 |Retry|boolean|Retry Flag|
 |Failed Retries|int|Number of failed Retries|
 
-
-
 ## Endpoints 
 To use the federated data, the gateway will be enhanced by federation endpoints which are modified variants of the common GET routes. By using this new endpoints, the common content is modified returned: 
+
+|Verb|Used in Federator|Used inMediator|Route|Modification/Behavior|
+|----|-----------------|---------------|-----|---------------------|
+|GET|X|X|/federation/trustlist/certificates|Returns the list of trusted certificates. The list can be filtered with optional query parameters. For legacy reasons, all signercertificates introduced in the “DSC” certificate group (if profile enabled) All other certificates should be delivered over query parameter.|
+|GET|X|X|/federation/trustlist/issuers|Returns the list of trusted issuers. The list can be filtered with optional query parameters.|
+|GET|X|X|/federation/trustlist/signatures|Returns the list signatures for existing trust lists.|
+|GET|X|X|/federation/trustlist/references|Returns the list of trusted references. The list can be filtered with optional query parameters.|
+|GET||X|/federation/gateways|Returns an JSON Object Array of onboarded gateways, including related trust anchor kid and Authentication KID etc.|
+|GET||X|/federation/metadata|Returns an JSON Object with the basic metadata of the gateway. E.g. types, versions, federation id etc.|
+|GET||X|/federation/federators|Returns an array which federators are onboarded|
+
+<b>Note</b>: “Version” is defined as v1.0, v.1.1 etc.
+<b>Note</b>: All routes should filter the delivered content by hash to avoid duplicate content delivery. Two different federations can receive from a single TP the same content in some circumstances. 
+
+*Common Query Parameters*
+
+Each route which delivers federated data must provide an query parameter to filter the federations by using a array:
+<p align="center"> 
+    /URL?federationId=id1,id2,id3&Domain=DCC&ResourceType=...}
+</p>
+Is the mode set to “GATEWAYONLY”, it must be used to query just for the configured gateway id.
+
+*Federation Format*
+
+The data format of the federated data should always contain a federation wrapper with the information of federationID, Domain and resource type. 
+
+
+## Download Process
+
+To federate multiple gateway data, a download process is introduced which should ensure that only trusted data is downloaded to a local gateway. Trusted data means in this context, that the operator of a local gateway has the total control which federated data is accepted and which not. To achieve this target, the local gateway operator must explicitly onboard any remote federators plus the trust anchors of the data which can be accepted. This is necessary because each remote federator may deliver the data of multiple other gateways (which are trusted by the origin gateway operator), but this means not necessarily that this data is trusted automatically by the local gateway operator as well (implicit trust relations must be avoided). Therefore, during the download process, a check should be run which skips all data that is not explicitly trusted by the local operator. This can be reached over the whitelisting of multiple trust anchors and the cross check over the NBUP certificates. If the trust chain is established in this way, each content can be downloaded, verified and pushed to the store. The entire download process itself follows a delta download mechanism, which downloads daily the entire content, and within the day just the deltas. This means for the trust network, that a certificate “bubbles” from the origin gateway step by step to all other gateways. Through this behavior, it must be considered that around one day between creating a key pair, and issuing the first certificates with it is considered.
+
+<p align="center">
+  <img src="pictures/architecture/DownloadProcess.drawio.png" alt="Download Process" style="width:400px;"/>
+</p>
+
+# EU DCC Gateway Modifications ([Spec](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v2_en.pdf))
+## Data Tables
+The trusted party table (see chapter 4.2.3.1, EU DCC Gateway) is enhanced with a new certificate type “TRUSTANCHOR”In the API call for trust lists these new types appearing. To distinguish between a federator and a normal trusted party, a type (“TP”, “FEDERATOR”,”GATEWAY”)  for the trusted item is introduced. To distinguish between different domains of certificates, the table also gets a new column ''DOMAIN”, which has the default content “DCC''. Other content can be in the moment “ICAO”, “DIVOC” and “SHC”. The domain appears in the trustlist routes.
+
+Each Data Table (SignerInformation, Trusted Issuer, Trusted Reference etc.) gets a new column for the UUID, federation ID and objectVersion. The primary keys are changed to ID + federation id to guarantee the uniqueness. 
+
+## SignerInformation Upload
+The signer information endpoints must be configurable by a profile to be switched on and off the routes. This is necessary to hold the backwards compatibility with the EU DCC Gateway. In the DDCC Context are this routes deactivated.
+
+## Trusted Certificate Upload
+To support additional use cases, the gateway will be modified with endpoints which allows it to upload certificates signed by the CSCA of a country. The upload endpoint works similar to the signer information upload endpoint with the difference that the upload contains more additional information about the certificate. The concrete template for this additional information must be defined by a schema. The certificate upload must support the choice of a kid, because other standards define static kids or choose it in other ways than the DCC. If no kid is provided, the DCC standard calculation of the first 8 bytes of the SHA256 hash is applied. 
+
+## Health Check
+To monitor the status of the Gateway, a health check is introduced. The new route returns 200 if the gateway is up and running. When the gateway is in maintenance, the routes must return 204. All other return codes indicate an error.
+
+## Route Profiles
+The routes for POST, PUT and DELETE will be modified by profiles to make them configurable. This allows it to switch off the data upload, which is especially for the primary-secondary/combined sources use case. Within this setup, no NBUP certificates need to be onboarded.
+
+## Value Set and Business Rules Endpoints
+The ValueSet and Business Rules endpoints must be configurable by configuration of profiles for enabling/disabling. 
+
+Business Rules gets a new endpoint which is returning single objects by using the business rule id (/rules/{country}/{ruleId}}. 
+
+Note: This new route is introduced to create a migration path to the trusted references. Within EU DCC Standard Mode, there is no backwards compatibility impact. 
+
+## Trusted References
+The trusted references are URLs which are uploaded by the member states to propagate their service endpoint about value sets, business rules and other content for interoperability. Within the trusted references are just public GET methods allowed. Authorization must be covered by trust mediators, if necessary.   
+
+|Field|Optional|Type|Description|
+|-----|--------|-----|---------|
+|UUID|No|String|UUID for the object.|
+|URL|No|String|Can be a HTTP(s)|
+|Type|No|String|FHIR|DCC…|
+|Version|No|String|Any version string.|
+|Country|No|String|Country where the URL relates to. |
+|Service|No|String|e.g. ValueSet, PlanDefinition etc.|
+|Thumbprint|No|String|SHA256 Hash of the content behind it|
+|Name|No|String|Name of the Service|
+|SSLPublicKey|No|String|SSL Certificate of the endpoint (if applicable).|
+|Content-Type|No|String |MIME Type of Content|
+|SignatureType|No|String|NONE|JWS|CMS|
+
+## Trusted Issuer
+Currently it is just possible to onboard CSCAs as Issuer Trust Reference for DSCs which makes it hard to use it outside the PKI world. Other credential types like Verifiable Credentials are using DIDs or other Issuer IDs which are not necessarily linked to any CSCA, but with crypto material behind it e.g. JWKs sources etc. To support these issuers and their credentials, the gateway will be enhanced by a trusted issuer interface which makes it possible to receive this kind of trusted ids. All of these trusted issuers must be onboarded as CSCAs and all other certificates. The trusted issuers are reachable over a trustlist endpoint (/trustedissuers)
+
+A trusted issuer entry which can be onboarded is defined as :
+
+|Field|Optional|Type|Description|
+|-----|--------|----|-----------|
+|URL|No|String|Can be a HTTP(s) or DID URL.|
+|Type|No|String|HTTP or DID|
+|Country|No|String|Country where the URL relates to. |
+|Thumbprint|Yes|String|SHA256 Hash of the content behind it (if applicable)|
+|Name|No|String|Name of the Service|
+|SSLPublicKey|Yes|String|SSL Certificate of the endpoint (if applicable).|
+|KeyStorageType|Yes|String |Type of Key Storage. E.g JWKS, DIDDocument, JKS etc. |
+
+The Entry will be onboarded in the Gateway and signed by the trust anchor.
+
+<b>Note</b>: When the URL in this table does not resolve, all the optional fields can be empty. This is less trustful and should be avoided within operations.  
+
+# Deployment
+## Constraints
+The DDCC may be operated in front with a network component (Load Balancer, API Gateway, Reverse Proxy etc.) which handles the Client Certificate Authentication and Client Certificate Attribute extraction of the TLS connection. After the TLS Offloading it depends on the infrastructure, if an internal secured TLS network must be established or not. For example when the DDCC gateway is deployed in a distributed service mesh, it’s recommended to use TLS protected channels e.g. SPIFFE/SPIRE based service meshes. Which mode fits better to the deployment depends on the operators infrastructure. The gateway itself can be operated in a SSL Passthrough mode as well.
+
+All other components like proxies, must be aligned in the configured settings to avoid HTTP Smuggling or similar things. 
+
+
+## Kubernetes Setup
+
+<p align="center">
+  <img src="pictures/architecture/Kubernetes.drawio.png" alt="Download Process" style="width:400px;"/>
+</p>
+
