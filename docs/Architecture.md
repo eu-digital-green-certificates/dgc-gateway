@@ -354,6 +354,6 @@ All other components like proxies, must be aligned in the configured settings to
 ## Kubernetes Setup
 
 <p align="center">
-  <img src="pictures/architecture/Kubernetes.drawio.png" alt="Download Process" style="width:400px;"/>
+  <img src="pictures/architecture/Kubernetes.drawio.png" alt="Download Process" style="width:600px;"/>
 </p>
 
