@@ -56,7 +56,7 @@ The backbone for this data exchange is the functionality of the current connecto
 With the functionality of the connector library, the first use case can be to connect as a trusted party to multiple gateways for downloading/uploading content. This requires onboarding on both gateways. 
 
 <p align="center">
-  <img src="pictures/architecture/ArchitectureVision.drawio.png" alt="DDCC Gateway Use Case - Bilateral Onboarding" style="width:400px;"/>
+  <img src="pictures/architecture/BilateralUsage.drawio.png" alt="DDCC Gateway Use Case - Bilateral Onboarding" style="width:400px;"/>
 </p>
 
 
