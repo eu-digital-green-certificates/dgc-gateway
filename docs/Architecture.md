@@ -78,14 +78,14 @@ The primary-secondary exchange setup declares one or several gateway as primary 
 Within this mode, the gateway will download from multiple gateways the data and append it to its own data set. This results in a combined collection.  
 
 <p align="center">
-  <img src="pictures/architecture/CombinedSources.drawio.png" alt="DDCC Gateway Use Case - Primary-Secondary" style="width:400px;"/>
+  <img src="pictures/architecture/CombinedSourcesExchange.drawio.png" alt="DDCC Gateway Use Case - Primary-Secondary" style="width:400px;"/>
 </p>
 
 ## Trust Mediator
 The gateway content can be used to establish trust between attendees which are just loosely coupled. E.g. Verifier Devices which are known by Trusted Party A, but not directly known by Trusted Party B.
 
 <p align="center">
-  <img src="pictures/architecture/ImplicitTrustRelation.drawio.png" alt="DDCC Gateway Use Case - Implict Trust Relation" style="width:400px;"/>
+  <img src="pictures/architecture/ImplicitTrustRelationShip.drawio.png" alt="DDCC Gateway Use Case - Implict Trust Relation" style="width:400px;"/>
 </p>
 
 To establish the trust between them, a trust mediator can be generated which relies on the trustlist of the gateway. The mediator can then use this information to decide whether the trust relationship is given or not. For instance, the interceptor can check if a signature of a JWT was created by the public key of a certificate which was signed by an onboarded CSCA. When the CSCA is onboarded and trusted, it proves that the signature was made by someone which has the trust of this CSCA. The trust for this attendee is then also given. 
