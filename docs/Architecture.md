@@ -147,7 +147,7 @@ The trust model of the gateway is based on the [PKI certificate governance of th
 To sign digital covid certificates, a Document Signer Certificate (“DSC”) is created by an issuing authority. Each authority distributes their DSCs to verifiers, so that this DSC can be used to prove the validity of an issued certificate. To establish a trust chain between used DSCs and the distributors of the national trust lists, each of the DSC is signed by a root authority (“CSCA”) to verify the authenticity of the DSC itself. For security reasons, the CSCA is declared as air gapped, and the public part later on boarded into the gateway. During the onboarding, the CSCA is signed by the operator of the gateway to give the trust in the initial check. After this onboarding, each incoming DSC can be checked against the trusted CSCA. The operator signature (signed by DCCG<sub>TA</sub>) establishes the trust into different certificates like the uploader certificate and the TLS authentication certificate as defined by the certificate governance.
 
 <p align="center">
-  <img src="pictures/architecture/PKITrustModel.drawio.png" alt="DDCC PKI Trust Model" style="width:400px;"/>
+  <img src="pictures/architecture/PKITrustModel.png" alt="DDCC PKI Trust Model" style="width:400px;"/>
 </p>
 
 ## CMS Usage
