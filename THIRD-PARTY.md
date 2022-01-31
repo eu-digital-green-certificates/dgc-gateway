@@ -24,13 +24,13 @@ ThirdParty Licenses
 | com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.module:jackson-module-parameter-names:2.13.1 | The Apache Software License, Version 2.0 |
 | com.github.everit-org.json-schema:org.everit.json.schema:1.14.0 | Apache License, Version 2.0 |
-| com.github.peteroupc:numbers:1.8.0 | CC0-1.0 |
+| com.github.peteroupc:numbers:1.8.2 | CC0-1.0 |
 | com.google.re2j:re2j:1.3 | Go License |
-| com.h2database:h2:1.4.200 | MPL 2.0 or EPL 1.0 |
+| com.h2database:h2:2.1.210 | EPL 1.0 MPL 2.0 |
 | com.jayway.jsonpath:json-path:2.6.0 | The Apache Software License, Version 2.0 |
 | com.sun.activation:jakarta.activation:1.2.2 | EDL 1.0 |
 | com.sun.istack:istack-commons-runtime:3.0.12 | Eclipse Distribution License - v 1.0 |
-| com.upokecenter:cbor:4.4.4 | CC0-1.0 |
+| com.upokecenter:cbor:4.5.1 | CC0-1.0 |
 | com.vaadin.external.google:android-json:0.0.20131108.vaadin1 | Apache License 2.0 |
 | com.vdurmont:semver4j:3.1.0 | The MIT License |
 | com.zaxxer:HikariCP:4.0.3 | The Apache Software License, Version 2.0 |
@@ -59,6 +59,7 @@ ThirdParty Licenses
 | jakarta.validation:jakarta.validation-api:2.0.2 | Apache License 2.0 |
 | jakarta.xml.bind:jakarta.xml.bind-api:2.3.3 | Eclipse Distribution License - v 1.0 |
 | javax.activation:javax.activation-api:1.2.0 | CDDL/GPLv2+CE |
+| javax.persistence:javax.persistence-api:2.2 | Eclipse Distribution License v. 1.0 Eclipse Public License v1.0 |
 | javax.xml.bind:jaxb-api:2.3.1 | CDDL 1.1 GPL2 w/ CPE |
 | joda-time:joda-time:2.10.2 | Apache 2 |
 | mysql:mysql-connector-java:8.0.27 | The GNU General Public License, v2 with FOSS exception |
@@ -87,11 +88,12 @@ ThirdParty Licenses
 | org.glassfish.jaxb:txw2:2.3.5 | Eclipse Distribution License - v 1.0 |
 | org.hamcrest:hamcrest:2.2 | BSD License 3 |
 | org.hdrhistogram:HdrHistogram:2.1.12 | BSD-2-Clause Public Domain, per Creative Commons CC0 |
-| org.hibernate:hibernate-core:5.6.3.Final | GNU Library General Public License v2.1 or later |
+| org.hibernate:hibernate-core:5.6.5.Final | GNU Library General Public License v2.1 or later |
 | org.hibernate.common:hibernate-commons-annotations:5.1.2.Final | GNU Library General Public License v2.1 or later |
 | org.hibernate.validator:hibernate-validator:6.2.0.Final | Apache License 2.0 |
-| org.jboss:jandex:2.2.3.Final | Apache License, Version 2.0 |
+| org.jboss:jandex:2.4.2.Final | Apache License, Version 2.0 |
 | org.jboss.logging:jboss-logging:3.4.2.Final | Apache License, version 2.0 |
+| org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec:1.1.1.Final | Common Development and Distribution License GNU General Public License, Version 2 with the Classpath Exception |
 | org.json:json:20201115 | The JSON License |
 | org.junit.jupiter:junit-jupiter:5.8.2 | Eclipse Public License v2.0 |
 | org.junit.jupiter:junit-jupiter-api:5.8.2 | Eclipse Public License v2.0 |
