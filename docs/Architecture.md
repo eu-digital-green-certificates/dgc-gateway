@@ -227,11 +227,11 @@ The federator is designed as a new sub component which can be hosted as micro se
 |---|---|---|
 |ID|int|Unique ID of the table row|
 |GatewayId|GUID|Unique ID of the other origin gateway.|
-|GatewayEndpoint|Varchar|URL of the other Gateway|
-|GatewayKid|Varchar|KID of the onboarded Origin Gateway Certificate (DGCGTLS)|
+|GatewayEndpoint|Varchar|URL of the other Gateway.|
+|GatewayKid|Varchar|KID of the Origin Gateway Client Certificate to be used to connect to the other gateway. (DDCCG <sub>TLS FED</sub> |
 |GatewayPublicKey|Varchar|ECDSA Public Key of the Gateway Signature|
-|AuthenticationKID|Varchar Array|KIDs of the onboarded DCCGTLS.|
-|TrustAnchorKIDs|Varchar Array|KIDs of the onboarded Trust Anchor (DCCGTA)|
+|AuthenticationKID|Varchar Array|KIDs of the onboarded DDCCG<sub>TLS GW</sub> of the other gateway.|
+|TrustAnchorKIDs|Varchar Array|KIDs of the onboarded Trust Anchor (DDCCG <sub>TA</sub>)|
 |DownloadTarget|String|FEDERATION or GATEWAYONLY|
 |Mode|int|Enum for the download mode. APPEND or OVERRIDE.The append mode adds the downloaded data to the existing data set (existing federation data will be replaced). Override deletes the existing datasets (excepting the own NB TLS, Trust anchors and federation configurations) |
 |Signature|Varchar|Trust Anchor Signature|
@@ -244,6 +244,7 @@ The federator is designed as a new sub component which can be hosted as micro se
 |DownloadInterval|int|Download Interval|
 |LastDownload|TimeStamp|Last Time of Download|
 |Retry|boolean|Retry Flag|
+|Message|String|Message of Federator|
 |Failed Retries|int|Number of failed Retries|
 
 ## Endpoints 
