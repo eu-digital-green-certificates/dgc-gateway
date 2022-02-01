@@ -32,15 +32,19 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "trusted_party")
-public class TrustedPartyEntity {
+public class TrustedPartyEntity extends FederatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,6 +71,12 @@ public class TrustedPartyEntity {
     private String thumbprint;
 
     /**
+     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint)
+     */
+    @Column(name = "kid", length = 20, unique = true)
+    private String kid;
+
+    /**
      * Base64 encoded certificate raw data.
      */
     @Column(name = "raw_data", nullable = false, length = 4096)
@@ -85,11 +95,44 @@ public class TrustedPartyEntity {
     @Enumerated(EnumType.STRING)
     CertificateType certificateType;
 
+    /**
+     * Type of the TrustedParty Entry.
+     */
+    @Column(name = "trusted_party_type", columnDefinition = "varchar(13) DEFAULT 'TRUSTED_PARTY'")
+    @Enumerated(EnumType.STRING)
+    private TrustedPartyType trustedPartyType;
+
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "trusted_party_roles")
     @Column(name = "role", length = 22, nullable = false)
     List<CertificateRoles> certificateRoles;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_gateway", referencedColumnName = "gateway_id")
+    FederationGatewayEntity assignedGateway;
+
+    @Column(name = "domain", columnDefinition = "varchar(10) DEFAULT 'DCC'")
+    String domain;
+
+    public enum TrustedPartyType {
+        /**
+         * Default TrustedParty Type (Used for National Backends to authenticate.
+         */
+        TRUSTED_PARTY,
+
+        /**
+         * Certificate used to verify identity of peer gateway when downloading data.
+         */
+        GATEWAY,
+
+        /**
+         * Certificate used to verify identify of downloading peer gateway.
+         * (Currently the same effect as for default TRUSTED_PARTY type)
+         */
+        FEDERATOR
+    }
 
     public enum CertificateType {
         /**
@@ -105,7 +148,12 @@ public class TrustedPartyEntity {
         /**
          * Country Signing Certificate Authority certificate (NBCSCA).
          */
-        CSCA
+        CSCA,
+
+        /**
+         * Certificate used to offline sign entries in database (NBTA)
+         */
+        TRUSTANCHOR
     }
 
     public enum CertificateRoles {

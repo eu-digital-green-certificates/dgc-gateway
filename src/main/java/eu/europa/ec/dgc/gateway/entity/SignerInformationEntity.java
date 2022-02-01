@@ -40,7 +40,7 @@ import lombok.Setter;
 @Table(name = "signer_information")
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignerInformationEntity {
+public class SignerInformationEntity extends FederatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -41,4 +41,6 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
     @Query("SELECT DISTINCT t.country FROM TrustedPartyEntity t")
     List<String> getCountryCodeList();
 
+    List<TrustedPartyEntity> getBySourceGatewayGatewayId(String gatewayId);
+
 }

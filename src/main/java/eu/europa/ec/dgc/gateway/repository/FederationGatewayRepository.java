@@ -20,26 +20,10 @@
 
 package eu.europa.ec.dgc.gateway.repository;
 
-import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
-import java.util.List;
-import java.util.Optional;
-import javax.transaction.Transactional;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
-
-    Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
-
-    Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
-
-    @Transactional
-    void deleteByThumbprint(String thumbprint);
-
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type);
-
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
-        SignerInformationEntity.CertificateType type, String countryCode);
-
-    List<SignerInformationEntity> getBySourceGatewayGatewayId(String gatewayId);
-
+@Repository
+public interface FederationGatewayRepository extends JpaRepository<FederationGatewayEntity, Long> {
 }
