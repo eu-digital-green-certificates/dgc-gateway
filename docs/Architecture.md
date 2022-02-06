@@ -4,8 +4,8 @@
 
 |Term     |       Description       | 
 |---------|--------------------------|
-|DCC |   Digital Covid Certificate.|
-|DDCC|Digital Documentation Covid Certificate.|
+|DCC |   Digital COVID-19 Certificate.|
+|DDCC|Digital Documentation COVID-19 Certificate.|
 |DCC Gateway (DCCG) |REST web-application for exchange of document signer certificates, dcc value sets, dcc business rules and revocation lists for dcc verification purposes between the national backends of connected states.|
 |DDCC Gateway (DDCCG)|Digital Documentation Covid Certificate Gateway is an extended version of the DCCG. It is enhanced functionality allowing for interoperability between multiple gateways and in support of the DDCC specification.|
 |Member State| Any country which is connected to DDCC gateway. Member States should provide at least one National Backend for connecting to DDCCG.
