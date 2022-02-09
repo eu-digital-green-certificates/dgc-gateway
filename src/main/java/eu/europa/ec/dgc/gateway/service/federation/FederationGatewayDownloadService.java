@@ -46,6 +46,9 @@ public class FederationGatewayDownloadService {
     private final ApplicationContext applicationContext;
     private final TrustListMapper trustListMapper;
 
+    /**
+     * Start the Download of Federation Data from all Gateways.
+     */
     public void triggerDownload() {
         log.info("Starting Download from Federation Gateways");
 

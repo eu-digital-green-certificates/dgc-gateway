@@ -18,7 +18,7 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.service.federation.downloaderImplementations;
+package eu.europa.ec.dgc.gateway.service.federation.downloaderimplementations;
 
 import eu.europa.ec.dgc.gateway.connector.DgcGatewayDownloadConnector;
 import eu.europa.ec.dgc.gateway.connector.DgcGatewayDownloadConnectorBuilder;
@@ -76,9 +76,9 @@ public class LegacyDgcgDownloader implements FederationDownloader {
             throw new FederationDownloaderException("Failed to instantiate Download Connector: " + e.getReason());
         }
 
-        List<TrustListItem> trustList = connector.getTrustedCertificates();
-        List<TrustListItem> csca = connector.getTrustedCscaCertificates();
-        List<TrustListItem> upload = connector.getTrustedUploadCertificates();
+        final List<TrustListItem> trustList = connector.getTrustedCertificates();
+        final List<TrustListItem> csca = connector.getTrustedCscaCertificates();
+        final List<TrustListItem> upload = connector.getTrustedUploadCertificates();
 
         log.debug("Deleting existing data for Gateway {}", gateway.getGatewayId());
         signerInformationService.deleteSignerCertificateByFederationGateway(gateway.getGatewayId());
@@ -87,7 +87,8 @@ public class LegacyDgcgDownloader implements FederationDownloader {
         log.debug("Persisting new data for Gateway {}: CSCA: {}, Upload: {}, SignerCertificate: {}",
             gateway.getGatewayId(), csca.size(), upload.size(), trustList.size());
         persistTrustedParty(gateway, connector.getTrustedCscaCertificates(), TrustedPartyEntity.CertificateType.CSCA);
-        persistTrustedParty(gateway, connector.getTrustedUploadCertificates(), TrustedPartyEntity.CertificateType.UPLOAD);
+        persistTrustedParty(
+            gateway, connector.getTrustedUploadCertificates(), TrustedPartyEntity.CertificateType.UPLOAD);
         persistTrustList(gateway, trustList);
     }
 
@@ -165,7 +166,8 @@ public class LegacyDgcgDownloader implements FederationDownloader {
 
     }
 
-    private List<X509CertificateHolder> getTrustedPartyCerts(FederationGatewayEntity gateway, TrustedPartyEntity.CertificateType type) {
+    private List<X509CertificateHolder> getTrustedPartyCerts(
+        FederationGatewayEntity gateway, TrustedPartyEntity.CertificateType type) {
         return gateway.getTrustedParties().stream()
             .filter(trustedParty -> trustedParty.getCertificateType() == type)
             .map(trustedPartyService::getX509CertificateHolderFromEntity)

@@ -79,7 +79,7 @@ public class SignerInformationEntity extends FederatedEntity {
     String signature;
 
     /**
-     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint)
+     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint).
      */
     @Column(name = "kid", length = 20, unique = true)
     private String kid;

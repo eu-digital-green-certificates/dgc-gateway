@@ -163,7 +163,8 @@ public class SignerInformationService {
                 Base64.getDecoder().decode(base64EncodedCertificate)
             );
         } catch (IOException e) {
-            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Failed to decode Raw Cert");
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED,
+                "Failed to decode Raw Cert");
         }
 
         contentCheckAlreadyExists(certificate);

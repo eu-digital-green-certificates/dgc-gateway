@@ -127,7 +127,8 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         logger.debug("Checking request for auth headers or auth certificate");
 
-        String certThumbprint, certDistinguishedName;
+        String certThumbprint;
+        String certDistinguishedName;
 
         if (httpServletRequest.getUserPrincipal() != null) {
             log.debug("Found Client Certificate in request");

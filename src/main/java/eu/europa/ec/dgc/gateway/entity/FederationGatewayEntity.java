@@ -91,7 +91,7 @@ public class FederationGatewayEntity implements Serializable {
     private String downloaderImplementation;
 
     /**
-     *
+     * tbd.
      */
     @Column(name = "download_target", length = 12, nullable = false)
     @Enumerated(EnumType.STRING)

@@ -19,7 +19,7 @@
  */
 
 
-package eu.europa.ec.dgc.gateway.service.federation.downloaderImplementations;
+package eu.europa.ec.dgc.gateway.service.federation.downloaderimplementations;
 
 import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.service.federation.FederationDownloader;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 public class DummyDownloader implements FederationDownloader {
 
 
-    final static String downloaderIdentifier = "dummyDownloader_V1";
+    static final String downloaderIdentifier = "dummyDownloader_V1";
 
     @Override
     public String getDownloaderIdentifier() {

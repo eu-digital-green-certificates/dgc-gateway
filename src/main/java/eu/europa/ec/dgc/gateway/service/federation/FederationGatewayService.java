@@ -143,12 +143,12 @@ public class FederationGatewayService {
     }
 
     private String getHashData(FederationGatewayEntity entity) {
-        return entity.getGatewayId() + hashSeperator +
-            entity.getGatewayEndpoint() + hashSeperator +
-            entity.getGatewayKid() + hashSeperator +
-            entity.getGatewayPublicKey() + hashSeperator +
-            entity.getDownloaderImplementation() + hashSeperator +
-            entity.getDownloadTarget() + hashSeperator +
-            entity.getMode();
+        return entity.getGatewayId() + hashSeperator
+            + entity.getGatewayEndpoint() + hashSeperator
+            + entity.getGatewayKid() + hashSeperator
+            + entity.getGatewayPublicKey() + hashSeperator
+            + entity.getDownloaderImplementation() + hashSeperator
+            + entity.getDownloadTarget() + hashSeperator
+            + entity.getMode();
     }
 }
