@@ -59,4 +59,5 @@ public interface RevocationBatchRepository extends JpaRepository<RevocationBatch
 
     List<RevocationBatchProjection> getAllByChangedGreaterThanOrderByChangedAsc(ZonedDateTime date, Pageable page);
 
+    List<RevocationBatchEntity> getAllByCountry(String country);
 }
