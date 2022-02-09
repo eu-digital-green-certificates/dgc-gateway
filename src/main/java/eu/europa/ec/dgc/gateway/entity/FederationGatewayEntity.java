@@ -75,7 +75,7 @@ public class FederationGatewayEntity implements Serializable {
      * KID/Alias of the Client Certificate used to contact the peer gateway.
      */
     @Column(name = "gateway_kid", length = 50, nullable = false)
-    private String gateway_kid;
+    private String gatewayKid;
 
     /**
      * Base64 encoded PublicKey of the peer gateway to validate signed packages.
@@ -85,24 +85,57 @@ public class FederationGatewayEntity implements Serializable {
     private String gatewayPublicKey;
 
     /**
+     * Implementation used to Download the Data.
+     */
+    @Column(name = "downloader_implementation", length = 50)
+    private String downloaderImplementation;
+
+    /**
      *
      */
-    @Column(name = "download_target", length = 12)
+    @Column(name = "download_target", length = 12, nullable = false)
     @Enumerated(EnumType.STRING)
     private DownloadTarget downloadTarget;
 
     /**
      * Operation mode of this peer Gateway.
      */
-    @Column(name = "mode", length = 8)
+    @Column(name = "mode", length = 8, nullable = false)
     @Enumerated(EnumType.STRING)
     private Mode mode;
 
     /**
      * Signature of the TrustAnchor.
+     * Calculated over Gateway ID, Gateway Endpoint, Gateway KID, Gateway Public Key,
+     * Downloader Implementation, Download Target and Mode.
      */
     @Column(name = "signature", nullable = false, length = 6000)
-    String signature;
+    private String signature;
+
+    /**
+     * Interval between incremental downloads.
+     * Set to NULL to disable federated gateway.
+     */
+    @Column(name = "download_interval")
+    private Long downloadInterval;
+
+    /**
+     * Timestamp of last download.
+     */
+    @Column(name = "last_download")
+    private ZonedDateTime lastDownload;
+
+    /**
+     * Count of retries since last successful download.
+     */
+    @Column(name = "retry_count")
+    private Long retryCount;
+
+    /**
+     * Error Response/Reason in case of failed download.
+     */
+    @Column(name = "status_message", length = 500)
+    private String statusMessage;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "assignedGateway")
     private List<TrustedPartyEntity> trustedParties;

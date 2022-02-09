@@ -42,4 +42,7 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
 
     List<SignerInformationEntity> getBySourceGatewayGatewayId(String gatewayId);
 
+    @Transactional
+    Long deleteBySourceGatewayGatewayId(String gatewayId);
+
 }

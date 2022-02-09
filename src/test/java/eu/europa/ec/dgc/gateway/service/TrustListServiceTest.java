@@ -85,6 +85,7 @@ class TrustListServiceTest {
             certificateUtils.getCertThumbprint(certDscDe),
             Base64.getEncoder().encodeToString(certDscDe.getEncoded()),
             "sig1",
+            null,
             SignerInformationEntity.CertificateType.DSC
         ));
 
@@ -95,6 +96,7 @@ class TrustListServiceTest {
             certificateUtils.getCertThumbprint(certDscEu),
             Base64.getEncoder().encodeToString(certDscEu.getEncoded()),
             "sig2",
+            null,
             SignerInformationEntity.CertificateType.DSC
         ));
     }

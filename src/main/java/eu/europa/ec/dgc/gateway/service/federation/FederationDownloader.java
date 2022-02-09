@@ -18,15 +18,26 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.repository;
+package eu.europa.ec.dgc.gateway.service.federation;
 
 import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Repository
-public interface FederationGatewayRepository extends JpaRepository<FederationGatewayEntity, Long> {
+public interface FederationDownloader {
 
-    Optional<FederationGatewayEntity> getByGatewayId(String gatewayId);
+    void fullDownload(FederationGatewayEntity gateway) throws FederationDownloaderException;
+
+    void incrementalDownload(FederationGatewayEntity gateway) throws FederationDownloaderException;
+
+    String getDownloaderIdentifier();
+
+    @RequiredArgsConstructor
+    class FederationDownloaderException extends Exception {
+
+        @Getter
+        private final String reason;
+
+    }
+
 }

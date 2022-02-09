@@ -73,10 +73,16 @@ public class SignerInformationEntity extends FederatedEntity {
     String rawData;
 
     /**
-     * Signature of the TrustAnchor.
+     * Signature of the Upload Certificate.
      */
     @Column(name = "signature", nullable = false, length = 6000)
     String signature;
+
+    /**
+     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint)
+     */
+    @Column(name = "kid", length = 20, unique = true)
+    private String kid;
 
     /**
      * Type of the certificate (currently only DSC).

@@ -91,16 +91,9 @@ public class TrustedPartyEntity extends FederatedEntity {
     /**
      * Type of the certificate (Authentication, Upload, CSCA).
      */
-    @Column(name = "certificate_type", nullable = false)
+    @Column(name = "certificate_type", nullable = false, length = 25)
     @Enumerated(EnumType.STRING)
     CertificateType certificateType;
-
-    /**
-     * Type of the TrustedParty Entry.
-     */
-    @Column(name = "trusted_party_type", columnDefinition = "varchar(13) DEFAULT 'TRUSTED_PARTY'")
-    @Enumerated(EnumType.STRING)
-    private TrustedPartyType trustedPartyType;
 
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
@@ -113,32 +106,16 @@ public class TrustedPartyEntity extends FederatedEntity {
     @JoinColumn(name = "assigned_gateway", referencedColumnName = "gateway_id")
     FederationGatewayEntity assignedGateway;
 
-    @Column(name = "domain", columnDefinition = "varchar(10) DEFAULT 'DCC'")
-    String domain;
-
-    public enum TrustedPartyType {
-        /**
-         * Default TrustedParty Type (Used for National Backends to authenticate.
-         */
-        TRUSTED_PARTY,
-
-        /**
-         * Certificate used to verify identity of peer gateway when downloading data.
-         */
-        GATEWAY,
-
-        /**
-         * Certificate used to verify identify of downloading peer gateway.
-         * (Currently the same effect as for default TRUSTED_PARTY type)
-         */
-        FEDERATOR
-    }
-
     public enum CertificateType {
         /**
          * Certificate which the member state is using to authenticate at DGC Gateway (NBTLS).
          */
         AUTHENTICATION,
+
+        /**
+         * Certificate to verify identity of Federation Gateway.
+         */
+        AUTHENTICATION_FEDERATION,
 
         /**
          * Certificate which the member state is using to sign the uploaded information (NBUS).

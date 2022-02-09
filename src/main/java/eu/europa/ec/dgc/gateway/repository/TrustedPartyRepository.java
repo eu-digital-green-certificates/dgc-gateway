@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.repository;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -42,5 +43,8 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
     List<String> getCountryCodeList();
 
     List<TrustedPartyEntity> getBySourceGatewayGatewayId(String gatewayId);
+
+    @Transactional
+    Long deleteBySourceGatewayGatewayId(String gatewayId);
 
 }

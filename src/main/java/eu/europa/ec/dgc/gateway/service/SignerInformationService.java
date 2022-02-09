@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
@@ -138,6 +139,50 @@ public class SignerInformationService {
     }
 
     /**
+     * Insert a new federated Signer Certificate.
+     *
+     * @param base64EncodedCertificate Base64 encoded Certificate
+     * @param signature                Upload Certificate Signature
+     * @param countryCode              Country Code of uploaded certificate
+     * @param kid                      KID of the certificate
+     * @param sourceGateway            Gateway the cert is originated from
+     * @return persisted Entity
+     * @throws SignerCertCheckException if insert failed.
+     */
+    public SignerInformationEntity addFederatedSignerCertificate(
+        String base64EncodedCertificate,
+        String signature,
+        String countryCode,
+        String kid,
+        FederationGatewayEntity sourceGateway
+    ) throws SignerCertCheckException {
+
+        X509CertificateHolder certificate;
+        try {
+            certificate = new X509CertificateHolder(
+                Base64.getDecoder().decode(base64EncodedCertificate)
+            );
+        } catch (IOException e) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Failed to decode Raw Cert");
+        }
+
+        contentCheckAlreadyExists(certificate);
+
+        SignerInformationEntity newSignerInformation = new SignerInformationEntity();
+        newSignerInformation.setSourceGateway(sourceGateway);
+        newSignerInformation.setKid(kid);
+        newSignerInformation.setCountry(countryCode);
+        newSignerInformation.setRawData(base64EncodedCertificate);
+        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(certificate));
+        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
+        newSignerInformation.setSignature(signature);
+
+        log.info("Saving Federated SignerInformation Entity");
+
+        return signerInformationRepository.save(newSignerInformation);
+    }
+
+    /**
      * Deletes a Trusted Signer Certificate from TrustStore DB.
      *
      * @param uploadedCertificate      the certificate to delete
@@ -162,6 +207,36 @@ public class SignerInformationService {
         signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
 
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+    }
+
+    /**
+     * Deletes SignerCertificates by given GatewayId.
+     *
+     * @param gatewayId GatewayID of the certificates to delete.
+     */
+    public void deleteSignerCertificateByFederationGateway(String gatewayId) {
+        log.info("Deleting SignerInformation by GatewayId {}", gatewayId);
+
+        Long deleteCount = signerInformationRepository.deleteBySourceGatewayGatewayId(gatewayId);
+
+        log.info("Deleted {} SignerInformation with GatewayId {}", deleteCount, gatewayId);
+    }
+
+    /**
+     * Extracts X509Certificate from {@link SignerInformationEntity}.
+     *
+     * @param signerInformationEntity entity from which the certificate should be extracted.
+     * @return X509Certificate representation.
+     */
+    public X509Certificate getX509CertificateFromEntity(SignerInformationEntity signerInformationEntity) {
+        try {
+            byte[] rawDataBytes = Base64.getDecoder().decode(signerInformationEntity.getRawData());
+            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
+        } catch (Exception e) {
+            log.error("Failed to parse Certificate from SignerInformationEntity", e);
+        }
+
+        return null;
     }
 
     private void contentCheckUploaderCertificate(
@@ -286,23 +361,6 @@ public class SignerInformationService {
         } catch (CertException | RuntimeOperatorException e) {
             return false;
         }
-    }
-
-    /**
-     * Extracts X509Certificate from {@link SignerInformationEntity}.
-     *
-     * @param signerInformationEntity entity from which the certificate should be extracted.
-     * @return X509Certificate representation.
-     */
-    public X509Certificate getX509CertificateFromEntity(SignerInformationEntity signerInformationEntity) {
-        try {
-            byte[] rawDataBytes = Base64.getDecoder().decode(signerInformationEntity.getRawData());
-            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
-        } catch (Exception e) {
-            log.error("Failed to parse Certificate from SignerInformationEntity", e);
-        }
-
-        return null;
     }
 
     public static class SignerCertCheckException extends Exception {
