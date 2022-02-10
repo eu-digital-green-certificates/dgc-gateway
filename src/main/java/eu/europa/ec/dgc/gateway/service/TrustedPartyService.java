@@ -33,6 +33,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -59,9 +60,9 @@ public class TrustedPartyService {
      *
      * @return List holding the found certificates.
      */
-    public List<TrustedPartyEntity> getCertificates() {
+    public List<TrustedPartyEntity> getNonFederatedTrustedParties() {
 
-        return trustedPartyRepository.findAll()
+        return trustedPartyRepository.getBySourceGatewayIsNull()
             .stream()
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
@@ -73,9 +74,9 @@ public class TrustedPartyService {
      * @param type type to filter for.
      * @return List holding the found certificates.
      */
-    public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type) {
+    public List<TrustedPartyEntity> getNonFederatedTrustedParties(TrustedPartyEntity.CertificateType type) {
 
-        return trustedPartyRepository.getByCertificateType(type)
+        return trustedPartyRepository.getByCertificateTypeAndSourceGatewayIsNull(type)
             .stream()
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
@@ -88,7 +89,7 @@ public class TrustedPartyService {
      * @param type    type of certificate.
      * @return List holding the found certificates.
      */
-    public List<TrustedPartyEntity> getCertificates(String country, TrustedPartyEntity.CertificateType type) {
+    public List<TrustedPartyEntity> getCertificate(String country, TrustedPartyEntity.CertificateType type) {
 
         return trustedPartyRepository.getByCountryAndCertificateType(country, type)
             .stream()
@@ -145,16 +146,26 @@ public class TrustedPartyService {
         }
 
         // load DGCG Trust Anchor PublicKey from KeyStore
-        X509CertificateHolder trustAnchor = null;
-        try {
-            trustAnchor = certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
-                dgcConfigProperties.getTrustAnchor().getCertificateAlias()));
-        } catch (KeyStoreException | CertificateEncodingException | IOException e) {
-            log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
-            return false;
+        List<X509CertificateHolder> trustAnchors = new ArrayList<>();
+        if (trustedPartyEntity.getSourceGateway() == null) {
+            log.debug("TrustedParty is not federated, using TrustAnchor from Keystore");
+            try {
+                trustAnchors.add(certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
+                    dgcConfigProperties.getTrustAnchor().getCertificateAlias())));
+            } catch (KeyStoreException | CertificateEncodingException | IOException e) {
+                log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
+                return false;
+            }
+        } else {
+            log.debug("TrustedParty is federated, fetching TrustAnchors from Database.");
+            trustedPartyEntity.getSourceGateway().getTrustedParties().stream()
+                .filter(gatewayTrustedParty -> gatewayTrustedParty.getCertificateType()
+                    == TrustedPartyEntity.CertificateType.TRUSTANCHOR)
+                .filter(this::validateCertificateIntegrity)
+                .map(this::getX509CertificateHolderFromEntity)
+                .forEach(trustAnchors::add);
         }
 
-        // verify certificate signature
         SignedCertificateMessageParser parser =
             new SignedCertificateMessageParser(trustedPartyEntity.getSignature(), trustedPartyEntity.getRawData());
 
@@ -169,13 +180,21 @@ public class TrustedPartyService {
             return false;
         }
 
-        if (!parser.getSigningCertificate().equals(trustAnchor)) {
+        // verify certificate signature
+        log.debug("Got {} TrustAnchors for Integrity Check: {}", trustAnchors.size(), trustAnchors.stream()
+            .map(trustAnchor -> trustAnchor.getSubject().toString())
+            .collect(Collectors.joining("; ")));
+        boolean trustAnchorMatch = trustAnchors.stream()
+            .anyMatch(trustAnchor -> parser.getSigningCertificate().equals(trustAnchor));
+
+        if (trustAnchorMatch) {
+            return true;
+        } else {
             log.error("TrustAnchor Verification failed: Certificate was not signed by known TrustAnchor");
             return false;
         }
-
-        return true;
     }
+
 
     /**
      * Deletes TrustedParty by given GatewayId.

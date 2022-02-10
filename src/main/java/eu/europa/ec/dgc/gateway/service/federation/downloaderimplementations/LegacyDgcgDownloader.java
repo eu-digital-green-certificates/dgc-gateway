@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.service.federation.downloaderimplementations;
 
+import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.connector.DgcGatewayDownloadConnector;
 import eu.europa.ec.dgc.gateway.connector.DgcGatewayDownloadConnectorBuilder;
 import eu.europa.ec.dgc.gateway.connector.mapper.TrustListMapper;
@@ -29,7 +30,11 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.service.SignerInformationService;
 import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.service.federation.FederationDownloader;
+import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +55,10 @@ public class LegacyDgcgDownloader implements FederationDownloader {
     private final TrustedPartyService trustedPartyService;
     private final ApplicationContext applicationContext;
     private final TrustListMapper trustListMapper;
+    private final DgcConfigProperties configProperties;
+    private final CertificateUtils certificateUtils;
+    @Qualifier("federation")
+    private final KeyStore federationKeyStore;
 
     @Override
     public String getDownloaderIdentifier() {
@@ -93,13 +102,29 @@ public class LegacyDgcgDownloader implements FederationDownloader {
     }
 
     private DgcGatewayDownloadConnector instantiateConnector(FederationGatewayEntity gateway)
-        throws DgcGatewayDownloadConnectorBuilder.DgcGatewayDownloadConnectorBuilderException {
+        throws DgcGatewayDownloadConnectorBuilder.DgcGatewayDownloadConnectorBuilderException,
+        FederationDownloaderException {
 
         log.debug("Instantiating Download Connector for Gateway {}", gateway.getGatewayId());
         DgcGatewayDownloadConnectorBuilder builder;
 
+        X509CertificateHolder clientCertificate;
+        PrivateKey clientCertifikateKey;
+
+        try {
+            clientCertificate = certificateUtils.convertCertificate(
+                (X509Certificate) federationKeyStore.getCertificate(gateway.getGatewayKid()));
+            clientCertifikateKey = (PrivateKey) federationKeyStore.getKey(gateway.getGatewayKid(),
+                configProperties.getFederation().getKeystoreKeyPassword().toCharArray());
+        } catch (Exception e) {
+            log.error("Failed to get Gateway Client Certificate from KeyStore: {}", e.getMessage());
+            throw new FederationDownloaderException(
+                "Failed to get Gateway Client Certificate from KeyStore: " + e.getMessage());
+        }
+
         builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper)
             .withUrl(gateway.getGatewayEndpoint())
+            .withMtlsAuthCert(clientCertificate, clientCertifikateKey)
             .withMaximumCacheAge(0);
 
         builder.withTrustAnchors(getTrustedPartyCerts(gateway, TrustedPartyEntity.CertificateType.TRUSTANCHOR));
@@ -118,9 +143,6 @@ public class LegacyDgcgDownloader implements FederationDownloader {
         FederationGatewayEntity gateway,
         List<TrustListItem> trustedPartyList,
         TrustedPartyEntity.CertificateType type) {
-        log.debug("Deleting existing data for Gateway {}", gateway.getGatewayId());
-        signerInformationService.deleteSignerCertificateByFederationGateway(gateway.getGatewayId());
-        trustedPartyService.deleteTrustedPartyByByFederationGateway(gateway.getGatewayId());
 
         trustedPartyList.forEach(trustListItem -> {
             try {

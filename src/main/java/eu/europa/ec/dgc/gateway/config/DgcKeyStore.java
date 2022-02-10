@@ -30,8 +30,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 @RequiredArgsConstructor
@@ -50,6 +52,7 @@ public class DgcKeyStore {
      * @throws NoSuchAlgorithmException if the algorithm used to check the integrity of the keystore cannot be found
      */
     @Bean
+    @Primary
     public KeyStore trustAnchorKeyStore() throws KeyStoreException, IOException,
         CertificateException, NoSuchAlgorithmException {
         KeyStore keyStore = KeyStore.getInstance("JKS");
@@ -58,6 +61,24 @@ public class DgcKeyStore {
             keyStore,
             dgcConfigProperties.getTrustAnchor().getKeyStorePath(),
             dgcConfigProperties.getTrustAnchor().getKeyStorePass().toCharArray());
+
+        return keyStore;
+    }
+
+    /**
+     * Creates a KeyStore instance with Keys for Federation Gateways.
+     */
+    @Bean
+    @Qualifier("federation")
+    public KeyStore federationKeyStore() throws KeyStoreException, IOException,
+        CertificateException, NoSuchAlgorithmException {
+
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+
+        loadKeyStore(
+            keyStore,
+            dgcConfigProperties.getFederation().getKeystorePath(),
+            dgcConfigProperties.getFederation().getKeystorePassword().toCharArray());
 
         return keyStore;
     }

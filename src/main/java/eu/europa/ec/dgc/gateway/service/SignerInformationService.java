@@ -59,12 +59,12 @@ public class SignerInformationService {
     private static final String MDC_PROP_CSCA_CERT_THUMBPRINT = "cscaCertThumbprint";
 
     /**
-     * Method to query persistence layer for all stored SignerInformation.
+     * Method to query persistence layer for all stored non federated SignerInformation.
      *
      * @return List of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation() {
-        return signerInformationRepository.findAll();
+    public List<SignerInformationEntity> getNonFederatedSignerInformation() {
+        return signerInformationRepository.getAllBySourceGatewayIsNull();
     }
 
     /**
@@ -73,8 +73,9 @@ public class SignerInformationService {
      * @param type type to filter for
      * @return List of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateType(type);
+    public List<SignerInformationEntity> getNonFederatedSignerInformation(
+        SignerInformationEntity.CertificateType type) {
+        return signerInformationRepository.getByCertificateTypeAndSourceGatewayIsNull(type);
     }
 
     /**
@@ -84,10 +85,10 @@ public class SignerInformationService {
      * @param type        type to filter for
      * @return List of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation(
+    public List<SignerInformationEntity> getNonFederatedSignerInformation(
         String countryCode,
         SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+        return signerInformationRepository.getByCertificateTypeAndCountryAndSourceGatewayIsNull(type, countryCode);
     }
 
     /**
@@ -286,7 +287,7 @@ public class SignerInformationService {
 
         // Content Check Step 3: CSCA Check
         List<TrustedPartyEntity> trustedCas =
-            trustedPartyService.getCertificates(authenticatedCountryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyService.getCertificate(authenticatedCountryCode, TrustedPartyEntity.CertificateType.CSCA);
 
         if (trustedCas.isEmpty()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.CSCA_CHECK_FAILED,

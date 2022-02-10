@@ -96,5 +96,9 @@ public class DgcConfigProperties {
         private String contact;
         private String owner;
         private String signature;
+
+        private String keystorePath;
+        private String keystorePassword;
+        private String keystoreKeyPassword;
     }
 }

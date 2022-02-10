@@ -28,6 +28,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
+    List<SignerInformationEntity> getAllBySourceGatewayIsNull();
+
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
     Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
@@ -35,9 +37,9 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     @Transactional
     void deleteByThumbprint(String thumbprint);
 
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type);
+    List<SignerInformationEntity> getByCertificateTypeAndSourceGatewayIsNull(SignerInformationEntity.CertificateType type);
 
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
+    List<SignerInformationEntity> getByCertificateTypeAndCountryAndSourceGatewayIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);
 
     List<SignerInformationEntity> getBySourceGatewayGatewayId(String gatewayId);

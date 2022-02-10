@@ -29,9 +29,11 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity, Long> {
 
+    List<TrustedPartyEntity> getBySourceGatewayIsNull();
+
     List<TrustedPartyEntity> getByCountryAndCertificateType(String country, TrustedPartyEntity.CertificateType type);
 
-    List<TrustedPartyEntity> getByCertificateType(TrustedPartyEntity.CertificateType type);
+    List<TrustedPartyEntity> getByCertificateTypeAndSourceGatewayIsNull(TrustedPartyEntity.CertificateType type);
 
     Optional<TrustedPartyEntity> getFirstByThumbprintAndCountryAndCertificateType(
         String thumbprint, String country, TrustedPartyEntity.CertificateType type);
@@ -39,7 +41,7 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
     Optional<TrustedPartyEntity> getFirstByThumbprintAndCertificateType(
         String thumbprint, TrustedPartyEntity.CertificateType type);
 
-    @Query("SELECT DISTINCT t.country FROM TrustedPartyEntity t")
+    @Query("SELECT DISTINCT t.country FROM TrustedPartyEntity t WHERE t.sourceGateway IS NULL")
     List<String> getCountryCodeList();
 
     List<TrustedPartyEntity> getBySourceGatewayGatewayId(String gatewayId);
