@@ -86,6 +86,14 @@ public class LegacyDgcgDownloader implements FederationDownloader {
         }
 
         final List<TrustListItem> trustList = connector.getTrustedCertificates();
+
+        if (connector.getStatus() != null) {
+            log.error("Failed to Download for Gateway {}: {}",
+                gateway.getGatewayId(), connector.getStatus());
+
+            throw new FederationDownloaderException("Failed to Download: " + connector.getStatus());
+        }
+
         final List<TrustListItem> csca = connector.getTrustedCscaCertificates();
         final List<TrustListItem> upload = connector.getTrustedUploadCertificates();
 

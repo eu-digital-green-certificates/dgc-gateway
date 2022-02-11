@@ -20,16 +20,16 @@
 
 package eu.europa.ec.dgc.gateway.service.federation;
 
-import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
-import eu.europa.ec.dgc.gateway.connector.mapper.TrustListMapper;
 import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
-import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -37,51 +37,60 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class FederationGatewayDownloadService {
 
-    private static final String MDC_PROP_GATEWAY_ID = "gatewayId";
-    private static final String MDC_PROP_PARSER_STATE = "parserState";
-
-    private final DgcConfigProperties dgcConfigProperties;
     private final FederationGatewayService federationGatewayService;
-    private final TrustedPartyService trustedPartyService;
     private final ApplicationContext applicationContext;
-    private final TrustListMapper trustListMapper;
 
     /**
      * Start the Download of Federation Data from all Gateways.
      */
+    @Scheduled(fixedRate = 180_000)
+    @SchedulerLock(name = "federation_download")
     public void triggerDownload() {
         log.info("Starting Download from Federation Gateways");
 
-        List<FederationGatewayEntity> gateways = federationGatewayService.getFederationGateways();
+        List<FederationGatewayEntity> gateways = federationGatewayService.getActiveFederationGateways();
         log.info("Got {} Federation Gateways for download.", gateways.size());
 
-        gateways.forEach(gateway -> {
-            FederationDownloader downloader;
-            try {
-                downloader = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
-                    applicationContext.getAutowireCapableBeanFactory(),
-                    FederationDownloader.class,
-                    gateway.getDownloaderImplementation()
-                );
-            } catch (NoSuchBeanDefinitionException e) {
-                log.error("Unable to find Implementation >>{}<< for Gateway {}",
-                    gateway.getDownloaderImplementation(), gateway.getGatewayId());
-                federationGatewayService.setStatus(gateway, false, "Unable to find Implementation");
-                return;
-            }
+        ZonedDateTime now = ZonedDateTime.now();
 
-            log.debug("Found Downloader implementation >>{}<< for Gateway {}",
-                downloader.getDownloaderIdentifier(), gateway.getGatewayId());
+        gateways.stream()
+            .filter(gateway -> {
+                if (gateway.getLastDownload() == null) {
+                    log.debug("First Download for Gateway {}", gateway.getGatewayId());
 
-            try {
-                downloader.fullDownload(gateway);
-            } catch (FederationDownloader.FederationDownloaderException e) {
-                log.error("Failed to Download Data from Gateway {}, Reason: {}", gateway.getGatewayId(), e.getReason());
-                federationGatewayService.setStatus(gateway, false, e.getReason());
-                return;
-            }
-            federationGatewayService.setStatus(gateway, true, null);
-        });
+                    return true;
+                }
+
+                return now.isAfter(gateway.getLastDownload().plusSeconds(gateway.getDownloadInterval()));
+            })
+            .forEach(gateway -> {
+                log.info("Starting Federation Download for Gateway {}", gateway.getGatewayId());
+                FederationDownloader downloader;
+                try {
+                    downloader = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
+                        applicationContext.getAutowireCapableBeanFactory(),
+                        FederationDownloader.class,
+                        gateway.getDownloaderImplementation()
+                    );
+                } catch (NoSuchBeanDefinitionException e) {
+                    log.error("Unable to find Implementation >>{}<< for Gateway {}",
+                        gateway.getDownloaderImplementation(), gateway.getGatewayId());
+                    federationGatewayService.setStatus(gateway, false, "Unable to find Implementation");
+                    return;
+                }
+
+                log.debug("Found Downloader implementation >>{}<< for Gateway {}",
+                    downloader.getDownloaderIdentifier(), gateway.getGatewayId());
+
+                try {
+                    downloader.fullDownload(gateway);
+                } catch (FederationDownloader.FederationDownloaderException e) {
+                    log.error("Failed to Download Data from Gateway {}, Reason: {}", gateway.getGatewayId(), e.getReason());
+                    federationGatewayService.setStatus(gateway, false, e.getReason());
+                    return;
+                }
+                federationGatewayService.setStatus(gateway, true, null);
+            });
 
         log.info("Finished Federation Gateway Download.");
     }

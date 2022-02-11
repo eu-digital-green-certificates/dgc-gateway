@@ -58,13 +58,13 @@ public class FederationGatewayService {
     private final CertificateUtils certificateUtils;
 
     /**
-     * Method to query the db for all certificates.
+     * Method to query the db for all Federation Gateways with set Download Interval
      *
-     * @return List holding the found certificates.
+     * @return List holding the found Gateways.
      */
-    public List<FederationGatewayEntity> getFederationGateways() {
+    public List<FederationGatewayEntity> getActiveFederationGateways() {
 
-        return federationGatewayRepository.findAll()
+        return federationGatewayRepository.getByDownloadIntervalIsNotNull()
             .stream()
             .filter(this::validateEntityIntegrity)
             .collect(Collectors.toList());
@@ -128,16 +128,15 @@ public class FederationGatewayService {
      * @param message optional status message with details or failure reason
      */
     public void setStatus(FederationGatewayEntity gateway, boolean success, String message) {
-        gateway = federationGatewayRepository.getById(gateway.getId());
-
         if (success) {
-            gateway.setLastDownload(ZonedDateTime.now());
+            gateway.setLastSuccessfulDownload(ZonedDateTime.now());
             gateway.setRetryCount(0L);
         } else {
             gateway.setRetryCount(
                 Objects.requireNonNullElse(gateway.getRetryCount(), 0L) + 1);
         }
         gateway.setStatusMessage(message);
+        gateway.setLastDownload(ZonedDateTime.now());
 
         federationGatewayRepository.save(gateway);
     }

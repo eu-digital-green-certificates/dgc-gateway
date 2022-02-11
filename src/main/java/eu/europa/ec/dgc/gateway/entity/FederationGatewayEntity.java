@@ -113,7 +113,7 @@ public class FederationGatewayEntity implements Serializable {
     private String signature;
 
     /**
-     * Interval between incremental downloads.
+     * Interval between incremental downloads. (In Seconds)
      * Set to NULL to disable federated gateway.
      */
     @Column(name = "download_interval")
@@ -124,6 +124,12 @@ public class FederationGatewayEntity implements Serializable {
      */
     @Column(name = "last_download")
     private ZonedDateTime lastDownload;
+
+    /**
+     * Timestamp of last successful download.
+     */
+    @Column(name = "last_successful_download")
+    private ZonedDateTime lastSuccessfulDownload;
 
     /**
      * Count of retries since last successful download.
