@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("mtls")
+@ActiveProfiles({"mtls", "test"})
 class CertAuthFilterMtlsTest {
 
     @Autowired

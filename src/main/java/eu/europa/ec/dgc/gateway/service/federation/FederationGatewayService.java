@@ -58,7 +58,7 @@ public class FederationGatewayService {
     private final CertificateUtils certificateUtils;
 
     /**
-     * Method to query the db for all Federation Gateways with set Download Interval
+     * Method to query the db for all Federation Gateways with set Download Interval.
      *
      * @return List holding the found Gateways.
      */

@@ -37,7 +37,8 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     @Transactional
     void deleteByThumbprint(String thumbprint);
 
-    List<SignerInformationEntity> getByCertificateTypeAndSourceGatewayIsNull(SignerInformationEntity.CertificateType type);
+    List<SignerInformationEntity> getByCertificateTypeAndSourceGatewayIsNull(
+        SignerInformationEntity.CertificateType type);
 
     List<SignerInformationEntity> getByCertificateTypeAndCountryAndSourceGatewayIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);

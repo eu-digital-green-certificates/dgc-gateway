@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -64,6 +65,7 @@ public class DgcTestKeyStore {
      */
     @Bean
     @Primary
+    @Qualifier("federation")
     public KeyStore testKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException {
         KeyStoreSpi keyStoreSpiMock = mock(KeyStoreSpi.class);
         KeyStore keyStoreMock = new KeyStore(keyStoreSpiMock, null, "test") {

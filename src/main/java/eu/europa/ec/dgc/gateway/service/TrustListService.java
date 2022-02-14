@@ -88,7 +88,8 @@ public class TrustListService {
         if (type == TrustListType.DSC) {
             return mergeAndConvert(
                 Collections.emptyList(),
-                signerInformationService.getNonFederatedSignerInformation(countryCode, SignerInformationEntity.CertificateType.DSC)
+                signerInformationService.getNonFederatedSignerInformation(
+                    countryCode, SignerInformationEntity.CertificateType.DSC)
             );
         } else {
             return mergeAndConvert(
@@ -103,9 +104,9 @@ public class TrustListService {
         List<SignerInformationEntity> signerInformationList) {
 
         return Stream.concat(
-            trustedPartyList.stream().map(this::convert),
-            signerInformationList.stream().map(this::convert)
-        )
+                trustedPartyList.stream().map(this::convert),
+                signerInformationList.stream().map(this::convert)
+            )
             .sorted(Comparator.comparing(TrustList::getKid))
             .collect(Collectors.toList());
     }

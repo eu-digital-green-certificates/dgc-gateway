@@ -85,7 +85,8 @@ public class FederationGatewayDownloadService {
                 try {
                     downloader.fullDownload(gateway);
                 } catch (FederationDownloader.FederationDownloaderException e) {
-                    log.error("Failed to Download Data from Gateway {}, Reason: {}", gateway.getGatewayId(), e.getReason());
+                    log.error("Failed to Download Data from Gateway {}, Reason: {}",
+                        gateway.getGatewayId(), e.getReason());
                     federationGatewayService.setStatus(gateway, false, e.getReason());
                     return;
                 }

@@ -150,8 +150,9 @@ public class TrustedPartyService {
         if (trustedPartyEntity.getSourceGateway() == null) {
             log.debug("TrustedParty is not federated, using TrustAnchor from Keystore");
             try {
-                trustAnchors.add(certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
-                    dgcConfigProperties.getTrustAnchor().getCertificateAlias())));
+                trustAnchors.add(
+                    certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
+                        dgcConfigProperties.getTrustAnchor().getCertificateAlias())));
             } catch (KeyStoreException | CertificateEncodingException | IOException e) {
                 log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
                 return false;
