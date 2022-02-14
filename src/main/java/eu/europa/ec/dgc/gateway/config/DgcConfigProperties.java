@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,6 +41,15 @@ public class DgcConfigProperties {
     private Revocation revocation = new Revocation();
 
     private Federation federation = new Federation();
+
+    private TrustedCertificates trustedCertificates = new TrustedCertificates();
+
+    @Getter
+    @Setter
+    public static class TrustedCertificates {
+        private List<String> allowedProperties = new ArrayList<>();
+        private List<String> allowedDomains = new ArrayList<>();
+    }
 
     @Getter
     @Setter

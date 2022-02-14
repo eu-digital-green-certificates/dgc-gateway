@@ -34,6 +34,8 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
 
     Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
 
+    Optional<SignerInformationEntity> getFirstByKid(String kid);
+
     @Transactional
     void deleteByThumbprint(String thumbprint);
 

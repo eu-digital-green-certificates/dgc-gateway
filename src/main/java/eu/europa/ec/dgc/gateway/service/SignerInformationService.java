@@ -20,6 +20,9 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
@@ -29,7 +32,9 @@ import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +59,10 @@ public class SignerInformationService {
     private final CertificateUtils certificateUtils;
 
     private final SignerInformationRepository signerInformationRepository;
+
+    private final DgcConfigProperties configProperties;
+
+    private final JsonMapper jsonMapper;
 
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
     private static final String MDC_PROP_CSCA_CERT_THUMBPRINT = "cscaCertThumbprint";
@@ -92,6 +101,81 @@ public class SignerInformationService {
     }
 
     /**
+     * Adds a new Trusted Certificate to TrustStore DB.
+     *
+     * @param uploadedCertificate      the certificate to add
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param signature                the detached signature of cms message
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @param kid                      Optional custom KID
+     * @param group                    Group (Certificate Type)
+     * @param domain                   Domain the certificate belongs to
+     * @param properties               Map with custom properties assigned to the certificate
+     * @return created Entity
+     * @throws SignerCertCheckException if something went wrong
+     */
+    public SignerInformationEntity addTrustedCertificate(
+        X509CertificateHolder uploadedCertificate,
+        X509CertificateHolder signerCertificate,
+        String signature,
+        String authenticatedCountryCode,
+        String kid,
+        String group,
+        String domain,
+        Map<String, String> properties
+    ) throws SignerCertCheckException {
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        if (group != null && group.equals("DSC")) {
+            contentCheckUploaderCertificate(uploadedCertificate, authenticatedCountryCode);
+        }
+
+        contentCheckOneOf(group, SignerInformationEntity.CertificateType.stringValues());
+        contentCheckOneOf(domain, configProperties.getTrustedCertificates().getAllowedDomains());
+        for (String key : properties.keySet()) {
+            contentCheckOneOf(key, configProperties.getTrustedCertificates().getAllowedProperties());
+        }
+        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
+        contentCheckAlreadyExists(uploadedCertificate);
+        contentCheckKidAlreadyExists(uploadedCertificate, kid);
+
+        // All checks passed --> Save to DB
+        byte[] certRawData;
+        try {
+            certRawData = uploadedCertificate.getEncoded();
+        } catch (IOException e) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+        }
+
+        SignerInformationEntity newSignerInformation = new SignerInformationEntity();
+        newSignerInformation.setCountry(authenticatedCountryCode);
+        newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
+        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
+        newSignerInformation.setSignature(signature);
+        newSignerInformation.setKid(kid);
+        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.valueOf(group));
+        newSignerInformation.setDomain(domain);
+        if (!properties.isEmpty()) {
+            try {
+                newSignerInformation.setProperties(jsonMapper.writeValueAsString(properties));
+            } catch (JsonProcessingException e) {
+                throw new SignerCertCheckException(SignerCertCheckException.Reason.PROPERTY_SERIALIZATION_FAILED,
+                    "Failed to serialize properties.");
+            }
+        }
+
+        log.info("Saving new SignerInformation Entity");
+
+        newSignerInformation = signerInformationRepository.save(newSignerInformation);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
+
+        return newSignerInformation;
+    }
+
+    /**
      * Adds a new Trusted Signer Certificate to TrustStore DB.
      *
      * @param uploadedCertificate      the certificate to add
@@ -108,35 +192,15 @@ public class SignerInformationService {
         String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
-        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
-        contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
-        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
-        contentCheckAlreadyExists(uploadedCertificate);
-        contentCheckKidAlreadyExists(uploadedCertificate);
-
-        // All checks passed --> Save to DB
-        byte[] certRawData;
-        try {
-            certRawData = uploadedCertificate.getEncoded();
-        } catch (IOException e) {
-            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
-        }
-
-        SignerInformationEntity newSignerInformation = new SignerInformationEntity();
-        newSignerInformation.setCountry(authenticatedCountryCode);
-        newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
-        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
-        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
-        newSignerInformation.setSignature(signature);
-
-        log.info("Saving new SignerInformation Entity");
-
-        newSignerInformation = signerInformationRepository.save(newSignerInformation);
-
-        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
-        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
-
-        return newSignerInformation;
+        return addTrustedCertificate(
+            uploadedCertificate,
+            signerCertificate,
+            signature,
+            authenticatedCountryCode,
+            null,
+            null,
+            null,
+            Collections.emptyMap());
     }
 
     /**
@@ -241,6 +305,18 @@ public class SignerInformationService {
         return null;
     }
 
+    private void contentCheckOneOf(String value, List<String> allowedValues) throws SignerCertCheckException {
+        if (value == null) {
+            return;
+        }
+
+        if (allowedValues.stream().noneMatch(value::equals)) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.PROPERTY_NOT_ALLOWED,
+                String.format("Property Key or Value %s is not allowed. Allowed Values are: %s",
+                    value, String.join(", ", allowedValues)));
+        }
+    }
+
     private void contentCheckUploaderCertificate(
         X509CertificateHolder signerCertificate,
         String authenticatedCountryCode) throws SignerCertCheckException {
@@ -318,15 +394,25 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate)
+    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate, String customKid)
         throws SignerCertCheckException {
 
-        String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
-        // KID is the first 8 byte of hash. So we take the first 16 characters of the hash
-        String thumbprintKidPart = uploadedCertificateThumbprint.substring(0, 16);
+        String kid = customKid;
+        if (customKid == null) {
+            // Custom Kid not provided, using the first 8 byte of hash as fallback.
+            String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
+            kid = uploadedCertificateThumbprint.substring(0, 16);
+        }
 
         Optional<SignerInformationEntity> signerInformationEntity =
-            signerInformationRepository.getFirstByThumbprintStartsWith(thumbprintKidPart);
+            signerInformationRepository.getFirstByThumbprintStartsWith(kid);
+
+        if (signerInformationEntity.isPresent()) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
+                "A certificate with KID of uploaded certificate already exists");
+        }
+
+        signerInformationEntity = signerInformationRepository.getFirstByKid(kid);
 
         if (signerInformationEntity.isPresent()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
@@ -382,7 +468,9 @@ public class SignerInformationService {
             ALREADY_EXIST_CHECK_FAILED,
             KID_CHECK_FAILED,
             EXIST_CHECK_FAILED,
-            UPLOAD_FAILED
+            UPLOAD_FAILED,
+            PROPERTY_NOT_ALLOWED,
+            PROPERTY_SERIALIZATION_FAILED
         }
     }
 }
