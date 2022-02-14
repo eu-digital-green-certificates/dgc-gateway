@@ -84,6 +84,7 @@ ThirdParty Licenses
 | org.bouncycastle:bcpkix-jdk15on:1.70 | Bouncy Castle Licence |
 | org.bouncycastle:bcprov-jdk15on:1.70 | Bouncy Castle Licence |
 | org.bouncycastle:bcutil-jdk15on:1.70 | Bouncy Castle Licence |
+| org.checkerframework:checker-qual:3.5.0 | The MIT License |
 | org.glassfish.jaxb:jaxb-runtime:2.3.5 | Eclipse Distribution License - v 1.0 |
 | org.glassfish.jaxb:txw2:2.3.5 | Eclipse Distribution License - v 1.0 |
 | org.hamcrest:hamcrest:2.2 | BSD License 3 |
@@ -109,6 +110,7 @@ ThirdParty Licenses
 | org.objenesis:objenesis:3.2 | Apache License, Version 2.0 |
 | org.opentest4j:opentest4j:1.2.0 | The Apache License, Version 2.0 |
 | org.ow2.asm:asm:9.1 | BSD-3-Clause |
+| org.postgresql:postgresql:42.3.1 | BSD-2-Clause |
 | org.projectlombok:lombok:1.18.22 | The MIT License |
 | org.skyscreamer:jsonassert:1.5.0 | The Apache Software License, Version 2.0 |
 | org.slf4j:jul-to-slf4j:1.7.32 | MIT License |
