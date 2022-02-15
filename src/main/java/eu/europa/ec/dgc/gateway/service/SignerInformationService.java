@@ -21,7 +21,7 @@
 package eu.europa.ec.dgc.gateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
@@ -62,7 +62,7 @@ public class SignerInformationService {
 
     private final DgcConfigProperties configProperties;
 
-    private final JsonMapper jsonMapper;
+    private final ObjectMapper objectMapper;
 
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
     private static final String MDC_PROP_CSCA_CERT_THUMBPRINT = "cscaCertThumbprint";
@@ -126,10 +126,9 @@ public class SignerInformationService {
     ) throws SignerCertCheckException {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
-        if (group != null && group.equals("DSC")) {
-            contentCheckUploaderCertificate(uploadedCertificate, authenticatedCountryCode);
+        if (group == null || group.equals("DSC")) {
+            contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
         }
-
         contentCheckOneOf(group, SignerInformationEntity.CertificateType.stringValues());
         contentCheckOneOf(domain, configProperties.getTrustedCertificates().getAllowedDomains());
         for (String key : properties.keySet()) {
@@ -154,11 +153,13 @@ public class SignerInformationService {
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
         newSignerInformation.setKid(kid);
-        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.valueOf(group));
         newSignerInformation.setDomain(domain);
+        if (group != null) {
+            newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.valueOf(group));
+        }
         if (!properties.isEmpty()) {
             try {
-                newSignerInformation.setProperties(jsonMapper.writeValueAsString(properties));
+                newSignerInformation.setProperties(objectMapper.writeValueAsString(properties));
             } catch (JsonProcessingException e) {
                 throw new SignerCertCheckException(SignerCertCheckException.Reason.PROPERTY_SERIALIZATION_FAILED,
                     "Failed to serialize properties.");
