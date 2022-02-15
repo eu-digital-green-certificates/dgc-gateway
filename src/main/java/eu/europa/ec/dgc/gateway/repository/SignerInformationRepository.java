@@ -25,10 +25,20 @@ import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
     List<SignerInformationEntity> getAllBySourceGatewayIsNull();
+
+    @Query("SELECT s FROM SignerInformationEntity s WHERE "
+        + "(:group IS NULL OR s.certificateType IN :group) AND (:country IS NULL OR s.country IN :country) AND "
+        + "(:domain IS NULL OR s.domain IN :domain)")
+    List<SignerInformationEntity> searchForNonFederated(
+        @Param("group") List<SignerInformationEntity.CertificateType> group,
+        @Param("country") List<String> country,
+        @Param("domain") List<String> domain);
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 

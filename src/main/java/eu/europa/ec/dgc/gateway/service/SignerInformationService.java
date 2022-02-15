@@ -31,6 +31,7 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -74,6 +75,27 @@ public class SignerInformationService {
      */
     public List<SignerInformationEntity> getNonFederatedSignerInformation() {
         return signerInformationRepository.getAllBySourceGatewayIsNull();
+    }
+
+    /**
+     * Method to query persistence layer for all stored non federated SignerInformation matching given criteria.
+     *
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getNonFederatedSignerInformation(
+        List<String> groups, List<String> country, List<String> domain) {
+
+        final List<SignerInformationEntity.CertificateType> types = new ArrayList<>();
+        if (groups != null) {
+            groups.forEach(group -> {
+                if (SignerInformationEntity.CertificateType.stringValues().contains(group)) {
+                    types.add(SignerInformationEntity.CertificateType.valueOf(group));
+                }
+            });
+        }
+
+        return signerInformationRepository.searchForNonFederated(
+            types.isEmpty() ? null : types, country, domain);
     }
 
     /**
