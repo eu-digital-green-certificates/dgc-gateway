@@ -60,14 +60,14 @@ public class TrustedIssuerEntity extends FederatedEntity {
      * Name of the service.
      */
     @Column(name = "name", nullable = false, length = 512)
-    String name;
+    private String name;
 
     /**
      * Type of the certificate (Authentication, Upload, CSCA).
      */
     @Column(name = "url_type", nullable = false, length = 25)
     @Enumerated(EnumType.STRING)
-    UrlType urlType;
+    private UrlType urlType;
 
     /**
      * SHA-256 Thumbprint of the certificate (hex encoded).
