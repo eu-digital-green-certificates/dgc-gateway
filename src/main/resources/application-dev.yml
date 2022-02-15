@@ -12,3 +12,5 @@ springdoc:
 dgc:
   trustAnchor:
     keyStorePath: classpath:keystore/dgc-ta.jks
+  federation:
+    keystorePath: classpath:federation-keystore.p12
