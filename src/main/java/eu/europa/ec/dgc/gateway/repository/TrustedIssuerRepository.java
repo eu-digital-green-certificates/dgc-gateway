@@ -21,9 +21,9 @@
 package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 
 public interface TrustedIssuerRepository extends JpaRepository<TrustedIssuerEntity, Long> {
 
