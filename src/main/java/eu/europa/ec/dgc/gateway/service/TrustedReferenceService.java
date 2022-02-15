@@ -1,0 +1,149 @@
+package eu.europa.ec.dgc.gateway.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import eu.europa.ec.dgc.gateway.entity.TrustedReferenceEntity;
+import eu.europa.ec.dgc.gateway.repository.TrustedReferenceRepository;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDto;
+import eu.europa.ec.dgc.gateway.utils.DgcMdc;
+import eu.europa.ec.dgc.utils.CertificateUtils;
+import java.util.List;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.stereotype.Service;
+
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class TrustedReferenceService {
+
+    private final TrustedReferenceRepository trustedReferenceRepository;
+
+    private final CertificateUtils certificateUtils;
+
+    private final TrustedPartyService trustedPartyService;
+
+    private final ObjectMapper objectMapper;
+
+    private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
+
+
+    /**
+     * Method to query the db for all trusted references.
+     *
+     * @return List holding the found trusted references.
+     */
+    public List<TrustedReferenceEntity> getAllReferences() {
+        return trustedReferenceRepository.findAll();
+    }
+
+    /**
+     * Method to query the db for one trusted reference.
+     *
+     * @return trusted reference.
+     */
+    public TrustedReferenceEntity getReference(final String uuid) throws TrustedReferenceServiceException {
+        return trustedReferenceRepository.getByUuid(uuid).orElseThrow(
+            () -> new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
+                    "Requested TrustedReferencec not available.")
+        );
+    }
+
+    /**
+     * Add a new TrustedReference.
+     */
+    public TrustedReferenceEntity addTrustedReference(
+            String uploadedTrustedReference,
+            X509CertificateHolder signerCertificate,
+            String authenticatedCountryCode
+    ) throws TrustedReferenceServiceException {
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        TrustedReferenceDto parsedTrustedEntity =
+                contentCheckValidJson(uploadedTrustedReference, TrustedReferenceDto.class);
+
+        TrustedReferenceEntity trustedReferenceEntity = new TrustedReferenceEntity();
+        trustedReferenceEntity.setCountry(parsedTrustedEntity.getCountry());
+        trustedReferenceEntity.setType(
+                TrustedReferenceEntity.ReferenceType.valueOf(parsedTrustedEntity.getType().name()));
+        trustedReferenceEntity.setService(parsedTrustedEntity.getService());
+        trustedReferenceEntity.setName(parsedTrustedEntity.getName());
+        trustedReferenceEntity.setSignatureType(
+                TrustedReferenceEntity.SignatureType.valueOf(parsedTrustedEntity.getSignatureType().name()));
+        trustedReferenceEntity.setThumbprint(parsedTrustedEntity.getThumbprint());
+        trustedReferenceEntity.setSslPublicKey(parsedTrustedEntity.getSslPublicKey());
+
+        log.info("Saving new Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
+
+        trustedReferenceEntity = trustedReferenceRepository.save(trustedReferenceEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+
+        return trustedReferenceEntity;
+    }
+
+    private <T> T contentCheckValidJson(String json, Class<T> clazz) throws TrustedReferenceServiceException {
+
+        try {
+            objectMapper.configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, true);
+            return objectMapper.readValue(json, clazz);
+        } catch (JsonProcessingException e) {
+            throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_JSON,
+                    "JSON could not be parsed");
+        }
+    }
+
+    /**
+     * Checks a given UploadCertificate if it exists in the database and is assigned to given CountryCode.
+     *
+     * @param signerCertificate        Upload Certificate
+     * @param authenticatedCountryCode Country Code.
+     * @throws RevocationListService.RevocationBatchServiceException if Validation fails.
+     */
+    public void contentCheckUploaderCertificate(
+            X509CertificateHolder signerCertificate,
+            String authenticatedCountryCode) throws TrustedReferenceServiceException {
+        // Content Check Step 1: Uploader Certificate
+        String signerCertThumbprint = certificateUtils.getCertThumbprint(signerCertificate);
+        Optional<TrustedPartyEntity> certFromDb = trustedPartyService.getCertificate(
+                signerCertThumbprint,
+                authenticatedCountryCode,
+                TrustedPartyEntity.CertificateType.UPLOAD
+        );
+
+        if (certFromDb.isEmpty()) {
+            throw new TrustedReferenceServiceException(
+                    TrustedReferenceServiceException.Reason.UPLOADER_CERT_CHECK_FAILED,
+                    "Could not find upload certificate with hash %s and country %s",
+                    signerCertThumbprint, authenticatedCountryCode);
+        }
+
+        DgcMdc.put(MDC_PROP_UPLOAD_CERT_THUMBPRINT, signerCertThumbprint);
+    }
+
+    public static class TrustedReferenceServiceException extends Exception {
+
+        @Getter
+        private final Reason reason;
+
+        public TrustedReferenceServiceException(Reason reason, String message, Object... args) {
+            super(String.format(message, args));
+            this.reason = reason;
+        }
+
+        public enum Reason {
+            INVALID_JSON,
+            INVALID_JSON_VALUES,
+            INVALID_COUNTRY,
+            UPLOADER_CERT_CHECK_FAILED,
+            NOT_FOUND,
+            GONE
+        }
+    }
+}
