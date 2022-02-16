@@ -121,7 +121,10 @@ public class TrustedPartyService {
         return trustedPartyRepository.getCountryCodeList();
     }
 
-    private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
+    /**
+     * Validate the integrity of the certificate used to sign the trusted party.
+     */
+    public boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
 
         DgcMdc.put(MDC_PROP_CERT_THUMBPRINT, trustedPartyEntity.getThumbprint());
 
