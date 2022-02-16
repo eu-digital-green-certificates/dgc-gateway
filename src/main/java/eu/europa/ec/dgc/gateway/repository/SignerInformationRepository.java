@@ -33,12 +33,16 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     List<SignerInformationEntity> getAllBySourceGatewayIsNull();
 
     @Query("SELECT s FROM SignerInformationEntity s WHERE "
-        + "(:group IS NULL OR s.certificateType IN :group) AND (:country IS NULL OR s.country IN :country) AND "
-        + "(:domain IS NULL OR s.domain IN :domain)")
+        + "(:ignoreGroup = true OR s.certificateType IN (:group)) AND "
+        + "(:ignoreCountry = true OR s.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR s.domain IN (:domain))")
     List<SignerInformationEntity> searchForNonFederated(
         @Param("group") List<SignerInformationEntity.CertificateType> group,
+        @Param("ignoreGroup") boolean ignoreGroup,
         @Param("country") List<String> country,
-        @Param("domain") List<String> domain);
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 

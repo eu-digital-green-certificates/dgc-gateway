@@ -95,7 +95,9 @@ public class SignerInformationService {
         }
 
         return signerInformationRepository.searchForNonFederated(
-            types.isEmpty() ? null : types, country, domain);
+            types, types.isEmpty(),
+            country, country == null || country.isEmpty(),
+            domain, domain == null || domain.isEmpty());
     }
 
     /**
