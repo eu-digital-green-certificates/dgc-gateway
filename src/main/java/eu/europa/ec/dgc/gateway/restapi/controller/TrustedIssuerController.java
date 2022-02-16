@@ -70,7 +70,7 @@ public class TrustedIssuerController {
                                     schema = @Schema(implementation = ProblemReportDto.class)
                             ))
             })
-    public ResponseEntity<List<TrustedIssuerDto>> getrustedIssuers(
+    public ResponseEntity<List<TrustedIssuerDto>> getTrustedIssuers(
             @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
         List<TrustedIssuerDto> trustedIssuers =
