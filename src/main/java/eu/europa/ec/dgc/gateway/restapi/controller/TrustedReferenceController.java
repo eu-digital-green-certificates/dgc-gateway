@@ -205,7 +205,7 @@ public class TrustedReferenceController {
 
             return ResponseEntity.ok(trustedReferenceDto);
         } catch (TrustedReferenceService.TrustedReferenceServiceException e) {
-            log.warn("Get of TrustedRefernece failed: {}, {}", e.getReason(), e.getMessage());
+            log.warn("Get of TrustedReference failed: {}, {}", e.getReason(), e.getMessage());
             if (e.getReason() == TrustedReferenceService.TrustedReferenceServiceException.Reason.NOT_FOUND) {
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000",
                         "Requested Entity could not be found", "", e.getMessage());
