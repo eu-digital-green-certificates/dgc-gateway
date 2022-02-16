@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedReferenceEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedReferenceRepository;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDeleteRequestDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
@@ -108,6 +109,37 @@ public class TrustedReferenceService {
         return trustedReferenceEntity;
     }
 
+    /**
+     * Delete a Trusted Reference.
+     */
+    public void deleteTrustedReference(
+            String uuidJson,
+            X509CertificateHolder signerCertificate,
+            String authenticatedCountryCode
+    ) throws TrustedReferenceServiceException {
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        TrustedReferenceDeleteRequestDto parsedDeleteRequest =
+                contentCheckValidJson(uuidJson, TrustedReferenceDeleteRequestDto.class);
+
+        final String uuid = parsedDeleteRequest.getUuid();
+        TrustedReferenceEntity trustedReferenceEntity = trustedReferenceRepository.getByUuid(uuid).orElseThrow(
+            () -> new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
+                "Trusted Reference does not exist.")
+        );
+
+        log.info("Deleting Trusted Reference with uuid {} and id {}from DB", uuid, trustedReferenceEntity.getId());
+        int deleted = trustedReferenceRepository.deleteByUuid(uuid);
+
+        if (deleted == 1) {
+            log.info("Deleted Trusted Reference with uuid {}", uuid);
+        } else {
+            log.warn("Could not delete Trusted Reference with uuid {}", uuid);
+        }
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+    }
+
     private <T> T contentCheckValidJson(String json, Class<T> clazz) throws TrustedReferenceServiceException {
 
         try {
@@ -124,7 +156,7 @@ public class TrustedReferenceService {
      *
      * @param signerCertificate        Upload Certificate
      * @param authenticatedCountryCode Country Code.
-     * @throws RevocationListService.RevocationBatchServiceException if Validation fails.
+     * @throws TrustedReferenceServiceException if Validation fails.
      */
     public void contentCheckUploaderCertificate(
             X509CertificateHolder signerCertificate,
