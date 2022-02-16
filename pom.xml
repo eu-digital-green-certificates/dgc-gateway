@@ -342,7 +342,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${project.parent.version}</version>
                 <configuration>
-                    <profiles>dev</profiles>
+                    <profiles>dev,log2console</profiles>
                     <wait>5000</wait>
                     <maxAttempts>30</maxAttempts>
                 </configuration>
