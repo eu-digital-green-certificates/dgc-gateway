@@ -22,6 +22,7 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,8 +35,12 @@ import org.hibernate.validator.constraints.Length;
 @AllArgsConstructor
 public class TrustedReferenceDto {
 
+    @Schema(description = "Unique Identifier of the Trusted Reference", format = "UUID")
+    @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
     private String uuid;
 
+    @Schema(description = "Version of the Trusted Reference")
+    @NotNull
     private String version;
 
     @Schema(description = "ISO 3166 2-Digit Country Code")
@@ -43,19 +48,42 @@ public class TrustedReferenceDto {
     @NotNull
     private String country;
 
+    @Schema(description = "Type of the Trusted Reference (DCC,FHIR)")
+    @NotNull
     private ReferenceTypeDto type;
 
+    @Schema(description = "Service of the Trusted Reference")
+    @NotNull
+    @Length(min = 1, max = 1024)
     private String service;
 
+    @Schema(description = "SHA256 Hash of the Trusted Reference")
+    @NotNull
+    @Length(min = 1, max = 64)
     private String thumbprint;
 
+    @Schema(description = "Name of the Service")
+    @NotNull
+    @Length(min = 1, max = 512)
     private String name;
 
+    @Schema(description = "SSL Certificate of the endpoint")
+    @NotNull
+    @Length(min = 1, max = 2048)
     private String sslPublicKey;
 
+    @Schema(description = "MIME Type of Content")
+    @NotNull
+    @Length(min = 1, max = 512)
     private String contentType;
 
+    @Schema(description = "Signature type (NONE|JWS|CMS)")
+    @NotNull
     private SignatureTypeDto signatureType;
+
+    @Schema(description = "Any version String of the trusted reference")
+    @NotNull
+    private String referenceVersion;
 
     public enum ReferenceTypeDto {
         DCC,

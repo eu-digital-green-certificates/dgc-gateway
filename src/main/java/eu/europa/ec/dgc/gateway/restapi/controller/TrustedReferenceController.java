@@ -93,18 +93,18 @@ public class TrustedReferenceController {
             }
     )
     public ResponseEntity<Void> uploadTrustedReference(
-            @RequestBody SignedStringDto batch,
+            @RequestBody SignedStringDto trustedReference,
             @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
 
-        if (!batch.isVerified()) {
+        if (!trustedReference.isVerified()) {
             throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
                     "Submitted string needs to be signed by a valid upload certificate");
         }
 
         try {
             trustedReferenceService.addTrustedReference(
-                    batch.getPayloadString(),
-                    batch.getSignerCertificate(),
+                    trustedReference.getPayloadString(),
+                    trustedReference.getSignerCertificate(),
                     countryCode
             );
         } catch (TrustedReferenceService.TrustedReferenceServiceException e) {
@@ -120,10 +120,14 @@ public class TrustedReferenceController {
                 case INVALID_COUNTRY:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
                             e.getMessage());
+                case NOT_FOUND:
+                    throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Trusted Reference does not exists.",
+                            "", e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
-                            batch.getSignerCertificate().getSubject().toString(), "Certificate used to sign the batch "
-                            + "is not a valid/ allowed upload certificate for your country.");
+                            trustedReference.getSignerCertificate().getSubject().toString(),
+                            "Certificate used to sign the Trusted Reference is not a valid/ allowed upload certificate "
+                                    + "for your country.");
                 default:
                     throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
                             "", "");
@@ -261,12 +265,12 @@ public class TrustedReferenceController {
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
                             e.getMessage());
                 case NOT_FOUND:
-                    throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Batch does not exists.", "",
-                            e.getMessage());
+                    throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Trusted Reference does not exists.",
+                            "", e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
                             trustedReferenceDeleteRequest.getSignerCertificate().getSubject().toString(),
-                            "Certificate used to sign the batch is not a valid/ allowed"
+                            "Certificate used to sign the Trusted Reference is not a valid/ allowed"
                                     + " upload certificate for your country.");
                 default:
                     throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",

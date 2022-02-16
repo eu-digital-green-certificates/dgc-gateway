@@ -30,13 +30,18 @@ import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDeleteRequestDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 
 
 @Slf4j
@@ -45,12 +50,10 @@ import org.springframework.stereotype.Service;
 public class TrustedReferenceService {
 
     private final TrustedReferenceRepository trustedReferenceRepository;
-
     private final CertificateUtils certificateUtils;
-
     private final TrustedPartyService trustedPartyService;
-
     private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
 
@@ -88,8 +91,10 @@ public class TrustedReferenceService {
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         TrustedReferenceDto parsedTrustedEntity =
                 contentCheckValidJson(uploadedTrustedReference, TrustedReferenceDto.class);
+        contentCheckValidValues(parsedTrustedEntity);
 
-        TrustedReferenceEntity trustedReferenceEntity = new TrustedReferenceEntity();
+        TrustedReferenceEntity trustedReferenceEntity = getOrCreateTrustedReferenceEntity(parsedTrustedEntity);
+
         trustedReferenceEntity.setCountry(parsedTrustedEntity.getCountry());
         trustedReferenceEntity.setType(
                 TrustedReferenceEntity.ReferenceType.valueOf(parsedTrustedEntity.getType().name()));
@@ -99,8 +104,9 @@ public class TrustedReferenceService {
                 TrustedReferenceEntity.SignatureType.valueOf(parsedTrustedEntity.getSignatureType().name()));
         trustedReferenceEntity.setThumbprint(parsedTrustedEntity.getThumbprint());
         trustedReferenceEntity.setSslPublicKey(parsedTrustedEntity.getSslPublicKey());
+        trustedReferenceEntity.setReferenceVersion(parsedTrustedEntity.getReferenceVersion());
 
-        log.info("Saving new Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
+        log.info("Saving Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
 
         trustedReferenceEntity = trustedReferenceRepository.save(trustedReferenceEntity);
 
@@ -140,6 +146,23 @@ public class TrustedReferenceService {
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
     }
 
+    private TrustedReferenceEntity getOrCreateTrustedReferenceEntity(TrustedReferenceDto parsedTrustedEntity)
+            throws TrustedReferenceServiceException {
+        TrustedReferenceEntity trustedReferenceEntity;
+        final String uuidRequest = parsedTrustedEntity.getUuid();
+        if (StringUtils.isNotEmpty(uuidRequest)) {
+            log.info("Updating Trusted Reference with uuid {}", uuidRequest);
+            trustedReferenceEntity  = trustedReferenceRepository.getByUuid(parsedTrustedEntity.getUuid())
+                    .orElseThrow(() ->
+                            new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
+                                    "Trusted Reference to be updated not found."));
+        } else {
+            trustedReferenceEntity = new TrustedReferenceEntity();
+            log.info("Creating new Trusted Reference with uuid {}", trustedReferenceEntity.getUuid());
+        }
+        return trustedReferenceEntity;
+    }
+
     private <T> T contentCheckValidJson(String json, Class<T> clazz) throws TrustedReferenceServiceException {
 
         try {
@@ -148,6 +171,26 @@ public class TrustedReferenceService {
         } catch (JsonProcessingException e) {
             throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_JSON,
                     "JSON could not be parsed");
+        }
+    }
+
+    private void contentCheckValidValues(TrustedReferenceDto parsedTrustedReference)
+            throws TrustedReferenceServiceException {
+
+        ArrayList<String> errorMessages = new ArrayList<>();
+
+        Errors errors = new BeanPropertyBindingResult(parsedTrustedReference, TrustedReferenceDto.class.getName());
+        validator.validate(parsedTrustedReference, errors);
+
+        if (errors.hasErrors()) {
+            errors.getFieldErrors()
+                    .forEach(error -> errorMessages.add(error.getField() + ": " + error.getDefaultMessage()));
+        }
+
+        if (!errorMessages.isEmpty()) {
+            throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_JSON_VALUES,
+                    String.join(", ", errorMessages)
+            );
         }
     }
 

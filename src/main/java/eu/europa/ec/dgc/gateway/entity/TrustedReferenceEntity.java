@@ -101,6 +101,12 @@ public class TrustedReferenceEntity extends FederatedEntity {
     @Enumerated(EnumType.STRING)
     private SignatureType signatureType;
 
+    /**
+     * Version String.
+     */
+    @Column(name = "reference_version", nullable = false, length = 256)
+    private String referenceVersion;
+
     public enum ReferenceType {
         DCC,
         FHIR
