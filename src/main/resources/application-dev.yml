@@ -11,6 +11,11 @@ springdoc:
     path: /swagger
 dgc:
   trustAnchor:
-    keyStorePath: classpath:keystore/dgc-ta.jks
+    keyStorePath: classpath:ta_tst.jks
+    keyStorePass: dgcg-p4ssw0rd
+    certificateAlias: ta_tst
   federation:
     keystorePath: classpath:federation-keystore.p12
+    keystorePassword: changeit
+    keystoreKeyPassword: changeit
+
