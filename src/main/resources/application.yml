@@ -11,7 +11,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
   liquibase:
     enabled: true
     change-log: classpath:db/changelog.xml

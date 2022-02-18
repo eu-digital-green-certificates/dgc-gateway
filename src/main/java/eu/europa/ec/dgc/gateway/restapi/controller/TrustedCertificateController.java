@@ -348,13 +348,6 @@ public class TrustedCertificateController {
         },
         summary = "Downloads Trusted Certificate",
         tags = {"Trusted Certificate"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            required = true,
-            description = "Request body with payload.",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = @Schema(implementation = TrustedCertificateDto.class))
-        ),
         responses = {
             @ApiResponse(
                 responseCode = "200",

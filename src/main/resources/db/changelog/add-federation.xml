@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="add-federation-gateway" author="A34636994 (generated)">
+        <createTable tableName="federation_gateway">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="timestamp" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="download_interval" type="BIGINT"/>
+            <column name="download_target" type="VARCHAR(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="downloader_implementation" type="VARCHAR(50)"/>
+            <column name="gateway_endpoint" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gateway_id" type="VARCHAR(36)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="gateway_kid" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gateway_public_key" type="VARCHAR(200)"/>
+            <column name="last_download" type="datetime"/>
+            <column name="last_successful_download" type="datetime"/>
+            <column name="mode" type="VARCHAR(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retry_count" type="BIGINT"/>
+            <column name="signature" type="VARCHAR(6000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status_message" type="VARCHAR(500)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="add-trusted-issuer" author="A34636994 (generated)">
+        <createTable tableName="trusted_issuer">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column defaultValue="DCC" name="domain" type="VARCHAR(10)"/>
+            <column name="uuid" type="VARCHAR(36)">
+                <constraints unique="true"/>
+            </column>
+            <column defaultValueNumeric="1" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_storage_type" type="VARCHAR(128)"/>
+            <column name="name" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature" type="VARCHAR(6000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ssl_public_key" type="VARCHAR(2048)"/>
+            <column name="thumbprint" type="VARCHAR(64)"/>
+            <column name="url" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url_type" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_gateway_id" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex indexName="FK595orxmuxrhxvokxt45u7ykc6" tableName="trusted_issuer">
+            <column name="source_gateway_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="source_gateway_id" baseTableName="trusted_issuer"
+                                 constraintName="FK595orxmuxrhxvokxt45u7ykc6" onDelete="RESTRICT" onUpdate="RESTRICT"
+                                 referencedColumnNames="gateway_id" referencedTableName="federation_gateway"/>
+    </changeSet>
+    <changeSet id="add-trusted-reference" author="A34636994 (generated)">
+        <createTable tableName="trusted_reference">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column defaultValue="DCC" name="domain" type="VARCHAR(10)"/>
+            <column name="uuid" type="VARCHAR(36)">
+                <constraints unique="true"/>
+            </column>
+            <column defaultValueNumeric="1" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reference_version" type="VARCHAR(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="service" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature_type" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ssl_public_key" type="VARCHAR(2048)"/>
+            <column name="thumbprint" type="VARCHAR(64)"/>
+            <column name="reference_type" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_gateway_id" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createIndex indexName="FKcgxpic2j8e7wmwtylbns42yo4" tableName="trusted_reference">
+            <column name="source_gateway_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="source_gateway_id" baseTableName="trusted_reference"
+                                 constraintName="FKcgxpic2j8e7wmwtylbns42yo4" onDelete="RESTRICT" onUpdate="RESTRICT"
+                                 referencedColumnNames="gateway_id" referencedTableName="federation_gateway"/>
+    </changeSet>
+    <changeSet id="add-fed-to-signer-information" author="A34636994 (generated)">
+        <addColumn tableName="signer_information">
+            <column defaultValue="DCC" name="domain" type="VARCHAR(10 BYTE)"/>
+            <column name="uuid" type="VARCHAR(36 BYTE)"/>
+            <column defaultValueNumeric="1" name="version" type="INT(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kid" type="VARCHAR(20 BYTE)"/>
+            <column name="properties" type="VARCHAR(2000 BYTE)"/>
+            <column name="source_gateway_id" type="VARCHAR(36 BYTE)"/>
+        </addColumn>
+
+        <addUniqueConstraint columnNames="uuid" constraintName="UK_dkiieky9nvg714nn3kj1fpgpn"
+                             tableName="signer_information"/>
+
+        <addUniqueConstraint columnNames="kid" constraintName="UK_ql47ita1s6v80p60627xmlkga"
+                             tableName="signer_information"/>
+
+        <createIndex indexName="FKab9ogbpyd4bhtidg0tepy18lm" tableName="signer_information">
+            <column name="source_gateway_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="source_gateway_id" baseTableName="signer_information"
+                                 constraintName="FKab9ogbpyd4bhtidg0tepy18lm" onDelete="RESTRICT" onUpdate="RESTRICT"
+                                 referencedColumnNames="gateway_id" referencedTableName="federation_gateway"/>
+    </changeSet>
+    <changeSet id="add-fed-to-trusted-party" author="A34636994 (generated)">
+        <addColumn tableName="trusted_party">
+            <column defaultValue="DCC" name="domain" type="VARCHAR(10 BYTE)"/>
+            <column name="uuid" type="VARCHAR(36 BYTE)"/>
+            <column defaultValueNumeric="1" name="version" type="INT(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kid" type="VARCHAR(20 BYTE)"/>
+            <column name="source_gateway_id" type="VARCHAR(36 BYTE)"/>
+            <column name="assigned_gateway" type="VARCHAR(36 BYTE)"/>
+        </addColumn>
+
+        <addUniqueConstraint columnNames="kid" constraintName="UK_b8ovwx0mdpsj50cl9oln8jdve" tableName="trusted_party"/>
+
+        <addUniqueConstraint columnNames="uuid" constraintName="UK_k59nbvrmqgbyvo3q1rmnudewb"
+                             tableName="trusted_party"/>
+
+        <createIndex indexName="FKgwfi9msn2kybkbpxrymhf3wms" tableName="trusted_party">
+            <column name="source_gateway_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="source_gateway_id" baseTableName="trusted_party"
+                                 constraintName="FKgwfi9msn2kybkbpxrymhf3wms" onDelete="RESTRICT" onUpdate="RESTRICT"
+                                 referencedColumnNames="gateway_id" referencedTableName="federation_gateway"/>
+
+        <createIndex indexName="FKpawxkdbqxyxl51qw2a2l8wd2c" tableName="trusted_party">
+            <column name="assigned_gateway"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="assigned_gateway" baseTableName="trusted_party"
+                                 constraintName="FKpawxkdbqxyxl51qw2a2l8wd2c" onDelete="RESTRICT" onUpdate="RESTRICT"
+                                 referencedColumnNames="gateway_id" referencedTableName="federation_gateway"/>
+    </changeSet>
+
+</databaseChangeLog>
