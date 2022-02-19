@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+  labels:
+    app: ddcc-gateway
+  name: ddcc-gateway-pv-claim
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: manual
+  volumeMode: Filesystem
+  volumeName: ddcc-gateway-pv-volume
