@@ -137,7 +137,7 @@
         <addColumn tableName="signer_information">
             <column defaultValue="DCC" name="domain" type="VARCHAR(10 BYTE)"/>
             <column name="uuid" type="VARCHAR(36 BYTE)"/>
-            <column defaultValueNumeric="1" name="version" type="INT(10)">
+            <column defaultValueNumeric="1" name="version" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="kid" type="VARCHAR(20 BYTE)"/>
@@ -163,7 +163,7 @@
         <addColumn tableName="trusted_party">
             <column defaultValue="DCC" name="domain" type="VARCHAR(10 BYTE)"/>
             <column name="uuid" type="VARCHAR(36 BYTE)"/>
-            <column defaultValueNumeric="1" name="version" type="INT(10)">
+            <column defaultValueNumeric="1" name="version" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="kid" type="VARCHAR(20 BYTE)"/>
