@@ -45,6 +45,6 @@ public abstract class FederatedEntity {
     String domain;
 
     @Column(name = "version", columnDefinition = "int default 1", nullable = false)
-    private Long version = 1L;
+    private Integer version = 1;
 
 }

@@ -24,12 +24,15 @@ import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustedIssuerDto;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 
 @Mapper(componentModel = "spring")
 public interface GwTrustedIssuerMapper {
 
+    @Mapping(source = "createdAt", target = "timestamp")
     TrustedIssuerDto trustedIssuerEntityToTrustedIssuerDto(TrustedIssuerEntity trustedIssuer);
 
+    @Mapping(source = "timestamp", target = "createdAt")
     List<TrustedIssuerDto> trustedIssuerEntityToTrustedIssuerDto(List<TrustedIssuerEntity> trustedIssuer);
 }
