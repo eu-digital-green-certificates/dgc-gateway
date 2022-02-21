@@ -105,6 +105,7 @@ public class TrustedReferenceService {
         trustedReferenceEntity.setThumbprint(parsedTrustedEntity.getThumbprint());
         trustedReferenceEntity.setSslPublicKey(parsedTrustedEntity.getSslPublicKey());
         trustedReferenceEntity.setReferenceVersion(parsedTrustedEntity.getReferenceVersion());
+        trustedReferenceEntity.setContentType(parsedTrustedEntity.getContentType());
 
         log.info("Saving Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
 
