@@ -20,7 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.restapi.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
@@ -52,7 +51,7 @@ public abstract class SignerInformationMapper {
         try {
             return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {
             });
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             log.error("Failed To Map TrustedCertificate Entity to DTO.");
             return Collections.emptyMap();
         }
