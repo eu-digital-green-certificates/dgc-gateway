@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.service;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
+import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -137,6 +139,56 @@ public class SignerInformationService {
         return newSignerInformation;
     }
 
+
+    /**
+     * Update a CMS package.
+     *
+     * @param id                        The entity to update
+     * @param uploadedCertificate      the certificate to add
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param signature                the detached signature of cms message
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @throws SignerCertCheckException if validation check has failed. The exception contains
+     *                                  a reason property with detailed information why the validation has failed.
+     */
+    public SignerInformationEntity updateSignerCertificate(
+            Long id,
+            X509CertificateHolder uploadedCertificate,
+            X509CertificateHolder signerCertificate,
+            String signature,
+            String authenticatedCountryCode
+    ) throws SignerCertCheckException {
+
+        final SignerInformationEntity signerInformationEntity = signerInformationRepository.findById(id).orElseThrow(
+            () -> new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
+                "Uploaded certificate does not exists"));
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
+
+        byte[] certRawData;
+        try {
+            certRawData = uploadedCertificate.getEncoded();
+        } catch (IOException e) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+        }
+
+        signerInformationEntity.setRawData(Base64.getEncoder().encodeToString(certRawData));
+        signerInformationEntity.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        signerInformationEntity.setCertificateType(SignerInformationEntity.CertificateType.DSC);
+        signerInformationEntity.setSignature(signature);
+
+        log.info("Updating SignerInformation Entity");
+
+        SignerInformationEntity updatedEntity = signerInformationRepository.save(signerInformationEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
+
+        return updatedEntity;
+    }
+
     /**
      * Deletes a Trusted Signer Certificate from TrustStore DB.
      *
@@ -162,6 +214,20 @@ public class SignerInformationService {
         signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
 
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+    }
+
+    /**
+     * Get CMS packages for country.
+     *
+     * @param country The country
+     * @return A list of all CMS Packages.
+     */
+    public List<CmsPackageDto> getCmsPackage(String country) {
+        return signerInformationRepository
+                .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
+                .stream()
+                .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
+                .collect(Collectors.toList());
     }
 
     private void contentCheckUploaderCertificate(
