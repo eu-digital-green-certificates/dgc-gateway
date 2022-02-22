@@ -83,6 +83,42 @@ public class TrustedPartyService {
     }
 
     /**
+     * Method to query the db for trusted parties matching given criteria.
+     *
+     * @return List of TrustedPartyEntity
+     */
+    public List<TrustedPartyEntity> getTrustedParties(
+        List<String> groups, List<String> country, List<String> domain, boolean withFederation) {
+
+        final List<TrustedPartyEntity.CertificateType> types = new ArrayList<>();
+        if (groups != null) {
+            groups.forEach(group -> {
+                if (TrustedPartyEntity.CertificateType.stringValues().contains(group)) {
+                    types.add(TrustedPartyEntity.CertificateType.valueOf(group));
+                }
+            });
+        }
+
+        if (withFederation) {
+            return trustedPartyRepository.search(
+                    types, types.isEmpty(),
+                    country, country == null || country.isEmpty(),
+                    domain, domain == null || domain.isEmpty())
+                .stream()
+                .filter(this::validateCertificateIntegrity)
+                .collect(Collectors.toList());
+        } else {
+            return trustedPartyRepository.searchNonFederated(
+                    types, types.isEmpty(),
+                    country, country == null || country.isEmpty(),
+                    domain, domain == null || domain.isEmpty())
+                .stream()
+                .filter(this::validateCertificateIntegrity)
+                .collect(Collectors.toList());
+        }
+    }
+
+    /**
      * Method to query the db for certificates.
      *
      * @param country country of certificate.

@@ -70,7 +70,7 @@ public class TrustedIssuerEntity extends FederatedEntity {
     private String name;
 
     /**
-     * Type of the certificate (Authentication, Upload, CSCA).
+     * Type of the URL (HTTP, DID).
      */
     @Column(name = "url_type", nullable = false, length = 25)
     @Enumerated(EnumType.STRING)

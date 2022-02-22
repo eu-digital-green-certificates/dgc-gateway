@@ -35,7 +35,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -135,41 +134,6 @@ public class TrustedReferenceController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    /**
-     * Get a lsit of all trusted references.
-     */
-    @CertificateAuthenticationRequired
-    @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-            },
-            tags = {"Trusted Reference"},
-            summary = "Get a list of trusted references",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Response contains the trusted references list.",
-                            content = @Content(schema = @Schema(implementation = TrustedReferenceDto.class))),
-                    @ApiResponse(
-                            responseCode = "204",
-                            description = "No Content if no data is available.")
-            }
-    )
-    public ResponseEntity<List<TrustedReferenceDto>> getTrustedReferences() {
-
-        List<TrustedReferenceDto> trustedReferenceDtoList =
-                trustedReferenceMapper.trustedReferenceEntityToTrustedReferenceDto(
-                        trustedReferenceService.getAllReferences());
-
-        if (trustedReferenceDtoList.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.ok(trustedReferenceDtoList);
-        }
     }
 
     /**

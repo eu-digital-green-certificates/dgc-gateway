@@ -18,42 +18,38 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.restapi.dto;
+package eu.europa.ec.dgc.gateway.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Schema(
-    name = "TrustList",
-    type = "object"
-)
-@Getter
-@Setter
-public class TrustListDto extends FederatedDto {
+@Data
+@AllArgsConstructor
+public class TrustedCertificateTrustList {
 
-    @Schema(example = "qroU+hDDovs=")
     private String kid;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     private ZonedDateTime timestamp;
 
-    @Schema(example = "EU")
     private String country;
 
-    private CertificateTypeDto certificateType;
+    private String group;
 
-    @Schema(example = "aaba14fa10c3a2fb441a28af0ec1bb4128153b9ddc796b66bfa04b02ea3e103e")
     private String thumbprint;
 
-    @Schema(example = "o53CbAa77LyIMFc5Gz+B2Jc275Gdg/SdLayw7gx0GrTcinR95zfTLr8nNHgJMYlX3rD8Y11zB/Osyt0 ..."
-        + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
+    private String certificate;
+
     private String signature;
 
-    @Schema(example = "MIICyDCCAbCgAwIBAgIGAXR3DZUUMA0GCSqGSIb3DQEBBQUAMBwxCzAJB ..."
-        + " Jpux30QRhsNZwkmEYSbRv+vp5/obgH1mL5ouoV5I=")
-    private String rawData;
+    private String properties;
+
+    private String sourceGateway;
+
+    private String uuid;
+
+    private String domain;
+
+    private Integer version;
 
 }

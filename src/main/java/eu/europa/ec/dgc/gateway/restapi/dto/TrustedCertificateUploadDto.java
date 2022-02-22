@@ -20,33 +20,34 @@
 
 package eu.europa.ec.dgc.gateway.restapi.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+@Schema(
+    name = "Trusted Certificate Upload Request"
+)
 @Getter
-@Setter
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
-public class FederatedDto {
+@NoArgsConstructor
+public class TrustedCertificateUploadDto {
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @Schema(description = "Gateway ID of the source gateway this entry origins from.")
-    private String sourceGateway;
+    @Schema(description = "Base64 encoded CMS with trusted certificate", required = true)
+    @NotEmpty
+    String cms;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @Schema(description = "Globally Unique identifier for this entity.")
-    private String uuid;
+    @Schema(description = "Custom KID. If not provided the first 8 byte of certificate thumbprint will be used.")
+    String kid;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @Schema(description = "Domains this entry belongs to.")
-    private String domain;
+    String group;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @Schema(description = "Version of this entity.")
-    private Long version;
+    String domain;
 
+    @Schema(description = "Additional properties which should be stored with the certificate.")
+    Map<String, String> properties;
 }

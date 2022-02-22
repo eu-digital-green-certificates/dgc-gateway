@@ -24,6 +24,7 @@ import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.model.TrustList;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
+import eu.europa.ec.dgc.gateway.model.TrustedCertificateTrustList;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.util.Collections;
 import java.util.Comparator;
@@ -99,6 +100,24 @@ public class TrustListService {
         }
     }
 
+    /**
+     * Get a TrustList for TrustedCertificate Feature. List is filtered by given criteria.
+     *
+     * @param groups         List of groups to search for
+     * @param country        List of country codes to search for
+     * @param domain         List of domains to search for.
+     * @param withFederation whether federated data should be included.
+     * @return List of SignerInformation and TrustedParties.
+     */
+    public List<TrustedCertificateTrustList> getTrustedCertificateTrustList(
+        List<String> groups, List<String> country, List<String> domain, boolean withFederation
+    ) {
+        return mergeAndConvertTrustedCertificate(
+            trustedPartyService.getTrustedParties(groups, country, domain, withFederation),
+            signerInformationService.getSignerInformation(groups, country, domain, withFederation)
+        );
+    }
+
     private List<TrustList> mergeAndConvert(
         List<TrustedPartyEntity> trustedPartyList,
         List<SignerInformationEntity> signerInformationList) {
@@ -111,9 +130,57 @@ public class TrustListService {
             .collect(Collectors.toList());
     }
 
+    private List<TrustedCertificateTrustList> mergeAndConvertTrustedCertificate(
+        List<TrustedPartyEntity> trustedPartyList,
+        List<SignerInformationEntity> signerInformationList) {
+
+        return Stream.concat(
+                trustedPartyList.stream().map(this::convertTrustedCertificate),
+                signerInformationList.stream().map(this::convertTrustedCertificate)
+            )
+            .sorted(Comparator.comparing(TrustedCertificateTrustList::getKid))
+            .collect(Collectors.toList());
+    }
+
+    private TrustedCertificateTrustList convertTrustedCertificate(TrustedPartyEntity trustedPartyEntity) {
+        return new TrustedCertificateTrustList(
+            getKid(trustedPartyEntity),
+            trustedPartyEntity.getCreatedAt(),
+            trustedPartyEntity.getCountry(),
+            trustedPartyEntity.getCertificateType().toString(),
+            trustedPartyEntity.getThumbprint(),
+            trustedPartyEntity.getRawData(),
+            trustedPartyEntity.getSignature(),
+            null,
+            trustedPartyEntity.getSourceGateway() != null
+                ? trustedPartyEntity.getSourceGateway().getGatewayId() : null,
+            trustedPartyEntity.getUuid(),
+            trustedPartyEntity.getDomain(),
+            trustedPartyEntity.getVersion()
+        );
+    }
+
+    private TrustedCertificateTrustList convertTrustedCertificate(SignerInformationEntity signerInformationEntity) {
+        return new TrustedCertificateTrustList(
+            getKid(signerInformationEntity),
+            signerInformationEntity.getCreatedAt(),
+            signerInformationEntity.getCountry(),
+            signerInformationEntity.getCertificateType().toString(),
+            signerInformationEntity.getThumbprint(),
+            signerInformationEntity.getRawData(),
+            signerInformationEntity.getSignature(),
+            signerInformationEntity.getProperties(),
+            signerInformationEntity.getSourceGateway() != null
+                ? signerInformationEntity.getSourceGateway().getGatewayId() : null,
+            signerInformationEntity.getUuid(),
+            signerInformationEntity.getDomain(),
+            signerInformationEntity.getVersion()
+        );
+    }
+
     private TrustList convert(TrustedPartyEntity trustedPartyEntity) {
         return new TrustList(
-            certificateUtils.getCertKid(trustedPartyService.getX509CertificateFromEntity(trustedPartyEntity)),
+            getKid(trustedPartyEntity),
             trustedPartyEntity.getCreatedAt(),
             trustedPartyEntity.getCountry(),
             map(trustedPartyEntity.getCertificateType()),
@@ -125,7 +192,7 @@ public class TrustListService {
 
     private TrustList convert(SignerInformationEntity signerInformationEntity) {
         return new TrustList(
-            certificateUtils.getCertKid(signerInformationService.getX509CertificateFromEntity(signerInformationEntity)),
+            getKid(signerInformationEntity),
             signerInformationEntity.getCreatedAt(),
             signerInformationEntity.getCountry(),
             map(signerInformationEntity.getCertificateType()),
@@ -133,6 +200,20 @@ public class TrustListService {
             signerInformationEntity.getSignature(),
             signerInformationEntity.getRawData()
         );
+    }
+
+    private String getKid(SignerInformationEntity signerInformationEntity) {
+        return signerInformationEntity.getKid() == null
+            ? certificateUtils.getCertKid(
+            signerInformationService.getX509CertificateFromEntity(signerInformationEntity))
+            : signerInformationEntity.getKid();
+    }
+
+    private String getKid(TrustedPartyEntity trustedPartyEntity) {
+        return trustedPartyEntity.getKid() == null
+            ? certificateUtils.getCertKid(
+            trustedPartyService.getX509CertificateFromEntity(trustedPartyEntity))
+            : trustedPartyEntity.getKid();
     }
 
     private TrustedPartyEntity.CertificateType map(TrustListType type) {

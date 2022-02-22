@@ -39,4 +39,35 @@ public interface TrustedReferenceRepository extends JpaRepository<TrustedReferen
 
     List<TrustedReferenceEntity> getAllByCountry(String country);
 
+    @Query("SELECT t FROM TrustedReferenceEntity t WHERE "
+        + "(:ignoreCountry = true OR t.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR t.domain IN (:domain)) AND "
+        + "(:ignoreType = true OR t.type IN(:type)) AND "
+        + "(:ignoreSignatureType = true OR t.signatureType IN(:signatureType)) AND "
+        + "t.sourceGateway.gatewayId IS NULL")
+    List<TrustedReferenceEntity> searchNonFederated(
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain,
+        @Param("type") List<TrustedReferenceEntity.ReferenceType> type,
+        @Param("ignoreType") boolean ignoreType,
+        @Param("signatureType") List<TrustedReferenceEntity.SignatureType> signatureType,
+        @Param("ignoreSignatureType") boolean ignoreSignatureType);
+
+    @Query("SELECT t FROM TrustedReferenceEntity t WHERE "
+        + "(:ignoreCountry = true OR t.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR t.domain IN (:domain)) AND "
+        + "(:ignoreType = true OR t.type IN(:type)) AND "
+        + "(:ignoreSignatureType = true OR t.signatureType IN(:signatureType))")
+    List<TrustedReferenceEntity> search(
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain,
+        @Param("type") List<TrustedReferenceEntity.ReferenceType> type,
+        @Param("ignoreType") boolean ignoreType,
+        @Param("signatureType") List<TrustedReferenceEntity.SignatureType> signatureType,
+        @Param("ignoreSignatureType") boolean ignoreSignatureType);
+
 }

@@ -36,7 +36,20 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
         + "(:ignoreGroup = true OR s.certificateType IN (:group)) AND "
         + "(:ignoreCountry = true OR s.country IN (:country)) AND "
         + "(:ignoreDomain = true OR s.domain IN (:domain))")
-    List<SignerInformationEntity> searchForNonFederated(
+    List<SignerInformationEntity> search(
+        @Param("group") List<SignerInformationEntity.CertificateType> group,
+        @Param("ignoreGroup") boolean ignoreGroup,
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
+
+    @Query("SELECT s FROM SignerInformationEntity s WHERE "
+        + "(:ignoreGroup = true OR s.certificateType IN (:group)) AND "
+        + "(:ignoreCountry = true OR s.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR s.domain IN (:domain)) AND "
+        + "s.sourceGateway.gatewayId IS NULL")
+    List<SignerInformationEntity> searchNonFederated(
         @Param("group") List<SignerInformationEntity.CertificateType> group,
         @Param("ignoreGroup") boolean ignoreGroup,
         @Param("country") List<String> country,

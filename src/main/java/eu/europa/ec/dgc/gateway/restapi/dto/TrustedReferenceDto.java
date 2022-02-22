@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 
-@Schema(description = "Trusted refernece representation.")
+@Schema(description = "Trusted reference representation.")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -78,29 +78,6 @@ public class SignerInformationService {
     }
 
     /**
-     * Method to query persistence layer for all stored non federated SignerInformation matching given criteria.
-     *
-     * @return List of SignerInformation
-     */
-    public List<SignerInformationEntity> getNonFederatedSignerInformation(
-        List<String> groups, List<String> country, List<String> domain) {
-
-        final List<SignerInformationEntity.CertificateType> types = new ArrayList<>();
-        if (groups != null) {
-            groups.forEach(group -> {
-                if (SignerInformationEntity.CertificateType.stringValues().contains(group)) {
-                    types.add(SignerInformationEntity.CertificateType.valueOf(group));
-                }
-            });
-        }
-
-        return signerInformationRepository.searchForNonFederated(
-            types, types.isEmpty(),
-            country, country == null || country.isEmpty(),
-            domain, domain == null || domain.isEmpty());
-    }
-
-    /**
      * Method to query persistence layer for SignerInformation filtered by Type.
      *
      * @param type type to filter for
@@ -122,6 +99,36 @@ public class SignerInformationService {
         String countryCode,
         SignerInformationEntity.CertificateType type) {
         return signerInformationRepository.getByCertificateTypeAndCountryAndSourceGatewayIsNull(type, countryCode);
+    }
+
+    /**
+     * Method to query persistence layer for all stored non federated SignerInformation matching given criteria.
+     *
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(
+        List<String> groups, List<String> country, List<String> domain, boolean withFederation) {
+
+        final List<SignerInformationEntity.CertificateType> types = new ArrayList<>();
+        if (groups != null) {
+            groups.forEach(group -> {
+                if (SignerInformationEntity.CertificateType.stringValues().contains(group)) {
+                    types.add(SignerInformationEntity.CertificateType.valueOf(group));
+                }
+            });
+        }
+
+        if (withFederation) {
+            return signerInformationRepository.search(
+                types, types.isEmpty(),
+                country, country == null || country.isEmpty(),
+                domain, domain == null || domain.isEmpty());
+        } else {
+            return signerInformationRepository.searchNonFederated(
+                types, types.isEmpty(),
+                country, country == null || country.isEmpty(),
+                domain, domain == null || domain.isEmpty());
+        }
     }
 
     /**
@@ -177,7 +184,7 @@ public class SignerInformationService {
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
         newSignerInformation.setKid(kid);
-        newSignerInformation.setDomain(domain);
+        newSignerInformation.setDomain(domain == null ? "DCC" : domain);
         if (group != null) {
             newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.valueOf(group));
         }

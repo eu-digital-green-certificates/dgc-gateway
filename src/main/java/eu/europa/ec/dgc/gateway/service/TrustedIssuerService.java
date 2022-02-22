@@ -65,9 +65,9 @@ public class TrustedIssuerService {
      */
     public List<TrustedIssuerEntity> getAllIssuers() {
         return trustedIssuerRepository.findAll()
-                .stream()
-                .filter(this::validateTrustedIssuerIntegrity)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(this::validateTrustedIssuerIntegrity)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -77,9 +77,35 @@ public class TrustedIssuerService {
      */
     public List<TrustedIssuerEntity> getAllIssuers(final String countryCode) {
         return trustedIssuerRepository.getAllByCountry(countryCode)
+            .stream()
+            .filter(this::validateTrustedIssuerIntegrity)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Search for TrustedIssuers by given criteria.
+     *
+     * @param domain         List of possible values for domain
+     * @param country        List of possible values for country
+     * @param withFederation Flag whether to include federated data.
+     * @return Matching Entities
+     */
+    public List<TrustedIssuerEntity> search(List<String> domain, List<String> country, boolean withFederation) {
+        if (withFederation) {
+            return trustedIssuerRepository.search(
+                    country, country == null || country.isEmpty(),
+                    domain, domain == null || domain.isEmpty())
                 .stream()
                 .filter(this::validateTrustedIssuerIntegrity)
                 .collect(Collectors.toList());
+        } else {
+            return trustedIssuerRepository.searchNonFederated(
+                    country, country == null || country.isEmpty(),
+                    domain, domain == null || domain.isEmpty())
+                .stream()
+                .filter(this::validateTrustedIssuerIntegrity)
+                .collect(Collectors.toList());
+        }
     }
 
     private boolean validateTrustedIssuerIntegrity(TrustedIssuerEntity trustedIssuerEntity) {
@@ -96,8 +122,8 @@ public class TrustedIssuerService {
             log.debug("TrustedIssuer is not federated, using TrustAnchor from Keystore");
             try {
                 trustAnchors.add(certificateUtils.convertCertificate(
-                        (X509Certificate) trustAnchorKeyStore.getCertificate(
-                                dgcConfigProperties.getTrustAnchor().getCertificateAlias())));
+                    (X509Certificate) trustAnchorKeyStore.getCertificate(
+                        dgcConfigProperties.getTrustAnchor().getCertificateAlias())));
             } catch (KeyStoreException | CertificateEncodingException | IOException e) {
                 log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
                 return false;
@@ -105,17 +131,17 @@ public class TrustedIssuerService {
         } else {
             log.debug("TrustedIssuer is federated, fetching TrustAnchors from Database.");
             trustedIssuerEntity.getSourceGateway().getTrustedParties().stream()
-                    .filter(gatewayTrustedParty -> gatewayTrustedParty.getCertificateType()
-                            == TrustedPartyEntity.CertificateType.TRUSTANCHOR)
-                    .filter(trustedPartyService::validateCertificateIntegrity)
-                    .map(trustedPartyService::getX509CertificateHolderFromEntity)
-                    .forEach(trustAnchors::add);
+                .filter(gatewayTrustedParty -> gatewayTrustedParty.getCertificateType()
+                    == TrustedPartyEntity.CertificateType.TRUSTANCHOR)
+                .filter(trustedPartyService::validateCertificateIntegrity)
+                .map(trustedPartyService::getX509CertificateHolderFromEntity)
+                .forEach(trustAnchors::add);
         }
 
         // verify signature
         SignedStringMessageParser parser = new SignedStringMessageParser(
-                trustedIssuerEntity.getSignature(),
-                Base64.getEncoder().encodeToString(getHashData(trustedIssuerEntity).getBytes(StandardCharsets.UTF_8)));
+            trustedIssuerEntity.getSignature(),
+            Base64.getEncoder().encodeToString(getHashData(trustedIssuerEntity).getBytes(StandardCharsets.UTF_8)));
 
         if (parser.getParserState() != SignedMessageParser.ParserState.SUCCESS) {
             DgcMdc.put(MDC_PROP_PARSER_STATE, parser.getParserState().name());
@@ -129,10 +155,10 @@ public class TrustedIssuerService {
         }
 
         log.debug("Got {} TrustAnchors for Integrity Check: {}", trustAnchors.size(), trustAnchors.stream()
-                .map(trustAnchor -> trustAnchor.getSubject().toString())
-                .collect(Collectors.joining("; ")));
+            .map(trustAnchor -> trustAnchor.getSubject().toString())
+            .collect(Collectors.joining("; ")));
         boolean trustAnchorMatch = trustAnchors.stream()
-                .anyMatch(trustAnchor -> parser.getSigningCertificate().equals(trustAnchor));
+            .anyMatch(trustAnchor -> parser.getSigningCertificate().equals(trustAnchor));
 
         if (trustAnchorMatch) {
             return true;
@@ -144,9 +170,9 @@ public class TrustedIssuerService {
 
     private String getHashData(TrustedIssuerEntity entity) {
         return entity.getUuid() + HASH_SEPARATOR
-                + entity.getCountry() + HASH_SEPARATOR
-                + entity.getName() + HASH_SEPARATOR
-                + entity.getUrl() + HASH_SEPARATOR
-                + entity.getUrlType().name() + HASH_SEPARATOR;
+            + entity.getCountry() + HASH_SEPARATOR
+            + entity.getName() + HASH_SEPARATOR
+            + entity.getUrl() + HASH_SEPARATOR
+            + entity.getUrlType().name() + HASH_SEPARATOR;
     }
 }

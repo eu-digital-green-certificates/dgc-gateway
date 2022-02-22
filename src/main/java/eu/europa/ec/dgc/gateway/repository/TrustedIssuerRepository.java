@@ -23,9 +23,30 @@ package eu.europa.ec.dgc.gateway.repository;
 import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 public interface TrustedIssuerRepository extends JpaRepository<TrustedIssuerEntity, Long> {
 
     List<TrustedIssuerEntity> getAllByCountry(String country);
+
+    @Query("SELECT t FROM TrustedIssuerEntity t WHERE "
+        + "(:ignoreCountry = true OR t.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR t.domain IN (:domain)) AND "
+        + "t.sourceGateway.gatewayId IS NULL")
+    List<TrustedIssuerEntity> searchNonFederated(
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
+
+    @Query("SELECT t FROM TrustedIssuerEntity t WHERE "
+        + "(:ignoreCountry = true OR t.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR t.domain IN (:domain))")
+    List<TrustedIssuerEntity> search(
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
 }

@@ -21,6 +21,9 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -109,12 +112,30 @@ public class TrustedReferenceEntity extends FederatedEntity {
 
     public enum ReferenceType {
         DCC,
-        FHIR
+        FHIR;
+
+        /**
+         * Return a List of allowed CertificateType as String List.
+         */
+        public static List<String> stringValues() {
+            return Arrays.stream(TrustedReferenceEntity.ReferenceType.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+        }
     }
 
     public enum SignatureType {
         CMS,
         JWS,
-        NONE
+        NONE;
+
+        /**
+         * Return a List of allowed CertificateType as String List.
+         */
+        public static List<String> stringValues() {
+            return Arrays.stream(TrustedReferenceEntity.SignatureType.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+        }
     }
 }

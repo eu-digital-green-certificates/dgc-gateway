@@ -26,6 +26,7 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity, Long> {
 
@@ -44,9 +45,32 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
     @Query("SELECT DISTINCT t.country FROM TrustedPartyEntity t WHERE t.sourceGateway IS NULL")
     List<String> getCountryCodeList();
 
-    List<TrustedPartyEntity> getBySourceGatewayGatewayId(String gatewayId);
-
     @Transactional
     Long deleteBySourceGatewayGatewayId(String gatewayId);
+
+    @Query("SELECT t FROM TrustedPartyEntity t WHERE "
+        + "(:ignoreGroup = true OR t.certificateType IN (:group)) AND "
+        + "(:ignoreCountry = true OR t.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR t.domain IN (:domain)) AND "
+        + "t.sourceGateway.gatewayId IS NULL")
+    List<TrustedPartyEntity> searchNonFederated(
+        @Param("group") List<TrustedPartyEntity.CertificateType> group,
+        @Param("ignoreGroup") boolean ignoreGroup,
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
+
+    @Query("SELECT t FROM TrustedPartyEntity t WHERE "
+        + "(:ignoreGroup = true OR t.certificateType IN (:group)) AND "
+        + "(:ignoreCountry = true OR t.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR t.domain IN (:domain))")
+    List<TrustedPartyEntity> search(
+        @Param("group") List<TrustedPartyEntity.CertificateType> group,
+        @Param("ignoreGroup") boolean ignoreGroup,
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
 
 }

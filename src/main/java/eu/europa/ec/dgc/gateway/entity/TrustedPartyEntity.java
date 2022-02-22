@@ -21,7 +21,9 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -130,7 +132,16 @@ public class TrustedPartyEntity extends FederatedEntity {
         /**
          * Certificate used to offline sign entries in database (NBTA).
          */
-        TRUSTANCHOR
+        TRUSTANCHOR;
+
+        /**
+         * Return a List of allowed CertificateType as String List.
+         */
+        public static List<String> stringValues() {
+            return Arrays.stream(TrustedPartyEntity.CertificateType.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+        }
     }
 
     public enum CertificateRoles {

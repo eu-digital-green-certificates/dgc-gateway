@@ -75,33 +75,80 @@ public class TrustedReferenceService {
     public TrustedReferenceEntity getReference(final String uuid) throws TrustedReferenceServiceException {
         return trustedReferenceRepository.getByUuid(uuid).orElseThrow(
             () -> new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
-                    "Requested TrustedReferencec not available.")
+                "Requested TrustedReference not available.")
         );
+    }
+
+    /**
+     * Search for TrustedReferences by given criteria.
+     *
+     * @param country        List of possible values for country
+     * @param domain         List of possible values for domain
+     * @param types          List of possible values for reference type
+     * @param signatureTypes List of possible values for signatue type
+     * @param withFederation flag whether federated data should be included.
+     * @return List of matching entities.
+     */
+    public List<TrustedReferenceEntity> search(List<String> country, List<String> domain, List<String> types,
+                                               List<String> signatureTypes, boolean withFederation) {
+
+        final List<TrustedReferenceEntity.ReferenceType> parsedTypes = new ArrayList<>();
+        if (types != null) {
+            types.forEach(type -> {
+                if (TrustedReferenceEntity.ReferenceType.stringValues().contains(type)) {
+                    parsedTypes.add(TrustedReferenceEntity.ReferenceType.valueOf(type));
+                }
+            });
+        }
+
+        final List<TrustedReferenceEntity.SignatureType> parsedSignatureTypes = new ArrayList<>();
+        if (signatureTypes != null) {
+            signatureTypes.forEach(type -> {
+                if (TrustedReferenceEntity.SignatureType.stringValues().contains(type)) {
+                    parsedSignatureTypes.add(TrustedReferenceEntity.SignatureType.valueOf(type));
+                }
+            });
+        }
+
+        if (withFederation) {
+            return trustedReferenceRepository.search(
+                country, country == null || country.isEmpty(),
+                domain, domain == null || domain.isEmpty(),
+                parsedTypes, parsedTypes.isEmpty(),
+                parsedSignatureTypes, parsedSignatureTypes.isEmpty());
+        } else {
+            return trustedReferenceRepository.searchNonFederated(
+                country, country == null || country.isEmpty(),
+                domain, domain == null || domain.isEmpty(),
+                parsedTypes, parsedTypes.isEmpty(),
+                parsedSignatureTypes, parsedSignatureTypes.isEmpty());
+        }
+
     }
 
     /**
      * Add a new TrustedReference.
      */
     public TrustedReferenceEntity addTrustedReference(
-            String uploadedTrustedReference,
-            X509CertificateHolder signerCertificate,
-            String authenticatedCountryCode
+        String uploadedTrustedReference,
+        X509CertificateHolder signerCertificate,
+        String authenticatedCountryCode
     ) throws TrustedReferenceServiceException {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         TrustedReferenceDto parsedTrustedEntity =
-                contentCheckValidJson(uploadedTrustedReference, TrustedReferenceDto.class);
+            contentCheckValidJson(uploadedTrustedReference, TrustedReferenceDto.class);
         contentCheckValidValues(parsedTrustedEntity);
 
         TrustedReferenceEntity trustedReferenceEntity = getOrCreateTrustedReferenceEntity(parsedTrustedEntity);
 
         trustedReferenceEntity.setCountry(parsedTrustedEntity.getCountry());
         trustedReferenceEntity.setType(
-                TrustedReferenceEntity.ReferenceType.valueOf(parsedTrustedEntity.getType().name()));
+            TrustedReferenceEntity.ReferenceType.valueOf(parsedTrustedEntity.getType().name()));
         trustedReferenceEntity.setService(parsedTrustedEntity.getService());
         trustedReferenceEntity.setName(parsedTrustedEntity.getName());
         trustedReferenceEntity.setSignatureType(
-                TrustedReferenceEntity.SignatureType.valueOf(parsedTrustedEntity.getSignatureType().name()));
+            TrustedReferenceEntity.SignatureType.valueOf(parsedTrustedEntity.getSignatureType().name()));
         trustedReferenceEntity.setThumbprint(parsedTrustedEntity.getThumbprint());
         trustedReferenceEntity.setSslPublicKey(parsedTrustedEntity.getSslPublicKey());
         trustedReferenceEntity.setReferenceVersion(parsedTrustedEntity.getReferenceVersion());
@@ -120,14 +167,14 @@ public class TrustedReferenceService {
      * Delete a Trusted Reference.
      */
     public void deleteTrustedReference(
-            String uuidJson,
-            X509CertificateHolder signerCertificate,
-            String authenticatedCountryCode
+        String uuidJson,
+        X509CertificateHolder signerCertificate,
+        String authenticatedCountryCode
     ) throws TrustedReferenceServiceException {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         TrustedReferenceDeleteRequestDto parsedDeleteRequest =
-                contentCheckValidJson(uuidJson, TrustedReferenceDeleteRequestDto.class);
+            contentCheckValidJson(uuidJson, TrustedReferenceDeleteRequestDto.class);
 
         final String uuid = parsedDeleteRequest.getUuid();
         TrustedReferenceEntity trustedReferenceEntity = trustedReferenceRepository.getByUuid(uuid).orElseThrow(
@@ -148,15 +195,15 @@ public class TrustedReferenceService {
     }
 
     private TrustedReferenceEntity getOrCreateTrustedReferenceEntity(TrustedReferenceDto parsedTrustedEntity)
-            throws TrustedReferenceServiceException {
+        throws TrustedReferenceServiceException {
         TrustedReferenceEntity trustedReferenceEntity;
         final String uuidRequest = parsedTrustedEntity.getUuid();
         if (StringUtils.isNotEmpty(uuidRequest)) {
             log.info("Updating Trusted Reference with uuid {}", uuidRequest);
-            trustedReferenceEntity  = trustedReferenceRepository.getByUuid(parsedTrustedEntity.getUuid())
-                    .orElseThrow(() ->
-                            new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
-                                    "Trusted Reference to be updated not found."));
+            trustedReferenceEntity = trustedReferenceRepository.getByUuid(parsedTrustedEntity.getUuid())
+                .orElseThrow(() ->
+                    new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
+                        "Trusted Reference to be updated not found."));
         } else {
             trustedReferenceEntity = new TrustedReferenceEntity();
             log.info("Creating new Trusted Reference with uuid {}", trustedReferenceEntity.getUuid());
@@ -171,12 +218,12 @@ public class TrustedReferenceService {
             return objectMapper.readValue(json, clazz);
         } catch (JsonProcessingException e) {
             throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_JSON,
-                    "JSON could not be parsed");
+                "JSON could not be parsed");
         }
     }
 
     private void contentCheckValidValues(TrustedReferenceDto parsedTrustedReference)
-            throws TrustedReferenceServiceException {
+        throws TrustedReferenceServiceException {
 
         ArrayList<String> errorMessages = new ArrayList<>();
 
@@ -185,12 +232,12 @@ public class TrustedReferenceService {
 
         if (errors.hasErrors()) {
             errors.getFieldErrors()
-                    .forEach(error -> errorMessages.add(error.getField() + ": " + error.getDefaultMessage()));
+                .forEach(error -> errorMessages.add(error.getField() + ": " + error.getDefaultMessage()));
         }
 
         if (!errorMessages.isEmpty()) {
             throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_JSON_VALUES,
-                    String.join(", ", errorMessages)
+                String.join(", ", errorMessages)
             );
         }
     }
@@ -203,21 +250,21 @@ public class TrustedReferenceService {
      * @throws TrustedReferenceServiceException if Validation fails.
      */
     public void contentCheckUploaderCertificate(
-            X509CertificateHolder signerCertificate,
-            String authenticatedCountryCode) throws TrustedReferenceServiceException {
+        X509CertificateHolder signerCertificate,
+        String authenticatedCountryCode) throws TrustedReferenceServiceException {
         // Content Check Step 1: Uploader Certificate
         String signerCertThumbprint = certificateUtils.getCertThumbprint(signerCertificate);
         Optional<TrustedPartyEntity> certFromDb = trustedPartyService.getCertificate(
-                signerCertThumbprint,
-                authenticatedCountryCode,
-                TrustedPartyEntity.CertificateType.UPLOAD
+            signerCertThumbprint,
+            authenticatedCountryCode,
+            TrustedPartyEntity.CertificateType.UPLOAD
         );
 
         if (certFromDb.isEmpty()) {
             throw new TrustedReferenceServiceException(
-                    TrustedReferenceServiceException.Reason.UPLOADER_CERT_CHECK_FAILED,
-                    "Could not find upload certificate with hash %s and country %s",
-                    signerCertThumbprint, authenticatedCountryCode);
+                TrustedReferenceServiceException.Reason.UPLOADER_CERT_CHECK_FAILED,
+                "Could not find upload certificate with hash %s and country %s",
+                signerCertThumbprint, authenticatedCountryCode);
         }
 
         DgcMdc.put(MDC_PROP_UPLOAD_CERT_THUMBPRINT, signerCertThumbprint);

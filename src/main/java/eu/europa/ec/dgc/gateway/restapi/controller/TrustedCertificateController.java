@@ -20,16 +20,14 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsCertificateMessageConverter;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.SignedCertificateDto;
-import eu.europa.ec.dgc.gateway.restapi.dto.TrustedCertificateDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedCertificateUploadDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
-import eu.europa.ec.dgc.gateway.restapi.mapper.SignerInformationMapper;
 import eu.europa.ec.dgc.gateway.service.AuditService;
 import eu.europa.ec.dgc.gateway.service.SignerInformationService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
@@ -42,7 +40,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -50,12 +47,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -69,10 +64,6 @@ public class TrustedCertificateController {
     private final AuditService auditService;
 
     private final SignerCertificateController signerCertificateController;
-
-    private final SignerInformationMapper signerInformationMapper;
-
-    private final ObjectMapper objectMapper;
 
 
     private static final String MDC_VERIFICATION_ERROR_REASON = "verificationFailureReason";
@@ -95,7 +86,7 @@ public class TrustedCertificateController {
             description = "Request body with payload.",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = @Schema(implementation = TrustedCertificateDto.class))
+                schema = @Schema(implementation = TrustedCertificateUploadDto.class))
         ),
         responses = {
             @ApiResponse(
@@ -124,14 +115,14 @@ public class TrustedCertificateController {
         }
     )
     public ResponseEntity<Void> postTrustedCertificate(
-        @RequestBody TrustedCertificateDto body,
+        @RequestBody TrustedCertificateUploadDto body,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
 
         log.info("Uploading new trusted certificate");
 
-        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(body.getCertificate());
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(body.getCms());
 
         if (parser.getParserState() != SignedMessageParser.ParserState.SUCCESS) {
             throw new DgcgResponseException(
@@ -156,7 +147,7 @@ public class TrustedCertificateController {
 
         try {
             signerInformationService.addTrustedCertificate(parser.getPayload(), parser.getSigningCertificate(),
-                body.getCertificate(), countryCode, body.getKid(), body.getGroup(), body.getDomain(),
+                body.getCms(), countryCode, body.getKid(), body.getGroup(), body.getDomain(),
                 body.getProperties());
         } catch (SignerInformationService.SignerCertCheckException e) {
             DgcMdc.put(MDC_VERIFICATION_ERROR_REASON, e.getReason().toString());
@@ -334,42 +325,6 @@ public class TrustedCertificateController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
         return signerCertificateController.deleteVerificationInformation(cms, countryCode, authThumbprint);
-    }
-
-    /**
-     * TrustedCertificate Download Controller.
-     */
-    @CertificateAuthenticationRequired
-    @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(
-        security = {
-            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-        },
-        summary = "Downloads Trusted Certificate",
-        tags = {"Trusted Certificate"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "Return list of trusted certificates."),
-            @ApiResponse(
-                responseCode = "401",
-                description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ProblemReportDto.class)
-                ))
-        }
-    )
-    public ResponseEntity<List<TrustedCertificateDto>> downloadTrustedCertificates(
-        @RequestParam(value = "group", required = false) List<String> searchGroup,
-        @RequestParam(value = "country", required = false) List<String> searchCountry,
-        @RequestParam(value = "domain", required = false) List<String> searchDomain
-    ) {
-        return ResponseEntity.ok(
-            signerInformationMapper.map(
-                signerInformationService.getNonFederatedSignerInformation(searchGroup, searchCountry, searchDomain),
-                objectMapper));
     }
 
 }
