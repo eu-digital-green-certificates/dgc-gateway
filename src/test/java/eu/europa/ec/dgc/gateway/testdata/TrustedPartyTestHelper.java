@@ -78,6 +78,23 @@ public class TrustedPartyTestHelper {
         return privateKeyMap.get(type).get(countryCode);
     }
 
+    public void setRoles(String countryCode, TrustedPartyEntity.CertificateRoles... roles) throws Exception {
+        String hash = getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        TrustedPartyEntity entity = trustedPartyRepository.getFirstByThumbprintAndCertificateType(
+            hash, TrustedPartyEntity.CertificateType.AUTHENTICATION).orElseThrow();
+
+        entity.setCertificateRoles(Arrays.asList(roles));
+
+        trustedPartyRepository.save(entity);
+    }
+
+    public void clear(TrustedPartyEntity.CertificateType type, String countryCode) {
+        certificateMap.get(type).remove(countryCode);
+        hashMap.get(type).remove(countryCode);
+        privateKeyMap.get(type).remove(countryCode);
+    }
+
     private void prepareTestCert(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
         // Check if a test certificate already exists
         if (!hashMap.get(type).containsKey(countryCode)) {

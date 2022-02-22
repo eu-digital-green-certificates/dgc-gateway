@@ -21,15 +21,19 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public interface RevocationBatchProjection {
+@AllArgsConstructor
+@Getter
+public class RevocationBatchProjection {
 
-    String getBatchId();
+    private String batchId;
 
-    String getCountry();
+    private String country;
 
-    ZonedDateTime getChanged();
+    private ZonedDateTime changed;
 
-    Boolean getDeleted();
+    private Boolean deleted;
 
 }
