@@ -20,6 +20,10 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
@@ -27,8 +31,11 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -54,16 +61,20 @@ public class SignerInformationService {
 
     private final SignerInformationRepository signerInformationRepository;
 
+    private final DgcConfigProperties configProperties;
+
+    private final ObjectMapper objectMapper;
+
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
     private static final String MDC_PROP_CSCA_CERT_THUMBPRINT = "cscaCertThumbprint";
 
     /**
-     * Method to query persistence layer for all stored SignerInformation.
+     * Method to query persistence layer for all stored non federated SignerInformation.
      *
      * @return List of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation() {
-        return signerInformationRepository.findAll();
+    public List<SignerInformationEntity> getNonFederatedSignerInformation() {
+        return signerInformationRepository.getAllBySourceGatewayIsNull();
     }
 
     /**
@@ -72,8 +83,9 @@ public class SignerInformationService {
      * @param type type to filter for
      * @return List of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateType(type);
+    public List<SignerInformationEntity> getNonFederatedSignerInformation(
+        SignerInformationEntity.CertificateType type) {
+        return signerInformationRepository.getByCertificateTypeAndSourceGatewayIsNull(type);
     }
 
     /**
@@ -83,10 +95,116 @@ public class SignerInformationService {
      * @param type        type to filter for
      * @return List of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation(
+    public List<SignerInformationEntity> getNonFederatedSignerInformation(
         String countryCode,
         SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+        return signerInformationRepository.getByCertificateTypeAndCountryAndSourceGatewayIsNull(type, countryCode);
+    }
+
+    /**
+     * Method to query persistence layer for all stored non federated SignerInformation matching given criteria.
+     *
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(
+        List<String> groups, List<String> country, List<String> domain, boolean withFederation) {
+
+        final List<SignerInformationEntity.CertificateType> types = new ArrayList<>();
+        if (groups != null) {
+            groups.forEach(group -> {
+                if (SignerInformationEntity.CertificateType.stringValues().contains(group)) {
+                    types.add(SignerInformationEntity.CertificateType.valueOf(group));
+                }
+            });
+        }
+
+        if (withFederation) {
+            return signerInformationRepository.search(
+                types, types.isEmpty(),
+                country, country == null || country.isEmpty(),
+                domain, domain == null || domain.isEmpty());
+        } else {
+            return signerInformationRepository.searchNonFederated(
+                types, types.isEmpty(),
+                country, country == null || country.isEmpty(),
+                domain, domain == null || domain.isEmpty());
+        }
+    }
+
+    /**
+     * Adds a new Trusted Certificate to TrustStore DB.
+     *
+     * @param uploadedCertificate      the certificate to add
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param signature                the detached signature of cms message
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @param kid                      Optional custom KID
+     * @param group                    Group (Certificate Type)
+     * @param domain                   Domain the certificate belongs to
+     * @param properties               Map with custom properties assigned to the certificate
+     * @return created Entity
+     * @throws SignerCertCheckException if something went wrong
+     */
+    public SignerInformationEntity addTrustedCertificate(
+        X509CertificateHolder uploadedCertificate,
+        X509CertificateHolder signerCertificate,
+        String signature,
+        String authenticatedCountryCode,
+        String kid,
+        String group,
+        String domain,
+        Map<String, String> properties
+    ) throws SignerCertCheckException {
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        if (group == null || group.equals("DSC")) {
+            contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        }
+        contentCheckOneOf(group, SignerInformationEntity.CertificateType.stringValues());
+        contentCheckOneOf(domain, configProperties.getTrustedCertificates().getAllowedDomains());
+        for (String key : properties.keySet()) {
+            contentCheckOneOf(key, configProperties.getTrustedCertificates().getAllowedProperties());
+        }
+        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
+        contentCheckAlreadyExists(uploadedCertificate);
+        contentCheckKidAlreadyExists(uploadedCertificate, kid);
+
+        // All checks passed --> Save to DB
+        byte[] certRawData;
+        try {
+            certRawData = uploadedCertificate.getEncoded();
+        } catch (IOException e) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+        }
+
+        SignerInformationEntity newSignerInformation = new SignerInformationEntity();
+        newSignerInformation.setCountry(authenticatedCountryCode);
+        newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
+        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
+        newSignerInformation.setSignature(signature);
+        newSignerInformation.setKid(kid);
+        newSignerInformation.setDomain(domain == null ? "DCC" : domain);
+        if (group != null) {
+            newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.valueOf(group));
+        }
+        if (!properties.isEmpty()) {
+            try {
+                newSignerInformation.setProperties(objectMapper.writeValueAsString(properties));
+            } catch (JsonProcessingException e) {
+                throw new SignerCertCheckException(SignerCertCheckException.Reason.PROPERTY_SERIALIZATION_FAILED,
+                    "Failed to serialize properties.");
+            }
+        }
+
+        log.info("Saving new SignerInformation Entity");
+
+        newSignerInformation = signerInformationRepository.save(newSignerInformation);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
+
+        return newSignerInformation;
     }
 
     /**
@@ -106,35 +224,60 @@ public class SignerInformationService {
         String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
-        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
-        contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
-        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
-        contentCheckAlreadyExists(uploadedCertificate);
-        contentCheckKidAlreadyExists(uploadedCertificate);
+        return addTrustedCertificate(
+            uploadedCertificate,
+            signerCertificate,
+            signature,
+            authenticatedCountryCode,
+            null,
+            null,
+            null,
+            Collections.emptyMap());
+    }
 
-        // All checks passed --> Save to DB
-        byte[] certRawData;
+    /**
+     * Insert a new federated Signer Certificate.
+     *
+     * @param base64EncodedCertificate Base64 encoded Certificate
+     * @param signature                Upload Certificate Signature
+     * @param countryCode              Country Code of uploaded certificate
+     * @param kid                      KID of the certificate
+     * @param sourceGateway            Gateway the cert is originated from
+     * @return persisted Entity
+     * @throws SignerCertCheckException if insert failed.
+     */
+    public SignerInformationEntity addFederatedSignerCertificate(
+        String base64EncodedCertificate,
+        String signature,
+        String countryCode,
+        String kid,
+        FederationGatewayEntity sourceGateway
+    ) throws SignerCertCheckException {
+
+        X509CertificateHolder certificate;
         try {
-            certRawData = uploadedCertificate.getEncoded();
+            certificate = new X509CertificateHolder(
+                Base64.getDecoder().decode(base64EncodedCertificate)
+            );
         } catch (IOException e) {
-            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED,
+                "Failed to decode Raw Cert");
         }
 
+        contentCheckAlreadyExists(certificate);
+
         SignerInformationEntity newSignerInformation = new SignerInformationEntity();
-        newSignerInformation.setCountry(authenticatedCountryCode);
-        newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
-        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        newSignerInformation.setSourceGateway(sourceGateway);
+        newSignerInformation.setKid(kid);
+        newSignerInformation.setCountry(countryCode);
+        newSignerInformation.setRawData(base64EncodedCertificate);
+        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(certificate));
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
 
-        log.info("Saving new SignerInformation Entity");
+        log.info("Saving Federated SignerInformation Entity");
 
-        newSignerInformation = signerInformationRepository.save(newSignerInformation);
-
-        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
-        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
-
-        return newSignerInformation;
+        return signerInformationRepository.save(newSignerInformation);
     }
 
     /**
@@ -162,6 +305,48 @@ public class SignerInformationService {
         signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
 
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+    }
+
+    /**
+     * Deletes SignerCertificates by given GatewayId.
+     *
+     * @param gatewayId GatewayID of the certificates to delete.
+     */
+    public void deleteSignerCertificateByFederationGateway(String gatewayId) {
+        log.info("Deleting SignerInformation by GatewayId {}", gatewayId);
+
+        Long deleteCount = signerInformationRepository.deleteBySourceGatewayGatewayId(gatewayId);
+
+        log.info("Deleted {} SignerInformation with GatewayId {}", deleteCount, gatewayId);
+    }
+
+    /**
+     * Extracts X509Certificate from {@link SignerInformationEntity}.
+     *
+     * @param signerInformationEntity entity from which the certificate should be extracted.
+     * @return X509Certificate representation.
+     */
+    public X509Certificate getX509CertificateFromEntity(SignerInformationEntity signerInformationEntity) {
+        try {
+            byte[] rawDataBytes = Base64.getDecoder().decode(signerInformationEntity.getRawData());
+            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
+        } catch (Exception e) {
+            log.error("Failed to parse Certificate from SignerInformationEntity", e);
+        }
+
+        return null;
+    }
+
+    private void contentCheckOneOf(String value, List<String> allowedValues) throws SignerCertCheckException {
+        if (value == null) {
+            return;
+        }
+
+        if (allowedValues.stream().noneMatch(value::equals)) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.PROPERTY_NOT_ALLOWED,
+                String.format("Property Key or Value %s is not allowed. Allowed Values are: %s",
+                    value, String.join(", ", allowedValues)));
+        }
     }
 
     private void contentCheckUploaderCertificate(
@@ -210,7 +395,7 @@ public class SignerInformationService {
 
         // Content Check Step 3: CSCA Check
         List<TrustedPartyEntity> trustedCas =
-            trustedPartyService.getCertificates(authenticatedCountryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyService.getCertificate(authenticatedCountryCode, TrustedPartyEntity.CertificateType.CSCA);
 
         if (trustedCas.isEmpty()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.CSCA_CHECK_FAILED,
@@ -241,15 +426,25 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate)
+    private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate, String customKid)
         throws SignerCertCheckException {
 
-        String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
-        // KID is the first 8 byte of hash. So we take the first 16 characters of the hash
-        String thumbprintKidPart = uploadedCertificateThumbprint.substring(0, 16);
+        String kid = customKid;
+        if (customKid == null) {
+            // Custom Kid not provided, using the first 8 byte of hash as fallback.
+            String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
+            kid = uploadedCertificateThumbprint.substring(0, 16);
+        }
 
         Optional<SignerInformationEntity> signerInformationEntity =
-            signerInformationRepository.getFirstByThumbprintStartsWith(thumbprintKidPart);
+            signerInformationRepository.getFirstByThumbprintStartsWith(kid);
+
+        if (signerInformationEntity.isPresent()) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
+                "A certificate with KID of uploaded certificate already exists");
+        }
+
+        signerInformationEntity = signerInformationRepository.getFirstByKid(kid);
 
         if (signerInformationEntity.isPresent()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
@@ -288,23 +483,6 @@ public class SignerInformationService {
         }
     }
 
-    /**
-     * Extracts X509Certificate from {@link SignerInformationEntity}.
-     *
-     * @param signerInformationEntity entity from which the certificate should be extracted.
-     * @return X509Certificate representation.
-     */
-    public X509Certificate getX509CertificateFromEntity(SignerInformationEntity signerInformationEntity) {
-        try {
-            byte[] rawDataBytes = Base64.getDecoder().decode(signerInformationEntity.getRawData());
-            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
-        } catch (Exception e) {
-            log.error("Failed to parse Certificate from SignerInformationEntity", e);
-        }
-
-        return null;
-    }
-
     public static class SignerCertCheckException extends Exception {
 
         @Getter
@@ -322,7 +500,9 @@ public class SignerInformationService {
             ALREADY_EXIST_CHECK_FAILED,
             KID_CHECK_FAILED,
             EXIST_CHECK_FAILED,
-            UPLOAD_FAILED
+            UPLOAD_FAILED,
+            PROPERTY_NOT_ALLOWED,
+            PROPERTY_SERIALIZATION_FAILED
         }
     }
 }

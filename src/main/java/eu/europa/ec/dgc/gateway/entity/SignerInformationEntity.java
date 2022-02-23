@@ -21,6 +21,9 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -40,7 +43,7 @@ import lombok.Setter;
 @Table(name = "signer_information")
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignerInformationEntity {
+public class SignerInformationEntity extends FederatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,10 +76,16 @@ public class SignerInformationEntity {
     String rawData;
 
     /**
-     * Signature of the TrustAnchor.
+     * Signature of the Upload Certificate.
      */
     @Column(name = "signature", nullable = false, length = 6000)
     String signature;
+
+    /**
+     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint).
+     */
+    @Column(name = "kid", length = 20, unique = true)
+    private String kid;
 
     /**
      * Type of the certificate (currently only DSC).
@@ -85,13 +94,31 @@ public class SignerInformationEntity {
     @Enumerated(EnumType.STRING)
     CertificateType certificateType;
 
+
+    @Column(name = "properties", length = 2000)
+    private String properties;
+
     public enum CertificateType {
 
         /**
          * Certificate which the member state is using to sign documents (NBDSC).
          */
-        DSC
+        DSC,
 
+        SIGN,
+
+        AUTH,
+
+        CUSTOM;
+
+        /**
+         * Return a List of allowed CertificateType as String List.
+         */
+        public static List<String> stringValues() {
+            return Arrays.stream(CertificateType.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+        }
     }
 
 }

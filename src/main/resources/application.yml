@@ -30,8 +30,8 @@ dgc:
   jrc:
     url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat
     proxy:
-      host: ${https.proxyHost:}
-      port: ${https.proxyPort:-1}
+      host: sia-lb.telekom.de
+      port: 8080
       username: ${https.proxyUser:}
       password: ${https.proxyPassword:}
   validationRuleSchema: classpath:validation-rule.schema.json
@@ -45,6 +45,26 @@ dgc:
       distinguished-name: X-SSL-Client-DN
   revocation:
     delete-threshold: 14
+  trustedCertificates:
+    allowedProperties:
+      - purpose
+      - usergroup
+      - scope
+      - standard
+      - displayName
+      - displayLogo
+      - validFrom
+      - validUntil
+      - pubkey
+      - displayURL
+    allowedDomains:
+      - ICAO
+      - DCC
+      - SHC
+      - CRED
 springdoc:
   api-docs:
     enabled: false
+logging:
+  level:
+    "eu.europa.ec.dgc.gateway": DEBUG

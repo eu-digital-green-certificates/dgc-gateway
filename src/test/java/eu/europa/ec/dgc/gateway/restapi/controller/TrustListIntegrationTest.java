@@ -110,7 +110,9 @@ class TrustListIntegrationTest {
             certificateUtils.getCertThumbprint(certDscDe),
             Base64.getEncoder().encodeToString(certDscDe.getEncoded()),
             "sig1",
-            SignerInformationEntity.CertificateType.DSC
+            null,
+            SignerInformationEntity.CertificateType.DSC,
+            null
         ));
 
         signerInformationRepository.save(new SignerInformationEntity(
@@ -120,7 +122,9 @@ class TrustListIntegrationTest {
             certificateUtils.getCertThumbprint(certDscEu),
             Base64.getEncoder().encodeToString(certDscEu.getEncoded()),
             "sig2",
-            SignerInformationEntity.CertificateType.DSC
+            null,
+            SignerInformationEntity.CertificateType.DSC,
+            null
         ));
     }
 

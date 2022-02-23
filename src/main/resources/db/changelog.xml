@@ -14,4 +14,7 @@
     <include file="db/changelog/add-shedlock-table.xml"/>
     <include file="db/changelog/add-revocation-batch-table.xml"/>
     <include file="db/changelog/add-certificate-roles-table.xml"/>
+    <include file="db/changelog/add-certificate-roles-table-pk.xml"/>
+    <include file="db/changelog/add-federation.xml"/>
+    <include file="db/changelog/fix-charset.xml"/>
 </databaseChangeLog>

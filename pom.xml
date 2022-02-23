@@ -55,7 +55,8 @@
         <json-schema.version>1.14.0</json-schema.version>
         <shedlock.version>4.30.0</shedlock.version>
         <spring.cloud.version>2021.0.0</spring.cloud.version>
-        <slf4j.version>1.7.32</slf4j.version>
+        <h2.version>2.1.210</h2.version>
+        <hibernate.version>5.6.5.Final</hibernate.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.3.0</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
@@ -149,7 +150,7 @@
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>ddcc-gateway-lib</artifactId>
-            <version>1.1.8</version>
+            <version>1.1.13</version>
         </dependency>
         <dependency>
             <groupId>com.vdurmont</groupId>
@@ -162,6 +163,11 @@
             <version>${json-schema.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
@@ -172,6 +178,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -204,6 +216,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
@@ -220,7 +236,13 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -241,6 +263,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
             <version>${spring.security.version}</version>
         </dependency>
         <dependency>
@@ -315,7 +342,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${project.parent.version}</version>
                 <configuration>
-                    <profiles>dev</profiles>
+                    <profiles>dev,log2console</profiles>
                     <wait>5000</wait>
                     <maxAttempts>30</maxAttempts>
                 </configuration>

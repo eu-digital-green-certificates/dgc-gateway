@@ -32,7 +32,7 @@ import lombok.Setter;
 )
 @Getter
 @Setter
-public class TrustListDto {
+public class TrustListDto extends FederatedDto {
 
     @Schema(example = "qroU+hDDovs=")
     private String kid;
