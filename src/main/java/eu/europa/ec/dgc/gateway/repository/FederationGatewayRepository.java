@@ -18,13 +18,18 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.model;
+package eu.europa.ec.dgc.gateway.repository;
 
-public enum TrustListType {
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-    DSC,
-    UPLOAD,
-    CSCA,
-    AUTHENTICATION,
-    TRUSTANCHOR
+@Repository
+public interface FederationGatewayRepository extends JpaRepository<FederationGatewayEntity, Long> {
+
+    Optional<FederationGatewayEntity> getByGatewayId(String gatewayId);
+
+    List<FederationGatewayEntity> getByDownloadIntervalIsNotNull();
 }

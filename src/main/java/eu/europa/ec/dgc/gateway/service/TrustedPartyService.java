@@ -21,6 +21,7 @@
 package eu.europa.ec.dgc.gateway.service;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
@@ -32,6 +33,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -58,9 +60,9 @@ public class TrustedPartyService {
      *
      * @return List holding the found certificates.
      */
-    public List<TrustedPartyEntity> getCertificates() {
+    public List<TrustedPartyEntity> getNonFederatedTrustedParties() {
 
-        return trustedPartyRepository.findAll()
+        return trustedPartyRepository.getBySourceGatewayIsNull()
             .stream()
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
@@ -72,12 +74,48 @@ public class TrustedPartyService {
      * @param type type to filter for.
      * @return List holding the found certificates.
      */
-    public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type) {
+    public List<TrustedPartyEntity> getNonFederatedTrustedParties(TrustedPartyEntity.CertificateType type) {
 
-        return trustedPartyRepository.getByCertificateType(type)
+        return trustedPartyRepository.getByCertificateTypeAndSourceGatewayIsNull(type)
             .stream()
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Method to query the db for trusted parties matching given criteria.
+     *
+     * @return List of TrustedPartyEntity
+     */
+    public List<TrustedPartyEntity> getTrustedParties(
+        List<String> groups, List<String> country, List<String> domain, boolean withFederation) {
+
+        final List<TrustedPartyEntity.CertificateType> types = new ArrayList<>();
+        if (groups != null) {
+            groups.forEach(group -> {
+                if (TrustedPartyEntity.CertificateType.stringValues().contains(group)) {
+                    types.add(TrustedPartyEntity.CertificateType.valueOf(group));
+                }
+            });
+        }
+
+        if (withFederation) {
+            return trustedPartyRepository.search(
+                    types, types.isEmpty(),
+                    country, country == null || country.isEmpty(),
+                    domain, domain == null || domain.isEmpty())
+                .stream()
+                .filter(this::validateCertificateIntegrity)
+                .collect(Collectors.toList());
+        } else {
+            return trustedPartyRepository.searchNonFederated(
+                    types, types.isEmpty(),
+                    country, country == null || country.isEmpty(),
+                    domain, domain == null || domain.isEmpty())
+                .stream()
+                .filter(this::validateCertificateIntegrity)
+                .collect(Collectors.toList());
+        }
     }
 
     /**
@@ -87,7 +125,7 @@ public class TrustedPartyService {
      * @param type    type of certificate.
      * @return List holding the found certificates.
      */
-    public List<TrustedPartyEntity> getCertificates(String country, TrustedPartyEntity.CertificateType type) {
+    public List<TrustedPartyEntity> getCertificate(String country, TrustedPartyEntity.CertificateType type) {
 
         return trustedPartyRepository.getByCountryAndCertificateType(country, type)
             .stream()
@@ -119,7 +157,10 @@ public class TrustedPartyService {
         return trustedPartyRepository.getCountryCodeList();
     }
 
-    private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
+    /**
+     * Validate the integrity of the certificate used to sign the trusted party.
+     */
+    public boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
 
         DgcMdc.put(MDC_PROP_CERT_THUMBPRINT, trustedPartyEntity.getThumbprint());
 
@@ -144,16 +185,27 @@ public class TrustedPartyService {
         }
 
         // load DGCG Trust Anchor PublicKey from KeyStore
-        X509CertificateHolder trustAnchor = null;
-        try {
-            trustAnchor = certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
-                dgcConfigProperties.getTrustAnchor().getCertificateAlias()));
-        } catch (KeyStoreException | CertificateEncodingException | IOException e) {
-            log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
-            return false;
+        List<X509CertificateHolder> trustAnchors = new ArrayList<>();
+        if (trustedPartyEntity.getSourceGateway() == null) {
+            log.debug("TrustedParty is not federated, using TrustAnchor from Keystore");
+            try {
+                trustAnchors.add(
+                    certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
+                        dgcConfigProperties.getTrustAnchor().getCertificateAlias())));
+            } catch (KeyStoreException | CertificateEncodingException | IOException e) {
+                log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
+                return false;
+            }
+        } else {
+            log.debug("TrustedParty is federated, fetching TrustAnchors from Database.");
+            trustedPartyEntity.getSourceGateway().getTrustedParties().stream()
+                .filter(gatewayTrustedParty -> gatewayTrustedParty.getCertificateType()
+                    == TrustedPartyEntity.CertificateType.TRUSTANCHOR)
+                .filter(this::validateCertificateIntegrity)
+                .map(this::getX509CertificateHolderFromEntity)
+                .forEach(trustAnchors::add);
         }
 
-        // verify certificate signature
         SignedCertificateMessageParser parser =
             new SignedCertificateMessageParser(trustedPartyEntity.getSignature(), trustedPartyEntity.getRawData());
 
@@ -168,25 +220,98 @@ public class TrustedPartyService {
             return false;
         }
 
-        if (!parser.getSigningCertificate().equals(trustAnchor)) {
+        // verify certificate signature
+        log.debug("Got {} TrustAnchors for Integrity Check: {}", trustAnchors.size(), trustAnchors.stream()
+            .map(trustAnchor -> trustAnchor.getSubject().toString())
+            .collect(Collectors.joining("; ")));
+        boolean trustAnchorMatch = trustAnchors.stream()
+            .anyMatch(trustAnchor -> parser.getSigningCertificate().equals(trustAnchor));
+
+        if (trustAnchorMatch) {
+            return true;
+        } else {
             log.error("TrustAnchor Verification failed: Certificate was not signed by known TrustAnchor");
             return false;
         }
-
-        return true;
     }
 
 
     /**
+     * Deletes TrustedParty by given GatewayId.
+     *
+     * @param gatewayId GatewayID of the certificates to delete.
+     */
+    public void deleteTrustedPartyByByFederationGateway(String gatewayId) {
+        log.info("Deleting TrustedParty by GatewayId {}", gatewayId);
+
+        Long deleteCount = trustedPartyRepository.deleteBySourceGatewayGatewayId(gatewayId);
+
+        log.info("Deleted {} TrustedParty with GatewayId {}", deleteCount, gatewayId);
+    }
+
+    /**
+     * Insert a new federated Signer Certificate.
+     *
+     * @param base64EncodedCertificate Base64 encoded Certificate
+     * @param signature                Upload Certificate Signature
+     * @param countryCode              Country Code of uploaded certificate
+     * @param kid                      KID of the certificate
+     * @param sourceGateway            Gateway the cert is originated from
+     * @return persisted Entity
+     * @throws IOException If conversion to Certificate Object failed.
+     */
+    public TrustedPartyEntity addFederatedTrustedParty(
+        String base64EncodedCertificate,
+        String signature,
+        String countryCode,
+        String kid,
+        TrustedPartyEntity.CertificateType type,
+        FederationGatewayEntity sourceGateway
+    ) throws IOException {
+        X509CertificateHolder certificate = new X509CertificateHolder(
+            Base64.getDecoder().decode(base64EncodedCertificate)
+        );
+
+        TrustedPartyEntity newTrustedPartyEntity = new TrustedPartyEntity();
+        newTrustedPartyEntity.setSourceGateway(sourceGateway);
+        newTrustedPartyEntity.setKid(kid);
+        newTrustedPartyEntity.setCountry(countryCode);
+        newTrustedPartyEntity.setRawData(base64EncodedCertificate);
+        newTrustedPartyEntity.setThumbprint(certificateUtils.getCertThumbprint(certificate));
+        newTrustedPartyEntity.setCertificateType(type);
+        newTrustedPartyEntity.setSignature(signature);
+
+        log.info("Saving Federated SignerInformation Entity");
+
+        return trustedPartyRepository.save(newTrustedPartyEntity);
+    }
+
+    /**
      * Extracts X509Certificate from {@link TrustedPartyEntity}.
      *
-     * @param trustedPartyEntity entity from which the certificate should be extraced.
+     * @param trustedPartyEntity entity from which the certificate should be extracted.
      * @return X509Certificate representation.
      */
     public X509Certificate getX509CertificateFromEntity(TrustedPartyEntity trustedPartyEntity) {
         try {
+            return certificateUtils.convertCertificate(getX509CertificateHolderFromEntity(trustedPartyEntity));
+        } catch (Exception e) {
+            log.error("Raw certificate data does not contain a valid x509Certificate", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts X509CertificateHolder from {@link TrustedPartyEntity}.
+     *
+     * @param trustedPartyEntity entity from which the certificate should be extracted.
+     * @return X509CertificateHolder representation.
+     */
+    public X509CertificateHolder getX509CertificateHolderFromEntity(TrustedPartyEntity trustedPartyEntity) {
+        try {
             byte[] rawDataBytes = Base64.getDecoder().decode(trustedPartyEntity.getRawData());
-            return certificateUtils.convertCertificate(new X509CertificateHolder(rawDataBytes));
+            return new X509CertificateHolder(rawDataBytes);
         } catch (Exception e) {
             log.error("Raw certificate data does not contain a valid x509Certificate", e);
         }

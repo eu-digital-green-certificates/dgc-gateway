@@ -26,34 +26,39 @@ import java.time.ZonedDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-@Schema(
-    name = "TrustList",
-    type = "object"
-)
+
 @Getter
 @Setter
-public class TrustListDto extends FederatedDto {
+public class TrustedIssuerDto {
 
-    @Schema(example = "qroU+hDDovs=")
-    private String kid;
+    @Schema(example = "https://url")
+    private String url;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
-    private ZonedDateTime timestamp;
+    @Schema(example = "HTTP")
+    private UrlTypeDto type;
 
     @Schema(example = "EU")
     private String country;
-
-    private CertificateTypeDto certificateType;
 
     @Schema(example = "aaba14fa10c3a2fb441a28af0ec1bb4128153b9ddc796b66bfa04b02ea3e103e")
     private String thumbprint;
 
     @Schema(example = "o53CbAa77LyIMFc5Gz+B2Jc275Gdg/SdLayw7gx0GrTcinR95zfTLr8nNHgJMYlX3rD8Y11zB/Osyt0 ..."
-        + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
+            + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
+    private String sslPublicKey;
+
+    @Schema(example = "JWKS")
+    private String keyStorageType;
+
+    @Schema(example = "o53CbAa77LyIMFc5Gz+B2Jc275Gdg/SdLayw7gx0GrTcinR95zfTLr8nNHgJMYlX3rD8Y11zB/Osyt0 ..."
+            + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
     private String signature;
 
-    @Schema(example = "MIICyDCCAbCgAwIBAgIGAXR3DZUUMA0GCSqGSIb3DQEBBQUAMBwxCzAJB ..."
-        + " Jpux30QRhsNZwkmEYSbRv+vp5/obgH1mL5ouoV5I=")
-    private String rawData;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+    private ZonedDateTime timestamp;
 
+    public enum UrlTypeDto {
+        HTTP,
+        DID
+    }
 }

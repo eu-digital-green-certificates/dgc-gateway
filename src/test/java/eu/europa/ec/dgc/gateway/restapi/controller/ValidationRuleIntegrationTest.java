@@ -523,7 +523,7 @@ class ValidationRuleIntegrationTest {
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setIdentifier("IR-EU-0001");
         validationRule.setType("Invalidation");
-        validationRule.setValidFrom(ZonedDateTime.now().plus(1, ChronoUnit.SECONDS));
+        validationRule.setValidFrom(ZonedDateTime.now().plus(2, ChronoUnit.SECONDS));
 
         String payload = new SignedStringMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)

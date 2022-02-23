@@ -36,7 +36,7 @@
         </encoder>
     </appender>
 
-    <springProfile name="dev">
+    <springProfile name="log2console">
         <root level="INFO">
             <appender-ref ref="console"/>
             <appender-ref ref="file"/>
@@ -49,7 +49,7 @@
         </root>
     </springProfile>
 
-    <springProfile name="!dev">
+    <springProfile name="!log2console">
         <root level="INFO">
             <appender-ref ref="file"/>
         </root>

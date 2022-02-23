@@ -20,11 +20,36 @@
 
 package eu.europa.ec.dgc.gateway.model;
 
-public enum TrustListType {
+import java.time.ZonedDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-    DSC,
-    UPLOAD,
-    CSCA,
-    AUTHENTICATION,
-    TRUSTANCHOR
+@Data
+@AllArgsConstructor
+public class TrustedCertificateTrustList {
+
+    private String kid;
+
+    private ZonedDateTime timestamp;
+
+    private String country;
+
+    private String group;
+
+    private String thumbprint;
+
+    private String certificate;
+
+    private String signature;
+
+    private String properties;
+
+    private String sourceGateway;
+
+    private String uuid;
+
+    private String domain;
+
+    private Integer version;
+
 }

@@ -150,7 +150,7 @@
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>ddcc-gateway-lib</artifactId>
-            <version>1.1.11</version>
+            <version>1.1.13</version>
         </dependency>
         <dependency>
             <groupId>com.vdurmont</groupId>
@@ -216,6 +216,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
@@ -259,6 +263,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
             <version>${spring.security.version}</version>
         </dependency>
         <dependency>
@@ -333,7 +342,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${project.parent.version}</version>
                 <configuration>
-                    <profiles>dev</profiles>
+                    <profiles>dev,log2console</profiles>
                     <wait>5000</wait>
                     <maxAttempts>30</maxAttempts>
                 </configuration>

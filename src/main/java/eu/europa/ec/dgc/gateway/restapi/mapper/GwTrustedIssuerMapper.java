@@ -18,13 +18,22 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.model;
+package eu.europa.ec.dgc.gateway.restapi.mapper;
 
-public enum TrustListType {
+import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedIssuerDto;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-    DSC,
-    UPLOAD,
-    CSCA,
-    AUTHENTICATION,
-    TRUSTANCHOR
+
+@Mapper(componentModel = "spring")
+public interface GwTrustedIssuerMapper {
+
+    @Mapping(source = "createdAt", target = "timestamp")
+    @Mapping(source = "urlType", target = "type")
+    TrustedIssuerDto trustedIssuerEntityToTrustedIssuerDto(TrustedIssuerEntity trustedIssuer);
+
+    @Mapping(source = "timestamp", target = "createdAt")
+    List<TrustedIssuerDto> trustedIssuerEntityToTrustedIssuerDto(List<TrustedIssuerEntity> trustedIssuer);
 }

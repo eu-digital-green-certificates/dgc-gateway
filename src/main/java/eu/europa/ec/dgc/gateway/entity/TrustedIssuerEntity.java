@@ -21,9 +21,6 @@
 package eu.europa.ec.dgc.gateway.entity;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -32,18 +29,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 
 @Getter
 @Setter
 @Entity
-@Table(name = "signer_information")
-@AllArgsConstructor
-@NoArgsConstructor
-public class SignerInformationEntity extends FederatedEntity {
+@Table(name = "trusted_issuer")
+public class TrustedIssuerEntity extends FederatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,61 +58,50 @@ public class SignerInformationEntity extends FederatedEntity {
     private String country;
 
     /**
+     * URL of the service, can be HTTP(s) or DID URL.
+     */
+    @Column(name = "url", nullable = false, length = 1024)
+    private String url;
+
+    /**
+     * Name of the service.
+     */
+    @Column(name = "name", nullable = false, length = 512)
+    private String name;
+
+    /**
+     * Type of the URL (HTTP, DID).
+     */
+    @Column(name = "url_type", nullable = false, length = 25)
+    @Enumerated(EnumType.STRING)
+    private UrlType urlType;
+
+    /**
      * SHA-256 Thumbprint of the certificate (hex encoded).
      */
-    @Column(name = "thumbprint", nullable = false, length = 64, unique = true)
+    @Column(name = "thumbprint", length = 64)
     private String thumbprint;
 
     /**
-     * Base64 encoded certificate raw data.
+     * SSL Certificate of the endpoint (if applicable).
      */
-    @Column(name = "raw_data", nullable = false, length = 4096)
-    String rawData;
+    @Column(name = "ssl_public_key", length = 2048)
+    private String sslPublicKey;
 
     /**
-     * Signature of the Upload Certificate.
+     * Type of Key Storage. E.g JWKS, DIDDocument etc. (If applicable)
+     */
+    @Column(name = "key_storage_type", length = 128)
+    private String keyStorageType;
+
+    /**
+     * Signature of the TrustAnchor.
      */
     @Column(name = "signature", nullable = false, length = 6000)
     String signature;
 
-    /**
-     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint).
-     */
-    @Column(name = "kid", length = 20, unique = true)
-    private String kid;
-
-    /**
-     * Type of the certificate (currently only DSC).
-     */
-    @Column(name = "certificate_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    CertificateType certificateType;
-
-
-    @Column(name = "properties", length = 2000)
-    private String properties;
-
-    public enum CertificateType {
-
-        /**
-         * Certificate which the member state is using to sign documents (NBDSC).
-         */
-        DSC,
-
-        SIGN,
-
-        AUTH,
-
-        CUSTOM;
-
-        /**
-         * Return a List of allowed CertificateType as String List.
-         */
-        public static List<String> stringValues() {
-            return Arrays.stream(CertificateType.values())
-                .map(Enum::toString)
-                .collect(Collectors.toList());
-        }
+    public enum UrlType {
+        HTTP,
+        DID
     }
-
 }

@@ -29,6 +29,7 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
@@ -43,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.DecoderException;
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
@@ -123,15 +125,31 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
         HttpServletResponse httpServletResponse,
         FilterChain filterChain
     ) throws ServletException, IOException {
-        logger.debug("Checking request for auth headers");
+        logger.debug("Checking request for auth headers or auth certificate");
 
-        String headerDistinguishedName =
-            httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getDistinguishedName());
+        String certThumbprint;
+        String certDistinguishedName;
 
-        String headerCertThumbprint = normalizeCertificateHash(
-            httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getThumbprint()));
+        if (httpServletRequest.getUserPrincipal() != null) {
+            log.debug("Found Client Certificate in request");
+            certThumbprint = httpServletRequest.getUserPrincipal().getName();
 
-        if (headerDistinguishedName == null || headerCertThumbprint == null) {
+            PreAuthenticatedAuthenticationToken token =
+                (PreAuthenticatedAuthenticationToken) httpServletRequest.getUserPrincipal();
+
+            X509Certificate certificate = (X509Certificate) token.getCredentials();
+            certDistinguishedName = certificate.getSubjectDN().toString();
+        } else {
+            log.debug("No Client Certificate found, using Request Headers");
+
+            certDistinguishedName =
+                httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getDistinguishedName());
+
+            certThumbprint = normalizeCertificateHash(
+                httpServletRequest.getHeader(properties.getCertAuth().getHeaderFields().getThumbprint()));
+        }
+
+        if (certDistinguishedName == null || certThumbprint == null) {
             log.error("No thumbprint or distinguish name");
             handlerExceptionResolver.resolveException(
                 httpServletRequest,
@@ -145,12 +163,12 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        headerDistinguishedName = URLDecoder.decode(headerDistinguishedName, StandardCharsets.UTF_8);
+        certDistinguishedName = URLDecoder.decode(certDistinguishedName, StandardCharsets.UTF_8);
 
-        DgcMdc.put("dnString", headerDistinguishedName);
-        DgcMdc.put("thumbprint", headerCertThumbprint);
+        DgcMdc.put("dnString", certDistinguishedName);
+        DgcMdc.put("thumbprint", certThumbprint);
 
-        Map<String, String> distinguishNameMap = parseDistinguishNameString(headerDistinguishedName);
+        Map<String, String> distinguishNameMap = parseDistinguishNameString(certDistinguishedName);
 
         if (!distinguishNameMap.containsKey("C")) {
             log.error("Country property is missing");
@@ -160,12 +178,12 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
                     HttpStatus.BAD_REQUEST,
                     "0x401",
                     "Client Certificate must contain country property",
-                    headerDistinguishedName, ""));
+                    certDistinguishedName, ""));
             return;
         }
 
         Optional<TrustedPartyEntity> certFromDb = trustedPartyService.getCertificate(
-            headerCertThumbprint,
+            certThumbprint,
             distinguishNameMap.get("C"),
             TrustedPartyEntity.CertificateType.AUTHENTICATION
         );
@@ -198,7 +216,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
 
         log.info("Successful Authentication");
         httpServletRequest.setAttribute(REQUEST_PROP_COUNTRY, distinguishNameMap.get("C"));
-        httpServletRequest.setAttribute(REQUEST_PROP_THUMBPRINT, headerCertThumbprint);
+        httpServletRequest.setAttribute(REQUEST_PROP_THUMBPRINT, certThumbprint);
 
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }

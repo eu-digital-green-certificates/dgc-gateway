@@ -155,9 +155,11 @@ ThirdParty Licenses
 | org.springframework.cloud:spring-cloud-starter-openfeign:3.1.0 | Apache License, Version 2.0 |
 | org.springframework.data:spring-data-commons:2.6.0 | Apache License, Version 2.0 |
 | org.springframework.data:spring-data-jpa:2.6.0 | Apache License, Version 2.0 |
+| org.springframework.security:spring-security-config:5.6.0 | Apache License, Version 2.0 |
 | org.springframework.security:spring-security-core:5.6.1 | Apache License, Version 2.0 |
 | org.springframework.security:spring-security-crypto:5.6.1 | Apache License, Version 2.0 |
 | org.springframework.security:spring-security-rsa:1.0.10.RELEASE | Apache 2.0 |
+| org.springframework.security:spring-security-test:5.6.1 | Apache License, Version 2.0 |
 | org.springframework.security:spring-security-web:5.6.0 | Apache License, Version 2.0 |
 | org.webjars:swagger-ui:4.1.3 | Apache 2.0 |
 | org.webjars:webjars-locator-core:0.48 | MIT |

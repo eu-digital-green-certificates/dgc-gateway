@@ -25,19 +25,56 @@ import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
+
+    List<SignerInformationEntity> getAllBySourceGatewayIsNull();
+
+    @Query("SELECT s FROM SignerInformationEntity s WHERE "
+        + "(:ignoreGroup = true OR s.certificateType IN (:group)) AND "
+        + "(:ignoreCountry = true OR s.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR s.domain IN (:domain))")
+    List<SignerInformationEntity> search(
+        @Param("group") List<SignerInformationEntity.CertificateType> group,
+        @Param("ignoreGroup") boolean ignoreGroup,
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
+
+    @Query("SELECT s FROM SignerInformationEntity s WHERE "
+        + "(:ignoreGroup = true OR s.certificateType IN (:group)) AND "
+        + "(:ignoreCountry = true OR s.country IN (:country)) AND "
+        + "(:ignoreDomain = true OR s.domain IN (:domain)) AND "
+        + "s.sourceGateway.gatewayId IS NULL")
+    List<SignerInformationEntity> searchNonFederated(
+        @Param("group") List<SignerInformationEntity.CertificateType> group,
+        @Param("ignoreGroup") boolean ignoreGroup,
+        @Param("country") List<String> country,
+        @Param("ignoreCountry") boolean ignoreCountry,
+        @Param("domain") List<String> domain,
+        @Param("ignoreDomain") boolean ignoreDomain);
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
     Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
 
+    Optional<SignerInformationEntity> getFirstByKid(String kid);
+
     @Transactional
     void deleteByThumbprint(String thumbprint);
 
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type);
+    List<SignerInformationEntity> getByCertificateTypeAndSourceGatewayIsNull(
+        SignerInformationEntity.CertificateType type);
 
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
+    List<SignerInformationEntity> getByCertificateTypeAndCountryAndSourceGatewayIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);
+
+    List<SignerInformationEntity> getBySourceGatewayGatewayId(String gatewayId);
+
+    @Transactional
+    Long deleteBySourceGatewayGatewayId(String gatewayId);
 
 }

@@ -32,18 +32,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 
 @Getter
 @Setter
 @Entity
-@Table(name = "signer_information")
-@AllArgsConstructor
-@NoArgsConstructor
-public class SignerInformationEntity extends FederatedEntity {
+@Table(name = "trusted_reference")
+public class TrustedReferenceEntity extends FederatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,61 +61,81 @@ public class SignerInformationEntity extends FederatedEntity {
     private String country;
 
     /**
+     * Type of the reference (DSC, FHIR).
+     */
+    @Column(name = "reference_type", nullable = false, length = 25)
+    @Enumerated(EnumType.STRING)
+    private ReferenceType type;
+
+    /**
+     * Name of the Service, e.g. ValueSet, PlanDefinition
+     */
+    @Column(name = "service", nullable = false, length = 1024)
+    private String service;
+
+    /**
      * SHA-256 Thumbprint of the certificate (hex encoded).
      */
-    @Column(name = "thumbprint", nullable = false, length = 64, unique = true)
+    @Column(name = "thumbprint", length = 64)
     private String thumbprint;
 
     /**
-     * Base64 encoded certificate raw data.
+     * Name of the service.
      */
-    @Column(name = "raw_data", nullable = false, length = 4096)
-    String rawData;
+    @Column(name = "name", nullable = false, length = 512)
+    private String name;
 
     /**
-     * Signature of the Upload Certificate.
+     * SSL Certificate of the endpoint (if applicable).
      */
-    @Column(name = "signature", nullable = false, length = 6000)
-    String signature;
+    @Column(name = "ssl_public_key", length = 2048)
+    private String sslPublicKey;
 
     /**
-     * KID of the certificate (Optional, use to override default KID -> first 8 bytes of SHA-256 thumbprint).
+     * MIME type of content.
      */
-    @Column(name = "kid", length = 20, unique = true)
-    private String kid;
+    @Column(name = "content_type", nullable = false, length = 512)
+    private String contentType;
 
     /**
-     * Type of the certificate (currently only DSC).
+     * Type of the signature (NONE, CMS, JWS).
      */
-    @Column(name = "certificate_type", nullable = false)
+    @Column(name = "signature_type", nullable = false, length = 25)
     @Enumerated(EnumType.STRING)
-    CertificateType certificateType;
+    private SignatureType signatureType;
 
+    /**
+     * Version String.
+     */
+    @Column(name = "reference_version", nullable = false, length = 256)
+    private String referenceVersion;
 
-    @Column(name = "properties", length = 2000)
-    private String properties;
-
-    public enum CertificateType {
-
-        /**
-         * Certificate which the member state is using to sign documents (NBDSC).
-         */
-        DSC,
-
-        SIGN,
-
-        AUTH,
-
-        CUSTOM;
+    public enum ReferenceType {
+        DCC,
+        FHIR;
 
         /**
          * Return a List of allowed CertificateType as String List.
          */
         public static List<String> stringValues() {
-            return Arrays.stream(CertificateType.values())
+            return Arrays.stream(TrustedReferenceEntity.ReferenceType.values())
                 .map(Enum::toString)
                 .collect(Collectors.toList());
         }
     }
 
+    public enum SignatureType {
+        CMS,
+        JWS,
+        NONE;
+
+        /**
+         * Return a List of allowed CertificateType as String List.
+         */
+        public static List<String> stringValues() {
+            return Arrays.stream(TrustedReferenceEntity.SignatureType.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+        }
+    }
 }

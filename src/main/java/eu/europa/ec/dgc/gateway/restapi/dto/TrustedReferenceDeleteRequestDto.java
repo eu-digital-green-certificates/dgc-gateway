@@ -18,13 +18,22 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.model;
+package eu.europa.ec.dgc.gateway.restapi.dto;
 
-public enum TrustListType {
+import io.swagger.v3.oas.annotations.media.Schema;
+import javax.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    DSC,
-    UPLOAD,
-    CSCA,
-    AUTHENTICATION,
-    TRUSTANCHOR
+
+@Schema(description = "Object to identify a Trusted Reference to delete.")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrustedReferenceDeleteRequestDto {
+
+    @Schema(description = "Unique Identifier of the Trusted Reference", format = "UUID")
+    @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
+    private String uuid;
 }

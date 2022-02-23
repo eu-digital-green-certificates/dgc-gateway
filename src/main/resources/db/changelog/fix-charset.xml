@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="fix-charset-for-valueset" author="A34636994 (generated)">
+        <sql dbms="mysql">
+            ALTER TABLE valueset CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;
+            ALTER TABLE valueset DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

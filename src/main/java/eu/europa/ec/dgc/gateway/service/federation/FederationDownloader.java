@@ -18,13 +18,26 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.model;
+package eu.europa.ec.dgc.gateway.service.federation;
 
-public enum TrustListType {
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-    DSC,
-    UPLOAD,
-    CSCA,
-    AUTHENTICATION,
-    TRUSTANCHOR
+public interface FederationDownloader {
+
+    void fullDownload(FederationGatewayEntity gateway) throws FederationDownloaderException;
+
+    void incrementalDownload(FederationGatewayEntity gateway) throws FederationDownloaderException;
+
+    String getDownloaderIdentifier();
+
+    @RequiredArgsConstructor
+    class FederationDownloaderException extends Exception {
+
+        @Getter
+        private final String reason;
+
+    }
+
 }

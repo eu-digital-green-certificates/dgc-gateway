@@ -18,13 +18,23 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.model;
+package eu.europa.ec.dgc.gateway.restapi.filter;
 
-public enum TrustListType {
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-    DSC,
-    UPLOAD,
-    CSCA,
-    AUTHENTICATION,
-    TRUSTANCHOR
+@Configuration
+@Profile("!mtls")
+@Slf4j
+public class DefaultSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+            .authorizeRequests().anyRequest().permitAll();
+    }
 }
+

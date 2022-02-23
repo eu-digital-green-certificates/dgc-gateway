@@ -13,6 +13,9 @@ spring:
     change-log: classpath:db/changelog.xml
   main:
     allow-bean-definition-overriding: true
+  jpa:
+    hibernate:
+      ddl-auto: none
 springdoc:
   api-docs:
     path: /api/docs

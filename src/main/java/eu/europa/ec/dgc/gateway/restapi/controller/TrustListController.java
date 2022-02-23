@@ -20,21 +20,30 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedCertificateTrustListDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedIssuerDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
 import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustListMapper;
+import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustedIssuerMapper;
+import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustedReferenceMapper;
 import eu.europa.ec.dgc.gateway.service.TrustListService;
+import eu.europa.ec.dgc.gateway.service.TrustedIssuerService;
+import eu.europa.ec.dgc.gateway.service.TrustedReferenceService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -51,6 +60,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -63,6 +73,16 @@ public class TrustListController {
     private final TrustListService trustListService;
 
     private final GwTrustListMapper trustListMapper;
+
+    private final ObjectMapper objectMapper;
+
+    private final GwTrustedIssuerMapper trustedIssuerMapper;
+
+    private final TrustedIssuerService trustedIssuerService;
+
+    private final GwTrustedReferenceMapper trustedReferenceMapper;
+
+    private final TrustedReferenceService trustedReferenceService;
 
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNT = "downloadedKeys";
     private static final String MDC_PROP_DOWNLOAD_KEYS_TYPE = "downloadedKeysType";
@@ -237,6 +257,223 @@ public class TrustListController {
         log.info(DOWNLOADED_TRUSTLIST_LOG_MESSAGE);
 
         return ResponseEntity.ok(trustList);
+    }
+
+    /**
+     * TrustList Download Controller (filtered by type).
+     */
+    @CertificateAuthenticationRequired
+    @GetMapping(path = "/certificate", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        summary = "Returns a filtered list of trusted certificates. The provided search criteria are additive."
+            + " It is possible to provide more than one value for each criteria. (Except for withFederation)",
+        tags = {"Trust Lists"},
+        parameters = {
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "group",
+                description = "Value for Group to search for",
+                examples = {@ExampleObject("AUTHENTICATION"), @ExampleObject("AUTHENTICATION_FEDERATION"),
+                    @ExampleObject("UPLOAD"), @ExampleObject("CSCA"), @ExampleObject("TRUSTANCHOR"),
+                    @ExampleObject("DSC"), @ExampleObject("SIGN"), @ExampleObject("AUTH"), @ExampleObject("CUSTOM")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "country",
+                description = "Two-Digit Country Code",
+                examples = {@ExampleObject("EU"), @ExampleObject("DE")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "domain",
+                description = "Value for Domain to search for",
+                examples = {@ExampleObject("DCC"), @ExampleObject("ICAO")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "withFederation",
+                description = "Switch if federated entities should be included",
+                allowEmptyValue = true,
+                schema = @Schema(implementation = Boolean.class)
+            )
+        },
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Returns a filtered list of trusted certificates.",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    array = @ArraySchema(schema = @Schema(implementation = TrustListDto.class)))),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad request. Unknown Certificate Type.",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class)
+                )),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class)
+                ))
+        })
+    public ResponseEntity<List<TrustedCertificateTrustListDto>> downloadTrustListCertificate(
+        @RequestParam(value = "group", required = false) List<String> searchGroup,
+        @RequestParam(value = "country", required = false) List<String> searchCountry,
+        @RequestParam(value = "domain", required = false) List<String> searchDomain,
+        @RequestParam(value = "withFederation", required = false) Boolean withFederation
+    ) {
+        log.debug("Downloading TrustedCertificate TrustList. Parameters group: {}, country: {}, domain: {}, "
+            + "withFederation: {}", searchGroup, searchCountry, searchDomain, withFederation);
+
+        return ResponseEntity.ok(trustListMapper.trustListToDto(trustListService.getTrustedCertificateTrustList(
+            searchGroup,
+            searchCountry,
+            searchDomain,
+            Boolean.TRUE.equals(withFederation)), objectMapper));
+    }
+
+    /**
+     * TrustedIssuer TrustList Download.
+     */
+    @CertificateAuthenticationRequired
+    @GetMapping(path = "/issuers", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        summary = "Returns the list of trusted issuers filtered by criterias.",
+        tags = {"Trust List"},
+        parameters = {
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "country",
+                description = "Two-Digit Country Code",
+                examples = {@ExampleObject("EU"), @ExampleObject("DE")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "domain",
+                description = "Value for Domain to search for",
+                examples = {@ExampleObject("DCC"), @ExampleObject("ICAO")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "withFederation",
+                description = "Switch if federated entities should be included",
+                allowEmptyValue = true,
+                schema = @Schema(implementation = Boolean.class)
+            )
+        },
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Returns the list of trusted issuers.",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    array = @ArraySchema(schema = @Schema(implementation = TrustedIssuerDto.class)))),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized. No Access to the system."
+                    + "(Client Certificate not present or whitelisted)",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class)
+                ))
+        })
+    public ResponseEntity<List<TrustedIssuerDto>> getTrustedIssuersByCountry(
+        @RequestParam(value = "country", required = false) List<String> searchCountry,
+        @RequestParam(value = "domain", required = false) List<String> searchDomain,
+        @RequestParam(value = "withFederation", required = false) Boolean withFederation
+    ) {
+        log.debug("Downloading TrustedIssuers TrustList. Parameters country: {}, domain: {}, "
+            + "withFederation: {}", searchCountry, searchDomain, withFederation);
+
+        return ResponseEntity.ok(trustedIssuerMapper.trustedIssuerEntityToTrustedIssuerDto(
+            trustedIssuerService.search(searchDomain, searchCountry, Boolean.TRUE.equals(withFederation))));
+    }
+
+    /**
+     * TrustedReference TrustList Download.
+     */
+    @CertificateAuthenticationRequired
+    @GetMapping(path = "/references", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        summary = "Returns the list of trusted issuers filtered by criterias.",
+        tags = {"Trust List"},
+        parameters = {
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "country",
+                description = "Two-Digit Country Code",
+                examples = {@ExampleObject("EU"), @ExampleObject("DE")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "domain",
+                description = "Value for Domain to search for",
+                examples = {@ExampleObject("DCC"), @ExampleObject("ICAO")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "referenceType",
+                description = "Value for Reference Type to search for",
+                examples = {@ExampleObject("DCC"), @ExampleObject("FHIR")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "signatureType",
+                description = "Value for Signature Type to search for",
+                examples = {@ExampleObject("CMS"), @ExampleObject("JWS"), @ExampleObject("NONE")}
+            ),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "withFederation",
+                description = "Switch if federated entities should be included",
+                allowEmptyValue = true,
+                schema = @Schema(implementation = Boolean.class)
+            )
+        },
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Returns the list of trusted issuers.",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    array = @ArraySchema(schema = @Schema(implementation = TrustedIssuerDto.class)))),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized. No Access to the system."
+                    + "(Client Certificate not present or whitelisted)",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class)
+                ))
+        })
+    public ResponseEntity<List<TrustedReferenceDto>> getTrustedReferencesTrustList(
+        @RequestParam(value = "country", required = false) List<String> searchCountry,
+        @RequestParam(value = "domain", required = false) List<String> searchDomain,
+        @RequestParam(value = "referenceType", required = false) List<String> searchReferenceType,
+        @RequestParam(value = "signatureType", required = false) List<String> searchSignatureType,
+        @RequestParam(value = "withFederation", required = false) Boolean withFederation
+    ) {
+        log.debug("Downloading TrustedReferences TrustList. Parameters country: {}, domain: {}, "
+            + "withFederation: {}", searchCountry, searchDomain, withFederation);
+
+        return ResponseEntity.ok(trustedReferenceMapper.trustedReferenceEntityToTrustedReferenceDto(
+            trustedReferenceService.search(searchDomain, searchCountry, searchReferenceType, searchSignatureType,
+                Boolean.TRUE.equals(withFederation))));
     }
 
 }

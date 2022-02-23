@@ -1,0 +1,10 @@
+server:
+  ssl:
+    enabled: true
+    client-auth: need
+    key-store: classpath:server-keystore.p12
+    key-alias: server
+    key-password: changeit
+    key-store-password: changeit
+    trust-store: classpath:truststore.p12
+    trust-store-password: changeit
