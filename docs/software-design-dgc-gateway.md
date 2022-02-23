@@ -39,21 +39,21 @@ The triangle of trust is the blueprint for Green Certificate interoperability:
 -**Holder**: A Green Certificate (DGC) owner (i.e., a citizen with a vaccination, negative PCR test result, or positive anti-body test result)—note that the Green Certificate can be held digitally within a wallet app or on paper (or both)
 -**Issuer**: A national authority 
 -**Verifier**: An offline/online verifier (e.g., customs officers, police, or hotel staff)
-![triangle_of_trust.png](triangle_of_trust.png)
+![triangle_of_trust.png](pictures/triangle_of_trust.png)
 How does the verifier know which issuer is trustworthy? In a personal relationship, one would decide by experience. In this architecture, the DGCG tells the verifier which issuers are trustworthy by providing cryptographically anchored information.
 ### Distribution of Verification Information
 Exactly how each national app communicates with the corresponding national backend -whether via CDN, active push, or otherwise - is left to each country. Important here is the cryptographically secured E2E protection between the member states.
-![distribution_of_signing.png](distribution_of_signing.png)
+![distribution_of_signing.png](pictures/distribution_of_signing.png)
 ### Communication ways
 - Device-to-device communication is built on a standardized 2D code and verifier format defined by the EU Trust Framework.
 - A direct backend-to-backend communication is not necessary, because the main purpose of the DGCG solution is to provide verification information. 
 ### Trust
 To ensure that just data from trusted parties are accepted. The system contains a trust list which is signed entry by entry air gapped by an official signer. This signer, signs with his private key each request of onboarding and provides this signed information to the DGCG operator which can set this entry on the trust list. This guarantees that no external attacker or another party than the trusted signer can create valid records for the trust list. The public key of the trusted signer is shared out of band to the other parties, to establish an effective trust anchoring.
-![trust.png](trust.png)
+![trust.png](pictures/trust.png)
 
 ## Interfaces
 DGCG provides a simple REST API with common upload and download functionality for trusted information.
-![api.png](api.png)
+![api.png](pictures/api.png)
 The are described further with a OpenAPI doc and in the document [European Digital Green Certificate Gateway](https://ec.europa.eu/health/sites/health/files/ehealth/docs/digital-green-certificates_v2_en.pdf) 
 
 ## Database Design
