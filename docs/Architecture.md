@@ -252,15 +252,11 @@ To use the federated data, the gateway will be enhanced by federation endpoints 
 
 |Verb|Used in Federator|Used inMediator|Route|Modification/Behavior|
 |----|-----------------|---------------|-----|---------------------|
-|GET|X|X|/federation/trustlist/certificates|Returns the list of trusted certificates. The list can be filtered with optional query parameters. For legacy reasons, all signercertificates introduced in the “DSC” certificate group (if profile enabled) All other certificates should be delivered over query parameter.|
-|GET|X|X|/federation/trustlist/issuers|Returns the list of trusted issuers. The list can be filtered with optional query parameters.|
-|GET|X|X|/federation/trustlist/signatures|Returns the list signatures for existing trust lists.|
-|GET|X|X|/federation/trustlist/references|Returns the list of trusted references. The list can be filtered with optional query parameters.|
-|GET||X|/federation/gateways|Returns an JSON Object Array of onboarded gateways, including related trust anchor kid and Authentication KID etc.|
-|GET||X|/federation/metadata|Returns an JSON Object with the basic metadata of the gateway. E.g. types, versions, federation id etc.|
-|GET||X|/federation/federators|Returns an array which federators are onboarded|
+|GET|X|X|/trustlist/certificates|Returns the list of trusted certificates. The list can be filtered with optional query parameters. For legacy reasons, all signercertificates introduced in the “DSC” certificate group (if profile enabled) All other certificates should be delivered over query parameter.|
+|GET|X|X|/trustlist/issuers|Returns the list of trusted issuers. The list can be filtered with optional query parameters.|
+|GET|X|X|/trustlist/signatures|Returns the list signatures for existing trust lists.|
+|GET|X|X|/trustlist/references|Returns the list of trusted references. The list can be filtered with optional query parameters.|
 
-<b>Note</b>: “Version” is defined as v1.0, v.1.1 etc.
 <b>Note</b>: All routes should filter the delivered content by hash to avoid duplicate content delivery. Two different federations can receive from a single TP the same content in some circumstances. 
 
 *Common Query Parameters*
@@ -327,7 +323,7 @@ The trusted references are URLs which are uploaded by the member states to propa
 |SignatureType|No|String|NONE|JWS|CMS|
 
 ## Trusted Issuer
-Currently it is just possible to onboard CSCAs as Issuer Trust Reference for DSCs which makes it hard to use it outside the PKI world. Other credential types like Verifiable Credentials are using DIDs or other Issuer IDs which are not necessarily linked to any CSCA, but with crypto material behind it e.g. JWKs sources etc. To support these issuers and their credentials, the gateway will be enhanced by a trusted issuer interface which makes it possible to receive this kind of trusted ids. All of these trusted issuers must be onboarded as CSCAs and all other certificates. The trusted issuers are reachable over a trustlist endpoint (/trustedissuers)
+Currently it is just possible to onboard CSCAs as Issuer Trust Reference for DSCs which makes it hard to use it outside the PKI world. Other credential types like Verifiable Credentials are using DIDs or other Issuer IDs which are not necessarily linked to any CSCA, but with crypto material behind it e.g. JWKs sources etc. To support these issuers and their credentials, the gateway will be enhanced by a trusted issuer interface which makes it possible to receive this kind of trusted ids. All of these trusted issuers must be onboarded as CSCAs and all other certificates.
 
 A trusted issuer entry which can be onboarded is defined as :
 
