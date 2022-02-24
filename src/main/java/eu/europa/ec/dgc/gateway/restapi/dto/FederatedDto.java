@@ -22,6 +22,7 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,7 @@ public class FederatedDto {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Gateway ID of the source gateway this entry origins from.")
+    @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
     private String sourceGateway;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -23,15 +23,15 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Schema(
     name = "Trusted Certificate Trust List Item"
 )
 @Getter
-@Builder
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class TrustedCertificateTrustListDto extends FederatedDto {

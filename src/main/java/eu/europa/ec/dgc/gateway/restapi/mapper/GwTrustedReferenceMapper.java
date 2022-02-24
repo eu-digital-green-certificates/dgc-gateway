@@ -26,7 +26,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = GwTrustListMapper.class)
 public interface GwTrustedReferenceMapper {
 
     TrustedReferenceDto trustedReferenceEntityToTrustedReferenceDto(TrustedReferenceEntity trustedReference);

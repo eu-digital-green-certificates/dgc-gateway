@@ -33,6 +33,7 @@ import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -153,6 +154,11 @@ public class TrustedReferenceService {
         trustedReferenceEntity.setSslPublicKey(parsedTrustedEntity.getSslPublicKey());
         trustedReferenceEntity.setReferenceVersion(parsedTrustedEntity.getReferenceVersion());
         trustedReferenceEntity.setContentType(parsedTrustedEntity.getContentType());
+        trustedReferenceEntity.setDomain(
+            parsedTrustedEntity.getDomain() == null ? "DCC" : parsedTrustedEntity.getDomain());
+        if (parsedTrustedEntity.getUuid() == null) {
+            trustedReferenceEntity.setUuid(UUID.randomUUID().toString());
+        }
 
         log.info("Saving Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
 
