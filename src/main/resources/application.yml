@@ -30,8 +30,8 @@ dgc:
   jrc:
     url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat
     proxy:
-      host: sia-lb.telekom.de
-      port: 8080
+      host: ${https.proxyHost:}
+      port: ${https.proxyPort:-1}
       username: ${https.proxyUser:}
       password: ${https.proxyPassword:}
   validationRuleSchema: classpath:validation-rule.schema.json
