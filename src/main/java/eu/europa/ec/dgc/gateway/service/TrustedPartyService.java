@@ -265,6 +265,7 @@ public class TrustedPartyService {
         String signature,
         String countryCode,
         String kid,
+        String domain,
         TrustedPartyEntity.CertificateType type,
         FederationGatewayEntity sourceGateway
     ) throws IOException {
@@ -280,6 +281,7 @@ public class TrustedPartyService {
         newTrustedPartyEntity.setThumbprint(certificateUtils.getCertThumbprint(certificate));
         newTrustedPartyEntity.setCertificateType(type);
         newTrustedPartyEntity.setSignature(signature);
+        newTrustedPartyEntity.setDomain(domain == null ? "DCC" : domain);
 
         log.info("Saving Federated SignerInformation Entity");
 
