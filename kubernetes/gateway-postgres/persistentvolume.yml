@@ -4,3 +4,17 @@ metadata:
   labels:
     app: ddcc-gateway
   name: ddcc-gateway-pv-volume
+spec:
+  capacity:
+    storage: 2Gi
+  hostPath:
+    path: /mnt/data
+    type: ''
+  accessModes:
+    - ReadWriteMany
+  claimRef:
+    kind: PersistentVolumeClaim
+    namespace: default
+    name: ddcc-gateway-pv-claim
+  storageClassName: manual
+  volumeMode: Filesystem
