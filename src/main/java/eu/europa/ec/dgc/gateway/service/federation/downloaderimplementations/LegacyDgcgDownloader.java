@@ -159,6 +159,7 @@ public class LegacyDgcgDownloader implements FederationDownloader {
                     trustListItem.getSignature(),
                     trustListItem.getCountry(),
                     null,
+                    null,
                     type,
                     gateway
                 );
@@ -182,6 +183,7 @@ public class LegacyDgcgDownloader implements FederationDownloader {
                     trustListItem.getRawData(),
                     trustListItem.getSignature(),
                     trustListItem.getCountry(),
+                    null,
                     null,
                     gateway
                 );

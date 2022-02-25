@@ -251,6 +251,7 @@ public class SignerInformationService {
         String signature,
         String countryCode,
         String kid,
+        String domain,
         FederationGatewayEntity sourceGateway
     ) throws SignerCertCheckException {
 
@@ -274,6 +275,7 @@ public class SignerInformationService {
         newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(certificate));
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
+        newSignerInformation.setDomain(domain == null ? "DCC" : domain);
 
         log.info("Saving Federated SignerInformation Entity");
 
