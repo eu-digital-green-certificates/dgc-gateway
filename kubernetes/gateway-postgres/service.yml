@@ -7,3 +7,7 @@ metadata:
   namespace: default
 spec:
   type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
