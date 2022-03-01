@@ -1,53 +1,53 @@
 apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: ddcc-gateway-postgres
-    namespace: default
-  spec:
-    selector:
-      matchLabels:
+kind: Deployment
+metadata:
+  name: ddcc-gateway-postgres
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: ddcc-gateway-postgres
+  template:
+    metadata:
+      annotations:
+        deployment.kubernetes.io/revision: "1"
+        vault.hashicorp.com/agent-init-first: "true"
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-secret-postgres: postgres-db/data/gateway
+        vault.hashicorp.com/agent-inject-template-postgres: |
+          {{- with secret "postgres-db/data/gateway" -}}
+              export POSTGRES_DB={{ .Data.data.POSTGRES_DB }}
+              export POSTGRES_USER={{ .Data.data.POSTGRES_USER }}
+              export POSTGRES_PASSWORD={{ .Data.data.POSTGRES_PASSWORD }}
+           {{- end -}}
+        vault.hashicorp.com/agent-pre-populate-only: "true"
+        vault.hashicorp.com/role: gateway-postgresdb
+      creationTimestamp: null
+      labels:
         app: ddcc-gateway-postgres
-    template:
-      metadata:
-        annotations:
-          deployment.kubernetes.io/revision: "1"
-          vault.hashicorp.com/agent-init-first: "true"
-          vault.hashicorp.com/agent-inject: "true"
-          vault.hashicorp.com/agent-inject-secret-postgres: postgres-db/data/gateway
-          vault.hashicorp.com/agent-inject-template-postgres: |
-            {{- with secret "postgres-db/data/gateway" -}}
-                export POSTGRES_DB={{ .Data.data.POSTGRES_DB }}
-                export POSTGRES_USER={{ .Data.data.POSTGRES_USER }}
-                export POSTGRES_PASSWORD={{ .Data.data.POSTGRES_PASSWORD }}
-             {{- end -}}
-          vault.hashicorp.com/agent-pre-populate-only: "true"
-          vault.hashicorp.com/role: gateway-postgresdb
-        creationTimestamp: null
-        labels:
-          app: ddcc-gateway-postgres
-      spec:
-        containers:
-        - args:
-          - -c
-          - . /vault/secrets/postgres && /usr/local/bin/docker-entrypoint.sh postgres
-          command:
-          - /bin/sh
-          env:
-          - name: PROXY_ADDRESS_FORWARDING
-            value: "true"
-          image: postgres:latest
-          imagePullPolicy: IfNotPresent
-          name: ddcc-gateway-postgres
-          ports:
-          - containerPort: 5432
-            name: postgres-fhir
-            protocol: TCP
-          volumeMounts:
-          - mountPath: /var/lib/postgresql/data
-            name: postgresdb
-        serviceAccount: ddcc-gateway
-        serviceAccountName: ddcc-gateway
-        volumes:
-        - name: postgresdb
-          persistentVolumeClaim:
-            claimName: ddcc-gateway-pv-claim
+    spec:
+      containers:
+      - args:
+        - -c
+        - . /vault/secrets/postgres && /usr/local/bin/docker-entrypoint.sh postgres
+        command:
+        - /bin/sh
+        env:
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true"
+        image: postgres:latest
+        imagePullPolicy: IfNotPresent
+        name: ddcc-gateway-postgres
+        ports:
+        - containerPort: 5432
+          name: postgres-fhir
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgresdb
+      serviceAccount: ddcc-gateway
+      serviceAccountName: ddcc-gateway
+      volumes:
+      - name: postgresdb
+        persistentVolumeClaim:
+          claimName: ddcc-gateway-pv-claim

@@ -5,3 +5,7 @@ metadata:
   namespace: default
 spec:
   type: LoadBalancer
+  ports:
+   - protocol: TCP
+     port: 443
+     targetPort: 8090
