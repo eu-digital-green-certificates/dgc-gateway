@@ -127,7 +127,8 @@ public class DdccgDownloader implements FederationDownloader {
         trustedIssuerService.deleteBySourceGateway(gateway.getGatewayId());
         trustedReferenceService.deleteBySourceGateway(gateway.getGatewayId());
 
-        log.debug("Persisting new data for Gateway {}: TrustedCertificate: {}", gateway.getGatewayId(), trustedCertificates.size());
+        log.debug("Persisting new data for Gateway {}: TrustedCertificate: {}",
+            gateway.getGatewayId(), trustedCertificates.size());
         persistTrustedCertificates(gateway, trustedCertificates);
         persistTrustedReferences(gateway, trustedReferences);
         persistTrustedIssuer(gateway, trustedIssuers);
@@ -239,8 +240,10 @@ public class DdccgDownloader implements FederationDownloader {
     private void persistTrustedCertificates(
         FederationGatewayEntity gateway, List<TrustedCertificateTrustListItem> trustedCertificateList) {
 
-        Map<TrustedPartyEntity.CertificateType, List<TrustedCertificateTrustListItem>> trustedParties = new HashMap<>();
-        Map<SignerInformationEntity.CertificateType, List<TrustedCertificateTrustListItem>> signerCerts = new HashMap<>();
+        final Map<TrustedPartyEntity.CertificateType, List<TrustedCertificateTrustListItem>> trustedParties =
+            new HashMap<>();
+        final Map<SignerInformationEntity.CertificateType, List<TrustedCertificateTrustListItem>> signerCerts =
+            new HashMap<>();
 
         trustedCertificateList.forEach(trustedCertificate -> {
 
