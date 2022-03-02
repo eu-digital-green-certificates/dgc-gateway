@@ -44,18 +44,27 @@ public class TrustedIssuerDto {
     private String thumbprint;
 
     @Schema(example = "o53CbAa77LyIMFc5Gz+B2Jc275Gdg/SdLayw7gx0GrTcinR95zfTLr8nNHgJMYlX3rD8Y11zB/Osyt0 ..."
-            + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
+        + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
     private String sslPublicKey;
 
     @Schema(example = "JWKS")
     private String keyStorageType;
 
     @Schema(example = "o53CbAa77LyIMFc5Gz+B2Jc275Gdg/SdLayw7gx0GrTcinR95zfTLr8nNHgJMYlX3rD8Y11zB/Osyt0 ..."
-            + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
+        + " W+VIrYRGSEmgjGy2EwzvA5nVhsaA+/udnmbyQw9LjAOQ==")
     private String signature;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     private ZonedDateTime timestamp;
+
+    @Schema(example = "Example Service")
+    private String name;
+
+    @Schema(example = "e4d04ee1-2bfe-4e8c-ab82-0d2b1d223712")
+    private String uuid;
+
+    @Schema(example = "DCC")
+    private String domain;
 
     public enum UrlTypeDto {
         HTTP,

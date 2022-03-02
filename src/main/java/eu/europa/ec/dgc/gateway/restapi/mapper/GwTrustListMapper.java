@@ -41,6 +41,10 @@ import org.mapstruct.Mapping;
 @Slf4j
 public abstract class GwTrustListMapper {
 
+    @Mapping(source = "certificateType", target = "domain")
+    @Mapping(target = "sourceGateway", ignore = true)
+    @Mapping(target = "uuid", ignore = true)
+    @Mapping(target = "version", ignore = true)
     public abstract TrustListDto trustListToTrustListDto(TrustList trustList);
 
     public abstract List<TrustListDto> trustListToTrustListDto(List<TrustList> trustList);

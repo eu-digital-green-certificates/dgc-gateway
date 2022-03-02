@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedReferenceEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedReferenceRepository;
@@ -58,6 +59,19 @@ public class TrustedReferenceService {
 
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
 
+
+    /**
+     * Deletes all TrustedReferences assigned to given source gateway.
+     *
+     * @param gatewayId GatewayID of source gateway
+     */
+    public void deleteBySourceGateway(String gatewayId) {
+        log.info("Deleting TrustedReferences by GatewayId {}", gatewayId);
+
+        Long deleteCount = trustedReferenceRepository.deleteBySourceGatewayGatewayId(gatewayId);
+
+        log.info("Deleted {} TrustedReferences with GatewayId {}", deleteCount, gatewayId);
+    }
 
     /**
      * Method to query the db for all trusted references.
@@ -125,6 +139,46 @@ public class TrustedReferenceService {
                 parsedSignatureTypes, parsedSignatureTypes.isEmpty());
         }
 
+    }
+
+    /**
+     * Add a new federated TrustedReference.
+     */
+    public TrustedReferenceEntity addFederatedTrustedReference(String country,
+                                                               TrustedReferenceEntity.ReferenceType referenceType,
+                                                               String service,
+                                                               String name,
+                                                               TrustedReferenceEntity.SignatureType signatureType,
+                                                               String thumbprint,
+                                                               String sslPublicKey,
+                                                               String referenceVersion,
+                                                               String contentType,
+                                                               String domain,
+                                                               String uuid,
+                                                               FederationGatewayEntity sourceGateway) {
+        TrustedReferenceEntity trustedReferenceEntity = new TrustedReferenceEntity();
+        trustedReferenceEntity.setCountry(country);
+        trustedReferenceEntity.setType(referenceType);
+        trustedReferenceEntity.setService(service);
+        trustedReferenceEntity.setName(name);
+        trustedReferenceEntity.setSignatureType(signatureType);
+        trustedReferenceEntity.setThumbprint(thumbprint);
+        trustedReferenceEntity.setSslPublicKey(sslPublicKey);
+        trustedReferenceEntity.setReferenceVersion(referenceVersion);
+        trustedReferenceEntity.setContentType(contentType);
+        trustedReferenceEntity.setSourceGateway(sourceGateway);
+        trustedReferenceEntity.setDomain(domain == null ? "DCC" : domain);
+        if (uuid == null) {
+            trustedReferenceEntity.setUuid(UUID.randomUUID().toString());
+        }
+
+        log.info("Saving Federated Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
+
+        trustedReferenceEntity = trustedReferenceRepository.save(trustedReferenceEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+
+        return trustedReferenceEntity;
     }
 
     /**
