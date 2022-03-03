@@ -24,6 +24,9 @@ import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.connector.DgcGatewayDownloadConnector;
 import eu.europa.ec.dgc.gateway.connector.DgcGatewayDownloadConnectorBuilder;
 import eu.europa.ec.dgc.gateway.connector.mapper.TrustListMapper;
+import eu.europa.ec.dgc.gateway.connector.mapper.TrustedCertificateMapper;
+import eu.europa.ec.dgc.gateway.connector.mapper.TrustedIssuerMapper;
+import eu.europa.ec.dgc.gateway.connector.mapper.TrustedReferenceMapper;
 import eu.europa.ec.dgc.gateway.connector.model.TrustListItem;
 import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
@@ -57,6 +60,9 @@ public class LegacyDgcgDownloader implements FederationDownloader {
     private final TrustListMapper trustListMapper;
     private final DgcConfigProperties configProperties;
     private final CertificateUtils certificateUtils;
+    private final TrustedCertificateMapper trustedCertificateMapper;
+    private final TrustedIssuerMapper trustedIssuerMapper;
+    private final TrustedReferenceMapper trustedReferenceMapper;
     @Qualifier("federation")
     private final KeyStore federationKeyStore;
 
@@ -130,7 +136,8 @@ public class LegacyDgcgDownloader implements FederationDownloader {
                 "Failed to get Gateway Client Certificate from KeyStore: " + e.getMessage());
         }
 
-        builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper)
+        builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper, trustedIssuerMapper,
+            trustedReferenceMapper, trustedCertificateMapper)
             .withUrl(gateway.getGatewayEndpoint())
             .withMtlsAuthCert(clientCertificate, clientCertifikateKey)
             .withMaximumCacheAge(0);
@@ -183,6 +190,8 @@ public class LegacyDgcgDownloader implements FederationDownloader {
                     trustListItem.getRawData(),
                     trustListItem.getSignature(),
                     trustListItem.getCountry(),
+                    null,
+                    null,
                     null,
                     null,
                     gateway
