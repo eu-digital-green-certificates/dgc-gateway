@@ -65,7 +65,7 @@ spec:
       labels:
         app: ddcc-gateway
     spec:
-      containers:
+      containers:        
       - args:
         - -c
         - . /vault/secrets/postgres && . /vault/secrets/gwenv &&  java $JAVA_OPTS
@@ -102,7 +102,28 @@ spec:
         - containerPort: 8443
           name: https
           protocol: TCP
+        resources:
+          requests:
+            cpu: 50m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1024Mi
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8091
+          initialDelaySeconds: 180
+          timeoutSeconds: 3
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8091
+          timeoutSeconds: 3
+          periodSeconds: 15   
       imagePullSecrets:
       - name: githubpullsecret
       serviceAccount: ddcc-gateway
       serviceAccountName: ddcc-gateway
+  
