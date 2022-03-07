@@ -142,15 +142,16 @@ public class DdccgDownloader implements FederationDownloader {
         DgcGatewayDownloadConnectorBuilder builder;
 
         X509CertificateHolder clientCertificate;
-        PrivateKey clientCertifikateKey;
+        PrivateKey clientCertificateKey;
 
         try {
             clientCertificate = certificateUtils.convertCertificate(
                 (X509Certificate) federationKeyStore.getCertificate(gateway.getGatewayKid()));
-            clientCertifikateKey = (PrivateKey) federationKeyStore.getKey(gateway.getGatewayKid(),
+            clientCertificateKey = (PrivateKey) federationKeyStore.getKey(gateway.getGatewayKid(),
                 configProperties.getFederation().getKeystoreKeyPassword().toCharArray());
         } catch (Exception e) {
             log.error("Failed to get Gateway Client Certificate from KeyStore: {}", e.getMessage());
+            log.debug("Failed to get Gateway Client Certificate from KeyStore.", e);
             throw new FederationDownloaderException(
                 "Failed to get Gateway Client Certificate from KeyStore: " + e.getMessage());
         }
@@ -158,7 +159,7 @@ public class DdccgDownloader implements FederationDownloader {
         builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper, trustedIssuerMapper,
             trustedReferenceMapper, trustedCertificateMapper)
             .withUrl(gateway.getGatewayEndpoint())
-            .withMtlsAuthCert(clientCertificate, clientCertifikateKey)
+            .withMtlsAuthCert(clientCertificate, clientCertificateKey)
             .withDdccSupport(true)
             .withMaximumCacheAge(30);
 
