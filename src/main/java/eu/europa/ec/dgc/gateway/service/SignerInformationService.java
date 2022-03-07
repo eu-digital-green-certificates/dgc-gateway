@@ -277,8 +277,13 @@ public class SignerInformationService {
         newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(certificate));
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
-        newSignerInformation.setUuid(uuid);
-        newSignerInformation.setVersion(version);
+
+        if (uuid != null) {
+            newSignerInformation.setUuid(uuid);
+        }
+        if (version != null) {
+            newSignerInformation.setVersion(version);
+        }
         newSignerInformation.setDomain(domain == null ? "DCC" : domain);
 
         log.info("Saving Federated SignerInformation Entity");

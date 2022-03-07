@@ -38,7 +38,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -210,8 +209,8 @@ public class TrustedIssuerService {
         trustedIssuerEntity.setVersion(version == null ? 1 : version);
         trustedIssuerEntity.setSourceGateway(sourceGateway);
         trustedIssuerEntity.setDomain(domain == null ? "DCC" : domain);
-        if (uuid == null) {
-            trustedIssuerEntity.setUuid(UUID.randomUUID().toString());
+        if (uuid != null) {
+            trustedIssuerEntity.setUuid(uuid);
         }
 
         log.info("Saving Federated Trusted Issuer Entity with uuid {}", trustedIssuerEntity.getUuid());

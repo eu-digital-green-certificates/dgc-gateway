@@ -167,6 +167,7 @@ public class LegacyDgcgDownloader implements FederationDownloader {
                     trustListItem.getCountry(),
                     null,
                     null,
+                    null,
                     type,
                     gateway
                 );

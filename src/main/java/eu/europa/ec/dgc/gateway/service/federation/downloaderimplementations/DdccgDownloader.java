@@ -288,6 +288,7 @@ public class DdccgDownloader implements FederationDownloader {
                         trustedParty.getCountry(),
                         trustedParty.getKid(),
                         trustedParty.getDomain(),
+                        trustedParty.getUuid(),
                         type,
                         gateway
                     );
