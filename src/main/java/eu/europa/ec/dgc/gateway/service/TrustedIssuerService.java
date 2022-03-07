@@ -207,7 +207,7 @@ public class TrustedIssuerService {
         trustedIssuerEntity.setSslPublicKey(sslPublicKey);
         trustedIssuerEntity.setKeyStorageType(keyStorageType);
         trustedIssuerEntity.setSignature(signature);
-        trustedIssuerEntity.setVersion(version);
+        trustedIssuerEntity.setVersion(version == null ? 1 : version);
         trustedIssuerEntity.setSourceGateway(sourceGateway);
         trustedIssuerEntity.setDomain(domain == null ? "DCC" : domain);
         if (uuid == null) {
