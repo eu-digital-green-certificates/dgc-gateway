@@ -120,6 +120,7 @@ spec:
           httpGet:
             path: /actuator/health/readiness
             port: 8091
+          initialDelaySeconds: 15
           timeoutSeconds: 3
           periodSeconds: 15   
       imagePullSecrets:
