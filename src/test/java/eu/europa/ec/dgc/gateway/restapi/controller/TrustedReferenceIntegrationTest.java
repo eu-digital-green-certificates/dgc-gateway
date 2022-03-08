@@ -29,6 +29,7 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedReferenceEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedReferenceRepository;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDeleteRequestDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDto;
 import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedStringMessageBuilder;
@@ -48,8 +49,7 @@ import java.time.format.DateTimeFormatterBuilder;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -131,6 +131,30 @@ class TrustedReferenceIntegrationTest {
         assertTrue(trustedReferenceRepository.findAll().isEmpty());
     }
 
+    @Test
+    void testTrustedReferenceWrongCountry() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        TrustedReferenceDto trustedReferenceDto = createTrustedReferenceDto();
+        trustedReferenceDto.setCountry("DE");
+
+        String payload = new SignedStringMessageBuilder()
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(trustedReferenceDto))
+                .buildAsString();
+
+        mockMvc.perform(post("/trust/reference")
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden());
+        assertTrue(trustedReferenceRepository.findAll().isEmpty());
+    }
+
     private TrustedReferenceEntity createTrustedReference() {
         TrustedReferenceEntity trustedReference = new TrustedReferenceEntity();
         trustedReference.setReferenceVersion("1.0");
@@ -140,6 +164,21 @@ class TrustedReferenceIntegrationTest {
         trustedReference.setCountry(countryCode);
         trustedReference.setContentType("cms");
         trustedReference.setSignatureType(TrustedReferenceEntity.SignatureType.CMS);
+        return trustedReference;
+    }
+
+    private TrustedReferenceDto createTrustedReferenceDto() {
+        TrustedReferenceDto trustedReference = new TrustedReferenceDto();
+        trustedReference.setReferenceVersion("1.0");
+        trustedReference.setType(TrustedReferenceDto.ReferenceTypeDto.DCC);
+        trustedReference.setService("trustService");
+        trustedReference.setName("trustName");
+        trustedReference.setCountry(countryCode);
+        trustedReference.setContentType("cms");
+        trustedReference.setSignatureType(TrustedReferenceDto.SignatureTypeDto.CMS);
+        trustedReference.setSslPublicKey("pubKey");
+        trustedReference.setThumbprint("thumbprint");
+        trustedReference.setVersion(1L);
         return trustedReference;
     }
 }
