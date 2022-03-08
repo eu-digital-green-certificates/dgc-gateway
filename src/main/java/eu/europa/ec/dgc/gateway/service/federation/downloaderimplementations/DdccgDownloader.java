@@ -41,7 +41,6 @@ import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.service.TrustedReferenceService;
 import eu.europa.ec.dgc.gateway.service.federation.FederationDownloader;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -292,9 +291,9 @@ public class DdccgDownloader implements FederationDownloader {
                         type,
                         gateway
                     );
-                } catch (IOException e) {
-                    log.error("Failed to persist federated TrustedParty. Gateway: {}, Kid: {}",
-                        gateway.getGatewayId(), trustedParty.getKid());
+                } catch (Exception e) {
+                    log.error("Failed to persist federated TrustedParty. Gateway: {}, Kid: {}, Error: {}",
+                        gateway.getGatewayId(), trustedParty.getKid(), e.getMessage());
                 }
 
                 log.debug("Successfully persisted federated TrustedParty. Gateway: {}, Kid: {}",
