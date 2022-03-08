@@ -29,7 +29,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-
+@Transactional
 public interface TrustedReferenceRepository extends JpaRepository<TrustedReferenceEntity, Long> {
 
     @Modifying
