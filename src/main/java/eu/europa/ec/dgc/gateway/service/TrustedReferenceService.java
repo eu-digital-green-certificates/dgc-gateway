@@ -193,6 +193,7 @@ public class TrustedReferenceService {
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         TrustedReferenceDto parsedTrustedEntity =
             contentCheckValidJson(uploadedTrustedReference, TrustedReferenceDto.class);
+        contentCheckUploaderCountry(parsedTrustedEntity, authenticatedCountryCode);
         contentCheckValidValues(parsedTrustedEntity);
 
         TrustedReferenceEntity trustedReferenceEntity = getOrCreateTrustedReferenceEntity(parsedTrustedEntity);
@@ -328,6 +329,14 @@ public class TrustedReferenceService {
         }
 
         DgcMdc.put(MDC_PROP_UPLOAD_CERT_THUMBPRINT, signerCertThumbprint);
+    }
+
+    private void contentCheckUploaderCountry(TrustedReferenceDto parsedTrustedReference, String countryCode)
+            throws TrustedReferenceServiceException {
+        if (!parsedTrustedReference.getCountry().equals(countryCode)) {
+            throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_COUNTRY,
+                    "Country does not match your authentication.");
+        }
     }
 
     public static class TrustedReferenceServiceException extends Exception {
