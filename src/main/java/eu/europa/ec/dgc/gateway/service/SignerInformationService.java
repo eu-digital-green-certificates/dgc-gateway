@@ -116,6 +116,14 @@ public class SignerInformationService {
                     types.add(SignerInformationEntity.CertificateType.valueOf(group));
                 }
             });
+
+            if (types.isEmpty()) {
+                /*
+                  No group has matched --> All groups are invalid or user has searched for TrustedParty
+                  -> Skipping Search for SignerInformation
+                 */
+                return Collections.emptyList();
+            }
         }
 
         if (withFederation) {

@@ -35,6 +35,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -97,6 +98,14 @@ public class TrustedPartyService {
                     types.add(TrustedPartyEntity.CertificateType.valueOf(group));
                 }
             });
+
+            if (types.isEmpty()) {
+                /*
+                  No group has matched --> All groups are invalid or user has searched for SignerInformation
+                  -> Skipping Search for TrustedParty
+                 */
+                return Collections.emptyList();
+            }
         }
 
         if (withFederation) {
