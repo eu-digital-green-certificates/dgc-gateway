@@ -252,7 +252,7 @@ public class DdccgDownloader implements FederationDownloader {
                 getTrustedPartyCertificateType(trustedCertificate.getGroup());
             if (trustedPartyType != null) {
                 // TrustedParty
-                trustedParties.getOrDefault(trustedPartyType, new ArrayList<>())
+                trustedParties.computeIfAbsent(trustedPartyType, (v) -> new ArrayList<>())
                     .add(trustedCertificate);
                 return;
             }
@@ -262,7 +262,7 @@ public class DdccgDownloader implements FederationDownloader {
             if (signerInformationType != null) {
                 // SignerInformation
 
-                signerCerts.getOrDefault(signerInformationType, new ArrayList<>())
+                signerCerts.computeIfAbsent(signerInformationType, (v) -> new ArrayList<>())
                     .add(trustedCertificate);
                 return;
             }
