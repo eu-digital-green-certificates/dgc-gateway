@@ -38,7 +38,7 @@ spec:
           {{printf "%s" "\n"}}
           {{- with secret "gateway/data/federation" -}}
             export DGC_FEDERATION_KEYSTOREPASSWORD={{ .Data.data.keystorepassword}}
-            export DGC_FEDERATION_KEYSTOREKEYPASSWORD {{ .Data.data.keystorekeypassword}}
+            export DGC_FEDERATION_KEYSTOREKEYPASSWORD={{ .Data.data.keystorekeypassword}}
           {{- end -}}\n"
         vault.hashicorp.com/agent-inject-template-keystore.jks: |
           {{- with secret "gateway/data/mtls" -}}
@@ -89,8 +89,6 @@ spec:
           value: org.hibernate.dialect.PostgreSQLDialect
         - name: HAPI_FHIR_ALLOW_EXTERNAL_REFERENCES
           value: "true"
-        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-          value: update
         - name: SERVER_SSL_KEY_ALIAS
           value: server
         - name: SPRING_DATASOURCE_JNDI_NAME
