@@ -41,6 +41,11 @@ public class TrustedReferenceDto extends FederatedDto {
     @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
     private String uuid;
 
+    @Schema(description = "(HTTP) Url to the Trusted Reference Document", format = "URL")
+    @Length(min = 1, max = 100)
+    @NotNull
+    private String url;
+
     @Schema(description = "Version of the Trusted Reference")
     @NotNull
     private Long version;

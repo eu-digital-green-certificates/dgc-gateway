@@ -146,6 +146,7 @@ public class TrustedReferenceService {
      */
     public TrustedReferenceEntity addFederatedTrustedReference(String country,
                                                                TrustedReferenceEntity.ReferenceType referenceType,
+                                                               String url,
                                                                String service,
                                                                String name,
                                                                TrustedReferenceEntity.SignatureType signatureType,
@@ -157,6 +158,7 @@ public class TrustedReferenceService {
                                                                String uuid,
                                                                FederationGatewayEntity sourceGateway) {
         TrustedReferenceEntity trustedReferenceEntity = new TrustedReferenceEntity();
+        trustedReferenceEntity.setUrl(url);
         trustedReferenceEntity.setCountry(country);
         trustedReferenceEntity.setType(referenceType);
         trustedReferenceEntity.setService(service);
@@ -198,6 +200,7 @@ public class TrustedReferenceService {
 
         TrustedReferenceEntity trustedReferenceEntity = getOrCreateTrustedReferenceEntity(parsedTrustedEntity);
 
+        trustedReferenceEntity.setUrl(parsedTrustedEntity.getUrl());
         trustedReferenceEntity.setCountry(parsedTrustedEntity.getCountry());
         trustedReferenceEntity.setType(
             TrustedReferenceEntity.ReferenceType.valueOf(parsedTrustedEntity.getType().name()));

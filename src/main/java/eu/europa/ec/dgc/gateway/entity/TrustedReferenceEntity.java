@@ -54,6 +54,12 @@ public class TrustedReferenceEntity extends FederatedEntity {
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
     /**
+     * URL with the document of the Trusted Reference.
+     */
+    @Column(name = "url", nullable = false, length = 100)
+    private String url;
+
+    /**
      * ISO 3166 Alpha-2 Country Code
      * (plus code "EU" for administrative European Union entries).
      */
