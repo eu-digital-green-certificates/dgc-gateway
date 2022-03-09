@@ -41,7 +41,6 @@ import eu.europa.ec.dgc.gateway.service.TrustedPartyService;
 import eu.europa.ec.dgc.gateway.service.TrustedReferenceService;
 import eu.europa.ec.dgc.gateway.service.federation.FederationDownloader;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -142,15 +141,16 @@ public class DdccgDownloader implements FederationDownloader {
         DgcGatewayDownloadConnectorBuilder builder;
 
         X509CertificateHolder clientCertificate;
-        PrivateKey clientCertifikateKey;
+        PrivateKey clientCertificateKey;
 
         try {
             clientCertificate = certificateUtils.convertCertificate(
                 (X509Certificate) federationKeyStore.getCertificate(gateway.getGatewayKid()));
-            clientCertifikateKey = (PrivateKey) federationKeyStore.getKey(gateway.getGatewayKid(),
+            clientCertificateKey = (PrivateKey) federationKeyStore.getKey(gateway.getGatewayKid(),
                 configProperties.getFederation().getKeystoreKeyPassword().toCharArray());
         } catch (Exception e) {
             log.error("Failed to get Gateway Client Certificate from KeyStore: {}", e.getMessage());
+            log.debug("Failed to get Gateway Client Certificate from KeyStore.", e);
             throw new FederationDownloaderException(
                 "Failed to get Gateway Client Certificate from KeyStore: " + e.getMessage());
         }
@@ -158,7 +158,7 @@ public class DdccgDownloader implements FederationDownloader {
         builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper, trustedIssuerMapper,
             trustedReferenceMapper, trustedCertificateMapper)
             .withUrl(gateway.getGatewayEndpoint())
-            .withMtlsAuthCert(clientCertificate, clientCertifikateKey)
+            .withMtlsAuthCert(clientCertificate, clientCertificateKey)
             .withDdccSupport(true)
             .withMaximumCacheAge(30);
 
@@ -251,7 +251,7 @@ public class DdccgDownloader implements FederationDownloader {
                 getTrustedPartyCertificateType(trustedCertificate.getGroup());
             if (trustedPartyType != null) {
                 // TrustedParty
-                trustedParties.getOrDefault(trustedPartyType, new ArrayList<>())
+                trustedParties.computeIfAbsent(trustedPartyType, (v) -> new ArrayList<>())
                     .add(trustedCertificate);
                 return;
             }
@@ -261,7 +261,7 @@ public class DdccgDownloader implements FederationDownloader {
             if (signerInformationType != null) {
                 // SignerInformation
 
-                signerCerts.getOrDefault(signerInformationType, new ArrayList<>())
+                signerCerts.computeIfAbsent(signerInformationType, (v) -> new ArrayList<>())
                     .add(trustedCertificate);
                 return;
             }
@@ -287,12 +287,13 @@ public class DdccgDownloader implements FederationDownloader {
                         trustedParty.getCountry(),
                         trustedParty.getKid(),
                         trustedParty.getDomain(),
+                        trustedParty.getUuid(),
                         type,
                         gateway
                     );
-                } catch (IOException e) {
-                    log.error("Failed to persist federated TrustedParty. Gateway: {}, Kid: {}",
-                        gateway.getGatewayId(), trustedParty.getKid());
+                } catch (Exception e) {
+                    log.error("Failed to persist federated TrustedParty. Gateway: {}, Kid: {}, Error: {}",
+                        gateway.getGatewayId(), trustedParty.getKid(), e.getMessage());
                 }
 
                 log.debug("Successfully persisted federated TrustedParty. Gateway: {}, Kid: {}",

@@ -168,8 +168,8 @@ public class TrustedReferenceService {
         trustedReferenceEntity.setContentType(contentType);
         trustedReferenceEntity.setSourceGateway(sourceGateway);
         trustedReferenceEntity.setDomain(domain == null ? "DCC" : domain);
-        if (uuid == null) {
-            trustedReferenceEntity.setUuid(UUID.randomUUID().toString());
+        if (uuid != null) {
+            trustedReferenceEntity.setUuid(uuid);
         }
 
         log.info("Saving Federated Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());

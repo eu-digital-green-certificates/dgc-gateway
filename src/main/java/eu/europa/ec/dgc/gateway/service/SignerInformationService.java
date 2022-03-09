@@ -116,6 +116,14 @@ public class SignerInformationService {
                     types.add(SignerInformationEntity.CertificateType.valueOf(group));
                 }
             });
+
+            if (types.isEmpty()) {
+                /*
+                  No group has matched --> All groups are invalid or user has searched for TrustedParty
+                  -> Skipping Search for SignerInformation
+                 */
+                return Collections.emptyList();
+            }
         }
 
         if (withFederation) {
@@ -277,8 +285,13 @@ public class SignerInformationService {
         newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(certificate));
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
-        newSignerInformation.setUuid(uuid);
-        newSignerInformation.setVersion(version);
+
+        if (uuid != null) {
+            newSignerInformation.setUuid(uuid);
+        }
+        if (version != null) {
+            newSignerInformation.setVersion(version);
+        }
         newSignerInformation.setDomain(domain == null ? "DCC" : domain);
 
         log.info("Saving Federated SignerInformation Entity");

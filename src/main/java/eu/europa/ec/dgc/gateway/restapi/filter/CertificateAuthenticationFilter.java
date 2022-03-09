@@ -199,6 +199,18 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
                     "", ""));
 
             return;
+        } else if (certFromDb.get().getSourceGateway() != null) {
+            log.error("Client Certificate is federated.");
+            handlerExceptionResolver.resolveException(
+                httpServletRequest, httpServletResponse, null,
+                new DgcgResponseException(
+                    HttpStatus.UNAUTHORIZED,
+                    "0x402",
+                    "Client is not authorized to access the service",
+                    "", "Certificate is federated. "
+                    + "Only certificates onboarded on this Gateway are allowed to authenticate"));
+
+            return;
         }
 
         if (!checkRequiredRoles(httpServletRequest, certFromDb.get())) {
