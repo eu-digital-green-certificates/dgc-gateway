@@ -20,6 +20,16 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -34,6 +44,10 @@ import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedStringMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatterBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +55,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatterBuilder;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -146,13 +150,39 @@ class TrustedReferenceIntegrationTest {
                 .buildAsString();
 
         mockMvc.perform(post("/trust/reference")
-                        .content(payload)
-                        .contentType("application/cms")
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isForbidden());
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isForbidden());
         assertTrue(trustedReferenceRepository.findAll().isEmpty());
+    }
+
+    @Test
+    void testTrustedReferenceDeleteWrongCountry() throws Exception {
+        // Create TrustedReference with CountryCode 'countryCode'
+        TrustedReferenceEntity entity = trustedReferenceRepository.save(createTrustedReference());
+
+        // Deleting TrustedReference with auth of another country
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, "XX");
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+
+        TrustedReferenceDeleteRequestDto deleteRequestDto = new TrustedReferenceDeleteRequestDto(entity.getUuid());
+        String deletePayload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+            .buildAsString();
+        mockMvc.perform(delete("/trust/reference")
+                .content(deletePayload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), "C=XX")
+            )
+            .andExpect(status().isForbidden());
+
+        assertFalse(trustedReferenceRepository.findAll().isEmpty());
     }
 
     private TrustedReferenceEntity createTrustedReference() {

@@ -243,6 +243,11 @@ public class TrustedReferenceService {
                 "Trusted Reference does not exist.")
         );
 
+        if (!trustedReferenceEntity.getCountry().equals(authenticatedCountryCode)) {
+            throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_COUNTRY,
+                "It is not allowed to delete trusted references of other countries.");
+        }
+
         log.info("Deleting Trusted Reference with uuid {} and id {}from DB", uuid, trustedReferenceEntity.getId());
         int deleted = trustedReferenceRepository.deleteByUuid(uuid);
 
