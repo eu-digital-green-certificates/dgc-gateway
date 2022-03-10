@@ -117,7 +117,7 @@ public class SignerInformationService {
                 }
             });
 
-            if (types.isEmpty()) {
+            if (!groups.isEmpty() && types.isEmpty()) {
                 /*
                   No group has matched --> All groups are invalid or user has searched for TrustedParty
                   -> Skipping Search for SignerInformation
