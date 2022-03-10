@@ -15,7 +15,7 @@ spring:
     allow-bean-definition-overriding: true
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
 springdoc:
   api-docs:
     path: /api/docs

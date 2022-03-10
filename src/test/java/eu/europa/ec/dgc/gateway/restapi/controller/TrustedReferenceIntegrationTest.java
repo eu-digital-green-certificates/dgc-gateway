@@ -20,6 +20,15 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -34,6 +43,10 @@ import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedStringMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatterBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +54,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatterBuilder;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -157,6 +160,7 @@ class TrustedReferenceIntegrationTest {
 
     private TrustedReferenceEntity createTrustedReference() {
         TrustedReferenceEntity trustedReference = new TrustedReferenceEntity();
+        trustedReference.setUrl("https://example.org");
         trustedReference.setReferenceVersion("1.0");
         trustedReference.setType(TrustedReferenceEntity.ReferenceType.DCC);
         trustedReference.setService("trustService");
@@ -169,6 +173,7 @@ class TrustedReferenceIntegrationTest {
 
     private TrustedReferenceDto createTrustedReferenceDto() {
         TrustedReferenceDto trustedReference = new TrustedReferenceDto();
+        trustedReference.setUrl("https://example.org");
         trustedReference.setReferenceVersion("1.0");
         trustedReference.setType(TrustedReferenceDto.ReferenceTypeDto.DCC);
         trustedReference.setService("trustService");
