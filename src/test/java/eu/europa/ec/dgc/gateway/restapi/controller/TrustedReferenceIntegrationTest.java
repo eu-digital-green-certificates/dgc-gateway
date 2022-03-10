@@ -187,6 +187,7 @@ class TrustedReferenceIntegrationTest {
 
     private TrustedReferenceEntity createTrustedReference() {
         TrustedReferenceEntity trustedReference = new TrustedReferenceEntity();
+        trustedReference.setUrl("https://example.org");
         trustedReference.setReferenceVersion("1.0");
         trustedReference.setType(TrustedReferenceEntity.ReferenceType.DCC);
         trustedReference.setService("trustService");
@@ -199,6 +200,7 @@ class TrustedReferenceIntegrationTest {
 
     private TrustedReferenceDto createTrustedReferenceDto() {
         TrustedReferenceDto trustedReference = new TrustedReferenceDto();
+        trustedReference.setUrl("https://example.org");
         trustedReference.setReferenceVersion("1.0");
         trustedReference.setType(TrustedReferenceDto.ReferenceTypeDto.DCC);
         trustedReference.setService("trustService");

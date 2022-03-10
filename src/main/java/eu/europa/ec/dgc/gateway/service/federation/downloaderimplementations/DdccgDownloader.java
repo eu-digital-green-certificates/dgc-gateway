@@ -200,7 +200,7 @@ public class DdccgDownloader implements FederationDownloader {
 
             try {
                 trustedReferenceService.addFederatedTrustedReference(trustedReference.getCountry(), referenceType,
-                    trustedReference.getService(), trustedReference.getName(), signatureType,
+                    trustedReference.getUrl(), trustedReference.getService(), trustedReference.getName(), signatureType,
                     trustedReference.getThumbprint(), trustedReference.getSslPublicKey(),
                     trustedReference.getReferenceVersion(), trustedReference.getContentType(), null,
                     trustedReference.getUuid(), gateway);
