@@ -21,6 +21,7 @@
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -149,13 +150,39 @@ class TrustedReferenceIntegrationTest {
                 .buildAsString();
 
         mockMvc.perform(post("/trust/reference")
-                        .content(payload)
-                        .contentType("application/cms")
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isForbidden());
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isForbidden());
         assertTrue(trustedReferenceRepository.findAll().isEmpty());
+    }
+
+    @Test
+    void testTrustedReferenceDeleteWrongCountry() throws Exception {
+        // Create TrustedReference with CountryCode 'countryCode'
+        TrustedReferenceEntity entity = trustedReferenceRepository.save(createTrustedReference());
+
+        // Deleting TrustedReference with auth of another country
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, "XX");
+        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+
+        TrustedReferenceDeleteRequestDto deleteRequestDto = new TrustedReferenceDeleteRequestDto(entity.getUuid());
+        String deletePayload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+            .buildAsString();
+        mockMvc.perform(delete("/trust/reference")
+                .content(deletePayload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), "C=XX")
+            )
+            .andExpect(status().isForbidden());
+
+        assertFalse(trustedReferenceRepository.findAll().isEmpty());
     }
 
     private TrustedReferenceEntity createTrustedReference() {
