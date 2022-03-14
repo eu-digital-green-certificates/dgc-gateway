@@ -39,6 +39,7 @@ import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
+import eu.europa.ec.dgc.gateway.testdata.TrustedIssuerTestHelper;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.UnsupportedEncodingException;
@@ -74,6 +75,9 @@ class TrustListIntegrationTest {
 
     @Autowired
     TrustedPartyTestHelper trustedPartyTestHelper;
+
+    @Autowired
+    TrustedIssuerTestHelper trustedIssuerTestHelper;
 
     @Autowired
     DgcConfigProperties dgcConfigProperties;
@@ -130,9 +134,9 @@ class TrustListIntegrationTest {
         ));
 
         trustedIssuerRepository.saveAll(List.of(
-                createTrustedIssuer("EU"),
-                createTrustedIssuer("DE"),
-                createTrustedIssuer("AT")
+                trustedIssuerTestHelper.createTrustedIssuer("EU"),
+                trustedIssuerTestHelper.createTrustedIssuer("DE"),
+                trustedIssuerTestHelper.createTrustedIssuer("AT")
         ));
     }
 
@@ -561,27 +565,5 @@ class TrustListIntegrationTest {
         List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(expectedLength, trustList.size());
-    }
-
-    private TrustedIssuerEntity createTrustedIssuer(final String country) throws Exception {
-        TrustedIssuerEntity trustedIssuer = new TrustedIssuerEntity();
-        trustedIssuer.setUrl("https://trusted.issuer");
-        trustedIssuer.setName("tiName");
-        trustedIssuer.setCountry(country);
-        trustedIssuer.setUrlType(TrustedIssuerEntity.UrlType.HTTP);
-        trustedIssuer.setSslPublicKey("pubKey");
-        trustedIssuer.setThumbprint("thumbprint");
-        trustedIssuer.setKeyStorageType("JWKS");
-        final String signature = trustedPartyTestHelper.signString(getHashData(trustedIssuer));
-        trustedIssuer.setSignature(signature);
-
-        return trustedIssuer;
-    }
-
-    private String getHashData(TrustedIssuerEntity entity) {
-        return entity.getCountry() + ";"
-                + entity.getName() + ";"
-                + entity.getUrl() + ";"
-                + entity.getUrlType().name() + ";";
     }
 }
