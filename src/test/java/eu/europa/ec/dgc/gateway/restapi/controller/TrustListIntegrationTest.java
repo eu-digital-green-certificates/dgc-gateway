@@ -20,9 +20,9 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,8 +30,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
+import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
+import eu.europa.ec.dgc.gateway.repository.TrustedIssuerRepository;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
@@ -68,6 +70,9 @@ class TrustListIntegrationTest {
     TrustedPartyRepository trustedPartyRepository;
 
     @Autowired
+    TrustedIssuerRepository trustedIssuerRepository;
+
+    @Autowired
     TrustedPartyTestHelper trustedPartyTestHelper;
 
     @Autowired
@@ -89,6 +94,7 @@ class TrustListIntegrationTest {
 
     @BeforeEach
     void testData() throws Exception {
+        trustedIssuerRepository.deleteAll();
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
 
@@ -121,6 +127,12 @@ class TrustListIntegrationTest {
             Base64.getEncoder().encodeToString(certDscEu.getEncoded()),
             "sig2",
             SignerInformationEntity.CertificateType.DSC
+        ));
+
+        trustedIssuerRepository.saveAll(List.of(
+                createTrustedIssuer("EU"),
+                createTrustedIssuer("DE"),
+                createTrustedIssuer("AT")
         ));
     }
 
@@ -454,6 +466,69 @@ class TrustListIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void testTrustedIssuerNoFilter() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test
+    void testTrustedIssuerByCountry() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=DE")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    void testTrustedIssuerByMultipleCountries() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=DE,EU")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void testTrustedIssuerWrongCountryCode() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=DE,XXX")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testTrustedIssuerEmpty() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=XX")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
     private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature) throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
@@ -486,5 +561,27 @@ class TrustListIntegrationTest {
         List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(expectedLength, trustList.size());
+    }
+
+    private TrustedIssuerEntity createTrustedIssuer(final String country) throws Exception {
+        TrustedIssuerEntity trustedIssuer = new TrustedIssuerEntity();
+        trustedIssuer.setUrl("https://trusted.issuer");
+        trustedIssuer.setName("tiName");
+        trustedIssuer.setCountry(country);
+        trustedIssuer.setUrlType(TrustedIssuerEntity.UrlType.HTTP);
+        trustedIssuer.setSslPublicKey("pubKey");
+        trustedIssuer.setThumbprint("thumbprint");
+        trustedIssuer.setKeyStorageType("JWKS");
+        final String signature = trustedPartyTestHelper.signString(getHashData(trustedIssuer));
+        trustedIssuer.setSignature(signature);
+
+        return trustedIssuer;
+    }
+
+    private String getHashData(TrustedIssuerEntity entity) {
+        return entity.getCountry() + ";"
+                + entity.getName() + ";"
+                + entity.getUrl() + ";"
+                + entity.getUrlType().name() + ";";
     }
 }
