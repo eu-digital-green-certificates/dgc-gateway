@@ -53,6 +53,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -447,30 +449,6 @@ class TrustListIntegrationTest {
     }
 
     @Test
-    void testTrustListWrongType() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
-
-        mockMvc.perform(get("/trustList/XXX")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testTrustListWrongCountryCode() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
-
-        mockMvc.perform(get("/trustList/DSC/XXX")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void testTrustedIssuerNoFilter() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get("/trustList/issuers")
@@ -510,17 +488,6 @@ class TrustListIntegrationTest {
     }
 
     @Test
-    void testTrustedIssuerWrongCountryCode() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
-        mockMvc.perform(get("/trustList/issuers?country=DE,XXX")
-                        .accept(MediaType.APPLICATION_JSON_VALUE)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void testTrustedIssuerEmpty() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get("/trustList/issuers?country=XX")
@@ -531,6 +498,22 @@ class TrustListIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/trustList/XXX",
+            "/trustList/DSC/XXX",
+            "/trustList/issuers?country=DE,XXX"
+    })
+    void testBadRequests(String url) throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get(url)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
     }
 
     private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature) throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
