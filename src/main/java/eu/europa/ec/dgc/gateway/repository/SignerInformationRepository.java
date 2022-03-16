@@ -21,12 +21,23 @@
 package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
+
+    String SELECT_SINCE = "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since";
+    String SELECT_BY_TYPE_SINCE =
+        "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND s.createdAt >= :since";
+    String SELECT_BY_TYPE_AND_COUNTRY_SINCE =
+        "SELECT s FROM SignerInformationEntity s"
+            + " WHERE s.certificateType = :certType AND s.country = :country AND s.createdAt >= :since";
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
@@ -35,9 +46,44 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     @Transactional
     void deleteByThumbprint(String thumbprint);
 
+    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type,
+                                                       Pageable pageable);
+
     List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type);
 
     List<SignerInformationEntity> getByCertificateTypeAndCountry(
+        SignerInformationEntity.CertificateType type, String countryCode,
+        Pageable pageable);
+
+    List<SignerInformationEntity> getByCertificateTypeAndCountry(
         SignerInformationEntity.CertificateType type, String countryCode);
+
+    @Query(SELECT_SINCE)
+    List<SignerInformationEntity> getIsSince(@Param("since")ZonedDateTime since);
+
+    @Query(SELECT_SINCE)
+    List<SignerInformationEntity> getIsSince(@Param("since")ZonedDateTime since, Pageable pageable);
+
+    @Query(SELECT_BY_TYPE_SINCE)
+    List<SignerInformationEntity> getByCertificateTypeIsSince(
+        @Param("certType")SignerInformationEntity.CertificateType type,
+        @Param("since")ZonedDateTime since);
+
+    @Query(SELECT_BY_TYPE_SINCE)
+    List<SignerInformationEntity> getByCertificateTypeIsSince(
+        @Param("certType")SignerInformationEntity.CertificateType type,
+        @Param("since")ZonedDateTime since, Pageable pageable);
+
+    @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
+    List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(
+        @Param("certType")SignerInformationEntity.CertificateType type,
+        @Param("country")String countryCode,
+        @Param("since")ZonedDateTime since);
+
+    @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
+    List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(
+        @Param("certType")SignerInformationEntity.CertificateType type,
+        @Param("country")String countryCode,
+        @Param("since")ZonedDateTime since, Pageable pageable);
 
 }

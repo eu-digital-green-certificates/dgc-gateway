@@ -20,7 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
-import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
@@ -32,7 +31,9 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.jupiter.api.Assertions;
@@ -42,9 +43,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class SignerInformationServiceTest {
-
-    @Autowired
-    DgcConfigProperties dgcConfigProperties;
 
     @Autowired
     CertificateUtils certificateUtils;
@@ -63,6 +61,158 @@ class SignerInformationServiceTest {
 
     private static final String countryCode = "EU";
     private static final String dummySignature = "randomStringAsSignatureWhichIsNotValidatedInServiceLevel";
+
+    private static final ZonedDateTime now = ZonedDateTime.now();
+    private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now().minusMinutes(1);
+    private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now().minusHours(1);
+
+
+    @Test
+    void testSuccessfulGetSignerInformationIsSincePageable() throws Exception {
+        cleanupTestSignerInformation();
+        long signerInformationEntitiesInDb = signerInformationRepository.count();
+        prepareTestSignerInformation();
+
+        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+
+        List<SignerInformationEntity> signerInformationEntities =
+            signerInformationService.getSignerInformation(null, null, null);
+        Assertions.assertEquals(6, signerInformationEntities.size());
+
+        List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
+            nowMinusOneHour.toInstant().toEpochMilli(), null, null);
+        Assertions.assertEquals(6, signerInformationEntities2.size());
+
+        List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
+            nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
+        Assertions.assertEquals(3, signerInformationEntities3.size());
+
+        List<SignerInformationEntity> signerInformationEntities4 = signerInformationService.getSignerInformation(
+            null, 0, 10);
+        Assertions.assertEquals(6, signerInformationEntities4.size());
+
+        List<SignerInformationEntity> signerInformationEntities5 = signerInformationService.getSignerInformation(
+            null, 10, 10);
+        Assertions.assertEquals(0, signerInformationEntities5.size());
+
+        List<SignerInformationEntity> signerInformationEntities6 = signerInformationService.getSignerInformation(
+            nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
+        Assertions.assertEquals(3, signerInformationEntities6.size());
+
+        List<SignerInformationEntity> signerInformationEntities7 = signerInformationService.getSignerInformation(
+            nowMinusOneMinute.toInstant().toEpochMilli(), 1, 2);
+        Assertions.assertEquals(1, signerInformationEntities7.size());
+
+        cleanupTestSignerInformation();
+    }
+
+    @Test
+    void testFailedGetSignerInformationIsSincePageable() throws Exception {
+        cleanupTestSignerInformation();
+        long signerInformationEntitiesInDb = signerInformationRepository.count();
+        prepareTestSignerInformation();
+        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+            signerInformationService.getSignerInformation(null, -1, 2));
+        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+            signerInformationService.getSignerInformation(null, 0, 0));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+            signerInformationService.getSignerInformation(null, -1, 0));
+
+        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+
+        cleanupTestSignerInformation();
+    }
+
+    @Test
+    void testSuccessfulGetSignerInformationByTypeAndCountryIsSincePageable() throws Exception {
+        cleanupTestSignerInformation();
+        long signerInformationEntitiesInDb = signerInformationRepository.count();
+        prepareTestSignerInformation();
+
+        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+
+        List<SignerInformationEntity> signerInformationEntities =
+            signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC,
+                null, null, null);
+        Assertions.assertEquals(6, signerInformationEntities.size());
+
+        List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
+            SignerInformationEntity.CertificateType.DSC,
+            nowMinusOneHour.toInstant().toEpochMilli(), null, null);
+        Assertions.assertEquals(6, signerInformationEntities2.size());
+
+        List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
+            SignerInformationEntity.CertificateType.DSC,
+            nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
+        Assertions.assertEquals(3, signerInformationEntities3.size());
+
+        List<SignerInformationEntity> signerInformationEntities4 = signerInformationService.getSignerInformation(
+            "DE", SignerInformationEntity.CertificateType.DSC,
+            null, 0, 10);
+        Assertions.assertEquals(2, signerInformationEntities4.size());
+
+        List<SignerInformationEntity> signerInformationEntities5 = signerInformationService.getSignerInformation(
+            "DE", SignerInformationEntity.CertificateType.DSC,
+            nowMinusOneHour.toInstant().toEpochMilli(), 0, 10);
+        Assertions.assertEquals(2, signerInformationEntities5.size());
+
+        List<SignerInformationEntity> signerInformationEntities6 = signerInformationService.getSignerInformation(
+            "DE", SignerInformationEntity.CertificateType.DSC,
+            nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
+        Assertions.assertEquals(1, signerInformationEntities6.size());
+
+        List<SignerInformationEntity> signerInformationEntities7 = signerInformationService.getSignerInformation(
+            "D", SignerInformationEntity.CertificateType.DSC,
+            nowMinusOneHour.toInstant().toEpochMilli(), 0, 10);
+        Assertions.assertEquals(0, signerInformationEntities7.size());
+
+        cleanupTestSignerInformation();
+    }
+
+    private void cleanupTestSignerInformation() {
+        signerInformationRepository.deleteAll();
+    }
+
+    private void prepareTestSignerInformation() throws Exception {
+
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
+        createSignerInformationInDB("DE", "sig1",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "DE", "DETest"), nowMinusOneHour);
+        createSignerInformationInDB("DE", "sig2",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "DE", "DETest2"), now);
+        createSignerInformationInDB("AT", "sig3",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "AT", "ATTest"), nowMinusOneHour);
+        createSignerInformationInDB("AT", "sig4",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "AT", "ATTest2"), now);
+        createSignerInformationInDB("EU", "sig5",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "EU", "EUTest"), nowMinusOneHour);
+        createSignerInformationInDB("EU", "sig6",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "EU", "EUTest2"), now);
+    }
+
+    private void createSignerInformationInDB(String countryCode, String signature,
+                                             X509Certificate certificate, ZonedDateTime createdAt) throws Exception {
+        signerInformationRepository.save(new SignerInformationEntity(
+            null,
+            createdAt,
+            countryCode,
+            certificateUtils.getCertThumbprint(certificate),
+            Base64.getEncoder().encodeToString(certificate.getEncoded()),
+            signature,
+            SignerInformationEntity.CertificateType.DSC
+        ));
+    }
 
     @Test
     void testSuccessfulAddingNewSignerInformationAndDelete() throws Exception {

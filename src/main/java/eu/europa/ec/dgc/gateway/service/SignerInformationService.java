@@ -28,6 +28,9 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +46,7 @@ import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.RuntimeOperatorException;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -89,6 +93,86 @@ public class SignerInformationService {
         String countryCode,
         SignerInformationEntity.CertificateType type) {
         return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+    }
+
+    /**
+     * Finds a list of SignerInformation. Optional the list can be filtered by a timestamp.
+     *
+     * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return list of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(Long ifModifiedSinceTimestamp,
+                                                               Integer page, Integer size) {
+        if (ifModifiedSinceTimestamp != null && page != null && size != null) {
+            return signerInformationRepository.getIsSince(
+                epochMillisToZonedDateTime(ifModifiedSinceTimestamp), PageRequest.of(page, size));
+        } else if (ifModifiedSinceTimestamp != null) {
+            return signerInformationRepository.getIsSince(
+                epochMillisToZonedDateTime(ifModifiedSinceTimestamp));
+        } else if (page != null && size != null) {
+            return signerInformationRepository.findAll(PageRequest.of(page, size)).toList();
+        } else {
+            return getSignerInformation();
+        }
+    }
+
+    /**
+     *  Finds a list of SignerInformation filtered by Type. Optional the list can be filtered by a timestamp.
+     *
+     * @param type type to filter for
+     * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type,
+                                                              Long ifModifiedSinceTimestamp,
+                                                              Integer page, Integer size) {
+        if (ifModifiedSinceTimestamp != null && page != null && size != null) {
+            return signerInformationRepository.getByCertificateTypeIsSince(type,
+                epochMillisToZonedDateTime(ifModifiedSinceTimestamp),
+                PageRequest.of(page, size));
+        } else if (ifModifiedSinceTimestamp != null) {
+            return signerInformationRepository.getByCertificateTypeIsSince(type,
+                epochMillisToZonedDateTime(ifModifiedSinceTimestamp));
+        } else if (page != null && size != null) {
+            return signerInformationRepository.getByCertificateType(type,
+                PageRequest.of(page, size));
+        } else {
+            return signerInformationRepository.getByCertificateType(type);
+        }
+    }
+
+    /**
+     * Finds a list of SignerInformation filtered by Type and Country. Optional the list can be filtered by a timestamp.
+     *
+     * @param countryCode 2-digit country Code to filter for.
+     * @param type        type to filter for
+     * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(
+        String countryCode,
+        SignerInformationEntity.CertificateType type,
+        Long ifModifiedSinceTimestamp,
+        Integer page, Integer size) {
+        if (ifModifiedSinceTimestamp != null && page != null && size != null) {
+            return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
+                epochMillisToZonedDateTime(ifModifiedSinceTimestamp),
+                PageRequest.of(page, size));
+        } else if (ifModifiedSinceTimestamp != null) {
+            return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
+                epochMillisToZonedDateTime(ifModifiedSinceTimestamp));
+        } else if (page != null && size != null) {
+            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode,
+                PageRequest.of(page, size));
+        } else {
+            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+        }
     }
 
     /**
@@ -143,7 +227,7 @@ public class SignerInformationService {
     /**
      * Update a CMS package.
      *
-     * @param id                        The entity to update
+     * @param id                       The entity to update
      * @param uploadedCertificate      the certificate to add
      * @param signerCertificate        the certificate which was used to sign the message
      * @param signature                the detached signature of cms message
@@ -152,11 +236,11 @@ public class SignerInformationService {
      *                                  a reason property with detailed information why the validation has failed.
      */
     public SignerInformationEntity updateSignerCertificate(
-            Long id,
-            X509CertificateHolder uploadedCertificate,
-            X509CertificateHolder signerCertificate,
-            String signature,
-            String authenticatedCountryCode
+        Long id,
+        X509CertificateHolder uploadedCertificate,
+        X509CertificateHolder signerCertificate,
+        String signature,
+        String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
         final SignerInformationEntity signerInformationEntity = signerInformationRepository.findById(id).orElseThrow(
@@ -224,10 +308,16 @@ public class SignerInformationService {
      */
     public List<CmsPackageDto> getCmsPackage(String country) {
         return signerInformationRepository
-                .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
-                .stream()
-                .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
-                .collect(Collectors.toList());
+            .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
+            .stream()
+            .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
+            .collect(Collectors.toList());
+    }
+
+
+    private static ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
+        return ZonedDateTime.ofInstant(
+            Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
     }
 
     private void contentCheckUploaderCertificate(
