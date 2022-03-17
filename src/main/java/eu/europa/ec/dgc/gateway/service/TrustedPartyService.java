@@ -24,6 +24,7 @@ import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
+import eu.europa.ec.dgc.gateway.utils.ListUtils;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
 import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
@@ -32,6 +33,9 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -96,6 +100,117 @@ public class TrustedPartyService {
     }
 
     /**
+     * Finds a list of Certificates.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param ifModifiedSinceTimestamp since timestamp for filtering Certificate.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of certificates.
+     */
+    public List<TrustedPartyEntity> getCertificates(Long ifModifiedSinceTimestamp,
+                                                    Integer page, Integer size) {
+
+        List<TrustedPartyEntity> trustedPartyEntityFullList;
+
+        if (ifModifiedSinceTimestamp == null) {
+            trustedPartyEntityFullList = trustedPartyRepository.findAll()
+                .stream()
+                .filter(this::validateCertificateIntegrity)
+                .collect(Collectors.toList());
+
+        } else {
+            trustedPartyEntityFullList =
+                trustedPartyRepository.getIsSince(epochMillisToZonedDateTime(ifModifiedSinceTimestamp))
+                    .stream()
+                    .filter(this::validateCertificateIntegrity)
+                    .collect(Collectors.toList());
+        }
+        if (page != null && size != null) {
+            return ListUtils.getPage(trustedPartyEntityFullList, page, size);
+        } else {
+            return trustedPartyEntityFullList;
+        }
+    }
+
+    /**
+     * Finds a list of Certificates  by type.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param type type to filter for.
+     * @param ifModifiedSinceTimestamp since timestamp for filtering Certificate.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of certificates.
+     */
+    public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type,
+                                                    Long ifModifiedSinceTimestamp,
+                                                    Integer page, Integer size) {
+
+        List<TrustedPartyEntity> trustedPartyEntityByTypeList;
+
+        if (ifModifiedSinceTimestamp == null) {
+            trustedPartyEntityByTypeList = trustedPartyRepository.getByCertificateType(type)
+                .stream()
+                .filter(this::validateCertificateIntegrity)
+                .collect(Collectors.toList());
+
+        } else {
+            trustedPartyEntityByTypeList =
+                trustedPartyRepository.getByCertificateTypeIsSince(
+                    type,epochMillisToZonedDateTime(ifModifiedSinceTimestamp))
+                    .stream()
+                    .filter(this::validateCertificateIntegrity)
+                    .collect(Collectors.toList());
+        }
+        if (page != null && size != null) {
+            return ListUtils.getPage(trustedPartyEntityByTypeList, page, size);
+        } else {
+            return trustedPartyEntityByTypeList;
+        }
+    }
+
+    /**
+     * Finds a list of Certificates by type.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param country country of certificate.
+     * @param type type to filter for.
+     * @param ifModifiedSinceTimestamp since timestamp for filtering Certificate.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of certificates.
+     */
+    public List<TrustedPartyEntity> getCertificates(String country,
+                                                    TrustedPartyEntity.CertificateType type,
+                                                    Long ifModifiedSinceTimestamp,
+                                                    Integer page, Integer size) {
+
+        List<TrustedPartyEntity> trustedPartyEntityByTypeAndCountryList;
+
+        if (ifModifiedSinceTimestamp == null) {
+            trustedPartyEntityByTypeAndCountryList =
+                trustedPartyRepository.getByCountryAndCertificateType(country, type)
+                    .stream()
+                    .filter(this::validateCertificateIntegrity)
+                    .collect(Collectors.toList());
+
+        } else {
+            trustedPartyEntityByTypeAndCountryList =
+                trustedPartyRepository.getByCountryAndCertificateTypeIsSince(country,
+                        type, epochMillisToZonedDateTime(ifModifiedSinceTimestamp))
+                    .stream()
+                    .filter(this::validateCertificateIntegrity)
+                    .collect(Collectors.toList());
+        }
+        if (page != null && size != null) {
+            return ListUtils.getPage(trustedPartyEntityByTypeAndCountryList, page, size);
+        } else {
+            return trustedPartyEntityByTypeAndCountryList;
+        }
+    }
+
+    /**
      * Method to query the db for a certificate.
      *
      * @param thumbprint RSA-256 thumbprint of certificate.
@@ -117,6 +232,11 @@ public class TrustedPartyService {
      */
     public List<String> getCountryList() {
         return trustedPartyRepository.getCountryCodeList();
+    }
+
+    private static ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
+        return ZonedDateTime.ofInstant(
+            Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
     }
 
     private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {

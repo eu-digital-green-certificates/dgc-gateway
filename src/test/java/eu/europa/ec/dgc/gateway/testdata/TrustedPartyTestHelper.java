@@ -28,6 +28,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -63,6 +64,11 @@ public class TrustedPartyTestHelper {
     private final CertificateUtils certificateUtils;
 
     private final DgcTestKeyStore testKeyStore;
+
+    public X509Certificate getTestCert(String testCertId, TrustedPartyEntity.CertificateType type,
+                                   String countryCode,ZonedDateTime createdAt) throws Exception {
+       return createAndInsertCert(testCertId, type, countryCode,createdAt);
+    }
 
     public String getHash(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
         prepareTestCert(type, countryCode);
@@ -140,5 +146,35 @@ public class TrustedPartyTestHelper {
         trustedPartyEntity.setThumbprint(hashMap.get(type).get(countryCode));
 
         trustedPartyRepository.save(trustedPartyEntity);
+    }
+
+    private X509Certificate createAndInsertCert(String testCertId, TrustedPartyEntity.CertificateType type, String countryCode,
+                                ZonedDateTime createdAt) throws Exception {
+
+        KeyPair keyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
+        X509Certificate authCertificate =
+            CertificateTestUtils.generateCertificate(keyPair, countryCode, "DGC Test " + type.name()
+                + " Cert-" + testCertId);
+
+        String certHash = certificateUtils.getCertThumbprint(authCertificate);
+
+        String certRawData = Base64.getEncoder().encodeToString(authCertificate.getEncoded());
+
+        String signature = new SignedCertificateMessageBuilder()
+            .withPayload(new X509CertificateHolder(authCertificate.getEncoded()))
+            .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()),
+                testKeyStore.getTrustAnchorPrivateKey())
+            .buildAsString(true);
+
+        TrustedPartyEntity trustedPartyEntity = new TrustedPartyEntity();
+        trustedPartyEntity.setCreatedAt(createdAt);
+        trustedPartyEntity.setCertificateType(type);
+        trustedPartyEntity.setCountry(countryCode);
+        trustedPartyEntity.setSignature(signature);
+        trustedPartyEntity.setRawData(certRawData);
+        trustedPartyEntity.setThumbprint(certHash);
+
+        trustedPartyRepository.save(trustedPartyEntity);
+        return authCertificate;
     }
 }
