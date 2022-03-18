@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -48,9 +49,14 @@ public class TrustedPartyService {
 
     private static final String MDC_PROP_CERT_THUMBPRINT = "certVerifyThumbprint";
     private static final String MDC_PROP_PARSER_STATE = "parserState";
+
     private final TrustedPartyRepository trustedPartyRepository;
+
+    @Qualifier("trustAnchor")
     private final KeyStore trustAnchorKeyStore;
+
     private final DgcConfigProperties dgcConfigProperties;
+
     private final CertificateUtils certificateUtils;
 
     /**

@@ -31,7 +31,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DgcConfigProperties {
 
     private final CertAuth certAuth = new CertAuth();
-    private final TrustAnchor trustAnchor = new TrustAnchor();
+    private final KeyStoreWithAlias trustAnchor = new KeyStoreWithAlias();
+    private final KeyStoreWithAlias publication = new KeyStoreWithAlias();
 
     private String validationRuleSchema;
 
@@ -59,7 +60,7 @@ public class DgcConfigProperties {
 
     @Getter
     @Setter
-    public static class TrustAnchor {
+    public static class KeyStoreWithAlias {
         private String keyStorePath;
         private String keyStorePass;
         private String certificateAlias;
