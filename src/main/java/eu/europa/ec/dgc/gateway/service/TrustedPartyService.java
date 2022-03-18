@@ -134,7 +134,7 @@ public class TrustedPartyService {
     }
 
     /**
-     * Finds a list of Certificates  by type.
+     * Finds a list of Certificates by type.
      * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param type type to filter for.
@@ -171,7 +171,7 @@ public class TrustedPartyService {
     }
 
     /**
-     * Finds a list of Certificates by type.
+     * Finds a list of Certificates by country and type.
      * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param country country of certificate.

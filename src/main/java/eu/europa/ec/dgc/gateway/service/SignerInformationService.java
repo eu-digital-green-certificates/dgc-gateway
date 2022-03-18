@@ -96,7 +96,8 @@ public class SignerInformationService {
     }
 
     /**
-     * Finds a list of SignerInformation. Optional the list can be filtered by a timestamp.
+     * Finds a list of SignerInformation.
+     * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
      * @param page zero-based page index, must NOT be negative.
@@ -119,7 +120,8 @@ public class SignerInformationService {
     }
 
     /**
-     *  Finds a list of SignerInformation filtered by Type. Optional the list can be filtered by a timestamp.
+     *  Finds a list of SignerInformation filtered by type.
+     *  Optional the list can be filtered by a timestamp and paginated.
      *
      * @param type type to filter for
      * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
@@ -146,7 +148,8 @@ public class SignerInformationService {
     }
 
     /**
-     * Finds a list of SignerInformation filtered by Type and Country. Optional the list can be filtered by a timestamp.
+     * Finds a list of SignerInformation filtered by type and country.
+     * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param countryCode 2-digit country Code to filter for.
      * @param type        type to filter for
