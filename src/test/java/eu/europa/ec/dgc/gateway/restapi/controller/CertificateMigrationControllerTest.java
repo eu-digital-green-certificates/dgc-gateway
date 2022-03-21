@@ -122,7 +122,7 @@ class CertificateMigrationControllerTest {
         X509Certificate certDscEu = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), countryCode, "Test");
         String cmsBase64 = Base64.getEncoder().encodeToString(certDscEu.getEncoded());
 
-        createSignerInfo(cmsBase64, certDscEu);
+        createSignerInfo(cmsBase64, certDscEu, "signature1");
         createRevocation(cmsBase64);
         createValidationEntry(cmsBase64);
 
@@ -133,8 +133,11 @@ class CertificateMigrationControllerTest {
                         .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].type", is(CmsPackageDto.CmsPackageTypeDto.DSC.name())))
+                .andExpect(jsonPath("$[0].cms", is("signature1")))
                 .andExpect(jsonPath("$[1].type", is(CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST.name())))
-                .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())));
+                .andExpect(jsonPath("$[1].cms", is(cmsBase64)))
+                .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())))
+                .andExpect(jsonPath("$[2].cms", is(cmsBase64)));
     }
 
     @Test
@@ -597,10 +600,10 @@ class CertificateMigrationControllerTest {
                 .andExpect(jsonPath("$.code", is("0x021")));
     }
 
-    private void createSignerInfo(final String cmsBase64, final X509Certificate certDscEu) {
+    private void createSignerInfo(final String cmsBase64, final X509Certificate certDscEu, final String signature) {
         signerInformationRepository.save(new SignerInformationEntity(
                 null, ZonedDateTime.now(), countryCode, certificateUtils.getCertThumbprint(certDscEu),
-                cmsBase64, "sig1", SignerInformationEntity.CertificateType.DSC
+                cmsBase64, signature, SignerInformationEntity.CertificateType.DSC
         ));
     }
 
