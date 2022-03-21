@@ -206,6 +206,7 @@ class SignerInformationServiceTest {
         signerInformationRepository.save(new SignerInformationEntity(
             null,
             createdAt,
+            null,
             countryCode,
             certificateUtils.getCertThumbprint(certificate),
             Base64.getEncoder().encodeToString(certificate.getEncoded()),
@@ -250,11 +251,15 @@ class SignerInformationServiceTest {
             countryCode
         );
 
-        Optional<SignerInformationEntity> deletedSignerInformationEntity =
-            signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
+        List<SignerInformationEntity> entities =
+            signerInformationRepository.getByCertificateType(SignerInformationEntity.CertificateType.DSC);
 
-        Assertions.assertTrue(deletedSignerInformationEntity.isEmpty());
-        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
+        Assertions.assertFalse(entities.isEmpty());
+        SignerInformationEntity deletedSignerInformationEntity = entities.get(0);
+        Assertions.assertNull(deletedSignerInformationEntity.getSignature());
+        Assertions.assertNull(deletedSignerInformationEntity.getThumbprint());
+        Assertions.assertNull(deletedSignerInformationEntity.getRawData());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }
 
     @Test

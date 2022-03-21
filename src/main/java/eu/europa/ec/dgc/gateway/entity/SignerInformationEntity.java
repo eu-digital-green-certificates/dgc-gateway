@@ -53,6 +53,9 @@ public class SignerInformationEntity {
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
+    @Column(name = "deleted_at")
+    private ZonedDateTime deletedAt;
+
     /**
      * ISO 3166 Alpha-2 Country Code
      * (plus code "EU" for administrative European Union entries).
@@ -63,13 +66,13 @@ public class SignerInformationEntity {
     /**
      * SHA-256 Thumbprint of the certificate (hex encoded).
      */
-    @Column(name = "thumbprint", nullable = false, length = 64, unique = true)
+    @Column(name = "thumbprint", length = 64, unique = true)
     private String thumbprint;
 
     /**
      * Base64 encoded certificate raw data.
      */
-    @Column(name = "raw_data", nullable = false, length = 4096)
+    @Column(name = "raw_data", length = 4096)
     String rawData;
 
     /**

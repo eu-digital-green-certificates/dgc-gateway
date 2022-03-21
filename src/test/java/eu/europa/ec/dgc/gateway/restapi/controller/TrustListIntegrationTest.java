@@ -106,6 +106,7 @@ class TrustListIntegrationTest {
         signerInformationRepository.save(new SignerInformationEntity(
             null,
             ZonedDateTime.now(),
+            null,
             "DE",
             certificateUtils.getCertThumbprint(certDscDe),
             Base64.getEncoder().encodeToString(certDscDe.getEncoded()),
@@ -116,6 +117,7 @@ class TrustListIntegrationTest {
         signerInformationRepository.save(new SignerInformationEntity(
             null,
             ZonedDateTime.now(),
+            null,
             "EU",
             certificateUtils.getCertThumbprint(certDscEu),
             Base64.getEncoder().encodeToString(certDscEu.getEncoded()),

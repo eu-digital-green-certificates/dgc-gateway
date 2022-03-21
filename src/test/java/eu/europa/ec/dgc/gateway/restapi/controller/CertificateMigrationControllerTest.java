@@ -599,7 +599,7 @@ class CertificateMigrationControllerTest {
 
     private void createSignerInfo(final String cmsBase64, final X509Certificate certDscEu) {
         signerInformationRepository.save(new SignerInformationEntity(
-                null, ZonedDateTime.now(), countryCode, certificateUtils.getCertThumbprint(certDscEu),
+                null, ZonedDateTime.now(), null, countryCode, certificateUtils.getCertThumbprint(certDscEu),
                 cmsBase64, "sig1", SignerInformationEntity.CertificateType.DSC
         ));
     }

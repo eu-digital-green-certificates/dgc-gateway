@@ -15,4 +15,5 @@
     <include file="db/changelog/add-revocation-batch-table.xml"/>
     <include file="db/changelog/add-certificate-roles-table.xml"/>
     <include file="db/changelog/add-certificate-roles-table-pk.xml"/>
+    <include file="db/changelog/alter-signer-information-for-deletion.xml"/>
 </databaseChangeLog>
