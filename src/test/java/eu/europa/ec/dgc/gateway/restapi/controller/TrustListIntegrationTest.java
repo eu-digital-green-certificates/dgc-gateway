@@ -239,6 +239,13 @@ class TrustListIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListLength(c, 0));
 
+    }
+
+    @Test
+    void testTrustListDownloadNoFilterByTypeAndCountryIsSincePageable() throws Exception {
+        prepareTestCertsCreatedAtNowMinusOneHour();
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
         mockMvc.perform(get("/trustList/AUTHENTICATION")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour.toInstant().toEpochMilli())
@@ -273,6 +280,16 @@ class TrustListIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListLength(c, 2));
+
+        mockMvc.perform(get("/trustList/DSC/DE?page=0&pagesize=10")
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneMinute.toInstant().toEpochMilli())
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(c -> assertTrustListLength(c, 1));
     }
 
     @Test

@@ -234,7 +234,7 @@ public class TrustedPartyService {
         return trustedPartyRepository.getCountryCodeList();
     }
 
-    private static ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
+    private ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
         return ZonedDateTime.ofInstant(
             Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
     }

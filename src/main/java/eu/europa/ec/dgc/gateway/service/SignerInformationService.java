@@ -318,7 +318,7 @@ public class SignerInformationService {
     }
 
 
-    private static ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
+    private ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
         return ZonedDateTime.ofInstant(
             Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
     }
