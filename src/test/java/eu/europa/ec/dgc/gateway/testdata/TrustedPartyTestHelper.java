@@ -112,53 +112,38 @@ public class TrustedPartyTestHelper {
         if (trustedPartyRepository.getFirstByThumbprintAndCertificateType(
             hashMap.get(type).get(countryCode), type
         ).isEmpty()) {
-            insertTestCert(type, countryCode);
+            insertCert(type, countryCode, null,  certificateMap.get(type).get(countryCode));
         }
     }
 
     private void createAndInsertCert(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
         KeyPair keyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
         X509Certificate authCertificate =
-            CertificateTestUtils.generateCertificate(keyPair, countryCode, "DGC Test " + type.name() + " Cert");
-        String certHash = certificateUtils.getCertThumbprint(authCertificate);
+            CertificateTestUtils.generateCertificate(keyPair, countryCode,
+                "DGC Test " + type.name() + " Cert");
 
         certificateMap.get(type).put(countryCode, authCertificate);
-        hashMap.get(type).put(countryCode, certHash);
+        hashMap.get(type).put(countryCode, certificateUtils.getCertThumbprint(authCertificate));
         privateKeyMap.get(type).put(countryCode, keyPair.getPrivate());
 
-        insertTestCert(type, countryCode);
+        insertCert(type, countryCode, null, authCertificate);
     }
 
-    private void insertTestCert(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
-        String certRawData = Base64.getEncoder().encodeToString(
-            certificateMap.get(type).get(countryCode).getEncoded());
-
-        String signature = new SignedCertificateMessageBuilder()
-            .withPayload(new X509CertificateHolder(certificateMap.get(type).get(countryCode).getEncoded()))
-            .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()), testKeyStore.getTrustAnchorPrivateKey())
-            .buildAsString(true);
-
-        TrustedPartyEntity trustedPartyEntity = new TrustedPartyEntity();
-        trustedPartyEntity.setCertificateType(type);
-        trustedPartyEntity.setCountry(countryCode);
-        trustedPartyEntity.setSignature(signature);
-        trustedPartyEntity.setRawData(certRawData);
-        trustedPartyEntity.setThumbprint(hashMap.get(type).get(countryCode));
-
-        trustedPartyRepository.save(trustedPartyEntity);
-    }
-
-    private X509Certificate createAndInsertCert(String testCertId, TrustedPartyEntity.CertificateType type, String countryCode,
-                                ZonedDateTime createdAt) throws Exception {
-
+    private X509Certificate createAndInsertCert(String testCertId, TrustedPartyEntity.CertificateType type,
+                                                String countryCode, ZonedDateTime createdAt) throws Exception {
         KeyPair keyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
         X509Certificate authCertificate =
-            CertificateTestUtils.generateCertificate(keyPair, countryCode, "DGC Test " + type.name()
-                + " Cert-" + testCertId);
+            CertificateTestUtils.generateCertificate(keyPair, countryCode,
+                "DGC Test " + type.name() + " Cert-" + testCertId);
 
-        String certHash = certificateUtils.getCertThumbprint(authCertificate);
+        return insertCert(type, countryCode, createdAt, authCertificate);
+    }
+
+    private X509Certificate insertCert(TrustedPartyEntity.CertificateType type, String countryCode,
+                                ZonedDateTime createdAt, X509Certificate authCertificate) throws Exception {
 
         String certRawData = Base64.getEncoder().encodeToString(authCertificate.getEncoded());
+        String certHash = certificateUtils.getCertThumbprint(authCertificate);
 
         String signature = new SignedCertificateMessageBuilder()
             .withPayload(new X509CertificateHolder(authCertificate.getEncoded()))
@@ -167,7 +152,7 @@ public class TrustedPartyTestHelper {
             .buildAsString(true);
 
         TrustedPartyEntity trustedPartyEntity = new TrustedPartyEntity();
-        trustedPartyEntity.setCreatedAt(createdAt);
+        if(createdAt != null) trustedPartyEntity.setCreatedAt(createdAt);
         trustedPartyEntity.setCertificateType(type);
         trustedPartyEntity.setCountry(countryCode);
         trustedPartyEntity.setSignature(signature);

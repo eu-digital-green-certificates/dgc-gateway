@@ -25,6 +25,7 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
+import eu.europa.ec.dgc.gateway.testdata.SignerInformationTestHelper;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.security.KeyPair;
@@ -55,6 +56,9 @@ class SignerInformationServiceTest {
 
     @Autowired
     SignerInformationRepository signerInformationRepository;
+
+    @Autowired
+    SignerInformationTestHelper signerInformationTestHelper;
 
     @Autowired
     SignerInformationService signerInformationService;
@@ -181,38 +185,26 @@ class SignerInformationServiceTest {
     private void prepareTestSignerInformation() throws Exception {
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
-        createSignerInformationInDB("DE", "sig1",
+        signerInformationTestHelper.createSignerInformationInDB("DE", "sig1",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "DE", "DETest"), nowMinusOneHour);
-        createSignerInformationInDB("DE", "sig2",
+        signerInformationTestHelper.createSignerInformationInDB("DE", "sig2",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "DE", "DETest2"), now);
-        createSignerInformationInDB("AT", "sig3",
+        signerInformationTestHelper.createSignerInformationInDB("AT", "sig3",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "AT", "ATTest"), nowMinusOneHour);
-        createSignerInformationInDB("AT", "sig4",
+        signerInformationTestHelper.createSignerInformationInDB("AT", "sig4",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "AT", "ATTest2"), now);
-        createSignerInformationInDB("EU", "sig5",
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig5",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "EU", "EUTest"), nowMinusOneHour);
-        createSignerInformationInDB("EU", "sig6",
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig6",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "EU", "EUTest2"), now);
     }
 
-    private void createSignerInformationInDB(String countryCode, String signature,
-                                             X509Certificate certificate, ZonedDateTime createdAt) throws Exception {
-        signerInformationRepository.save(new SignerInformationEntity(
-            null,
-            createdAt,
-            countryCode,
-            certificateUtils.getCertThumbprint(certificate),
-            Base64.getEncoder().encodeToString(certificate.getEncoded()),
-            signature,
-            SignerInformationEntity.CertificateType.DSC
-        ));
-    }
 
     @Test
     void testSuccessfulAddingNewSignerInformationAndDelete() throws Exception {
