@@ -256,8 +256,8 @@ class SignerInformationServiceTest {
 
         Assertions.assertFalse(entities.isEmpty());
         SignerInformationEntity deletedSignerInformationEntity = entities.get(0);
+        Assertions.assertEquals(createdSignerInformationEntity.get().getThumbprint(), deletedSignerInformationEntity.getThumbprint());
         Assertions.assertNull(deletedSignerInformationEntity.getSignature());
-        Assertions.assertNull(deletedSignerInformationEntity.getThumbprint());
         Assertions.assertNull(deletedSignerInformationEntity.getRawData());
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }

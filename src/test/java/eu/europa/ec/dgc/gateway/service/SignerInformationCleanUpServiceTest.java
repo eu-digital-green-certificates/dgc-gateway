@@ -43,11 +43,11 @@ class SignerInformationCleanUpServiceTest {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
 
         SignerInformationEntity deleted3DaysAgo = createSignerInformationInDB("DE", null,
-                null, null,
+                "thumb1", null,
                 ZonedDateTime.now().minusDays(30), ZonedDateTime.now().minusDays(3));
 
         SignerInformationEntity deleted3WeeksAgo = createSignerInformationInDB("DE", null,
-                null, null,
+                "thumb2", null,
                 ZonedDateTime.now().minusDays(40), ZonedDateTime.now().minusDays(21));
 
         X509Certificate x509Certificate = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest");
