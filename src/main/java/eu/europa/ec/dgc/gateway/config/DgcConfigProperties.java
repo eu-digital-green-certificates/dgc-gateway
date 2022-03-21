@@ -39,6 +39,8 @@ public class DgcConfigProperties {
 
     private Revocation revocation = new Revocation();
 
+    private SignerInformation signerInformation = new SignerInformation();
+
     @Getter
     @Setter
     public static class JrcConfig {
@@ -83,6 +85,12 @@ public class DgcConfigProperties {
     @Getter
     @Setter
     public static class Revocation {
+        private int deleteThreshold = 14;
+    }
+
+    @Getter
+    @Setter
+    public static class SignerInformation {
         private int deleteThreshold = 14;
     }
 }

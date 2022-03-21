@@ -221,6 +221,7 @@ class TrustListServiceTest {
         signerInformationRepository.save(new SignerInformationEntity(
             null,
             createdAt,
+            null,
             countryCode,
             certificateUtils.getCertThumbprint(certificate),
             Base64.getEncoder().encodeToString(certificate.getEncoded()),
