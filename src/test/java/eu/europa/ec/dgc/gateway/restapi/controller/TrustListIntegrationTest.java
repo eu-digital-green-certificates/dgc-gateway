@@ -27,12 +27,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
+import eu.europa.ec.dgc.gateway.repository.TrustedIssuerRepository;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.SignerInformationTestHelper;
+import eu.europa.ec.dgc.gateway.testdata.TrustedIssuerTestHelper;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.UnsupportedEncodingException;
@@ -43,9 +45,12 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import static org.hamcrest.Matchers.hasSize;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,6 +59,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -67,10 +73,16 @@ class TrustListIntegrationTest {
     TrustedPartyRepository trustedPartyRepository;
 
     @Autowired
+    TrustedIssuerRepository trustedIssuerRepository;
+
+    @Autowired
     TrustedPartyTestHelper trustedPartyTestHelper;
 
     @Autowired
     SignerInformationTestHelper signerInformationTestHelper;
+
+    @Autowired
+    TrustedIssuerTestHelper trustedIssuerTestHelper;
 
     @Autowired
     DgcConfigProperties dgcConfigProperties;
@@ -96,6 +108,7 @@ class TrustListIntegrationTest {
 
     @BeforeEach
     void testData() throws Exception {
+        trustedIssuerRepository.deleteAll();
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
 
@@ -112,6 +125,12 @@ class TrustListIntegrationTest {
 
         signerInformationTestHelper.createSignerInformationInDB("DE", "sig1", certDscDe, now);
         signerInformationTestHelper.createSignerInformationInDB("EU", "sig2", certDscEu, now);
+
+        trustedIssuerRepository.saveAll(List.of(
+            trustedIssuerTestHelper.createTrustedIssuer("EU"),
+            trustedIssuerTestHelper.createTrustedIssuer("DE"),
+            trustedIssuerTestHelper.createTrustedIssuer("AT")
+        ));
     }
 
     @Test
@@ -563,27 +582,71 @@ class TrustListIntegrationTest {
     }
 
     @Test
-    void testTrustListWrongType() throws Exception {
+    void testTrustedIssuerNoFilter() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
-
-        mockMvc.perform(get("/trustList/XXX")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/trustList/issuers")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(3)));
     }
 
     @Test
-    void testTrustListWrongCountryCode() throws Exception {
+    void testTrustedIssuerByCountry() throws Exception {
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=DE")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
 
-        mockMvc.perform(get("/trustList/DSC/XXX")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest());
+    @Test
+    void testTrustedIssuerByMultipleCountries() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=DE,EU")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void testTrustedIssuerEmpty() throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get("/trustList/issuers?country=XX")
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/trustList/XXX",
+            "/trustList/DSC/XXX",
+            "/trustList/issuers?country=DE,XXX"
+    })
+    void testBadRequests(String url) throws Exception {
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        mockMvc.perform(get(url)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
     }
 
     private void prepareTestCertsCreatedAtNowMinusOneHour() throws Exception {
