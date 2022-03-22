@@ -156,7 +156,6 @@ public class TrustListController {
             try {
                 ifModifiedDateTime = ZonedDateTime.parse(ifModifiedSince, dateTimeFormatter);
             } catch (DateTimeParseException e) {
-                e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
         }
@@ -255,7 +254,6 @@ public class TrustListController {
             try {
                 ifModifiedDateTime = ZonedDateTime.parse(ifModifiedSince, dateTimeFormatter);
             } catch (DateTimeParseException e) {
-                e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
         }
@@ -365,7 +363,6 @@ public class TrustListController {
             try {
                 ifModifiedDateTime = ZonedDateTime.parse(ifModifiedSince, dateTimeFormatter);
             } catch (DateTimeParseException e) {
-                e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
         }
