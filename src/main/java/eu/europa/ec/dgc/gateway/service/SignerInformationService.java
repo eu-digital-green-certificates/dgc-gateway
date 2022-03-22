@@ -316,12 +316,12 @@ public class SignerInformationService {
         return signerInformationRepository
             .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
             .stream()
-            .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
+            .map(it -> new CmsPackageDto(it.getSignature(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
             .collect(Collectors.toList());
     }
 
 
-    private static ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
+    private ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
         return ZonedDateTime.ofInstant(
             Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
     }

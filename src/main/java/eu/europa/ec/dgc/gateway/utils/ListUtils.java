@@ -25,6 +25,9 @@ import java.util.List;
 
 public class ListUtils {
 
+    private ListUtils(){
+    }
+
     /**
      * Returns a sublist of a list of objects based on page index and size.
      *

@@ -25,16 +25,20 @@ import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.restapi.dto.CertificateTypeDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustListDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.TrustedIssuerDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
 import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustListMapper;
+import eu.europa.ec.dgc.gateway.restapi.mapper.GwTrustedIssuerMapper;
 import eu.europa.ec.dgc.gateway.service.TrustListService;
+import eu.europa.ec.dgc.gateway.service.TrustedIssuerService;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -44,13 +48,16 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -64,10 +71,15 @@ public class TrustListController {
 
     private final GwTrustListMapper trustListMapper;
 
+    private final GwTrustedIssuerMapper trustedIssuerMapper;
+
+    private final TrustedIssuerService trustedIssuerService;
+
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNT = "downloadedKeys";
     private static final String MDC_PROP_DOWNLOAD_KEYS_TYPE = "downloadedKeysType";
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNTRY = "downloadedKeysCountry";
     private static final String DOWNLOADED_TRUSTLIST_LOG_MESSAGE = "Downloaded TrustList";
+    private static final String IF_MODIFIED_SINCE_HEADER = "If-Modified-Since";
 
     /**
      * TrustList Download Controller.
@@ -81,10 +93,29 @@ public class TrustListController {
         },
         summary = "Returns the full list of trusted certificates.",
         tags = {"Trust Lists"},
+        parameters = {
+            @Parameter(
+                in = ParameterIn.HEADER,
+                name = "If-Modified-Since",
+                description = "Defines if only updated certificates since the given date should be returned.",
+                schema = @Schema(implementation = Long.class)),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "page",
+                description = "Page index, must NOT be negative.",
+                schema = @Schema(implementation = Integer.class),
+                example = "0"),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                description = "Number of certificates in a page to be returned, must be greater than 0.",
+                schema = @Schema(implementation = Integer.class),
+                example = "10")
+        },
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Returns the full list of trusted parties.",
+                description = "Returns the full list of trusted parties. Optional the download can be paginated"
+                    + " and a delta download will be enabled by the header parameter 'If-Modified-Since'.",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     array = @ArraySchema(schema = @Schema(implementation = TrustListDto.class)))),
@@ -97,10 +128,19 @@ public class TrustListController {
                 ))
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustList(
+        @RequestHeader(value = IF_MODIFIED_SINCE_HEADER, required = false) Long ifModifiedSinceTimestamp,
+        @RequestParam(value = "page", required = false) Integer page,
+        @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
-        List<TrustListDto> trustList = trustListMapper.trustListToTrustListDto(trustListService.getTrustList());
-
+        List<TrustListDto> trustList;
+        if (isPaginationRequired(page,size)) {
+            trustList = trustListMapper.trustListToTrustListDto(
+                trustListService.getTrustList(ifModifiedSinceTimestamp, page, size));
+        } else {
+            trustList = trustListMapper.trustListToTrustListDto(
+                trustListService.getTrustList(ifModifiedSinceTimestamp, null, null));
+        }
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNTRY, downloaderCountryCode);
 
@@ -127,12 +167,30 @@ public class TrustListController {
                 name = "type",
                 description = "Certificate Type to filter for",
                 required = true,
-                schema = @Schema(implementation = CertificateTypeDto.class))
+                schema = @Schema(implementation = CertificateTypeDto.class)),
+            @Parameter(
+                in = ParameterIn.HEADER,
+                name = "If-Modified-Since",
+                description = "Defines if only updated certificates since the given date should be returned.",
+                schema = @Schema(implementation = Long.class)),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "page",
+                description = "Page index, must NOT be negative.",
+                schema = @Schema(implementation = Integer.class),
+                example = "0"),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "pagesize",
+                description = "Number of certificates in a page to be returned, must be greater than 0.",
+                schema = @Schema(implementation = Integer.class),
+                example = "10")
         },
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Returns a filtered list of trusted certificates.",
+                description = "Returns a filtered list of trusted certificates. Optional the download can be paginated"
+                    + " and a delta download will be enabled by the header parameter 'If-Modified-Since'.",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     array = @ArraySchema(schema = @Schema(implementation = TrustListDto.class)))),
@@ -153,13 +211,22 @@ public class TrustListController {
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByType(
         @Valid @PathVariable("type") CertificateTypeDto type,
+        @RequestHeader(value = IF_MODIFIED_SINCE_HEADER, required = false) Long ifModifiedSinceTimestamp,
+        @RequestParam(value = "page", required = false) Integer page,
+        @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
 
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
+        List<TrustListDto> trustList;
 
-        List<TrustListDto> trustList = trustListMapper.trustListToTrustListDto(
-            trustListService.getTrustList(mappedType));
+        if (isPaginationRequired(page,size)) {
+            trustList = trustListMapper.trustListToTrustListDto(
+                trustListService.getTrustList(mappedType, ifModifiedSinceTimestamp, page, size));
+        } else {
+            trustList = trustListMapper.trustListToTrustListDto(
+                trustListService.getTrustList(mappedType, ifModifiedSinceTimestamp, null, null));
+        }
 
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_TYPE, type.name());
@@ -194,12 +261,30 @@ public class TrustListController {
                 name = "country",
                 description = "2-Digit Country Code to filter for",
                 example = "EU",
-                required = true)
+                required = true),
+            @Parameter(
+                in = ParameterIn.HEADER,
+                name = "If-Modified-Since",
+                description = "Defines if only updated certificates since the given date should be returned.",
+                schema = @Schema(implementation = Long.class)),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "page",
+                description = "Page index, must NOT be negative.",
+                schema = @Schema(implementation = Integer.class),
+                example = "0"),
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "pagesize",
+                description = "Number of certificates in a page to be returned, must be greater than 0.",
+                schema = @Schema(implementation = Integer.class),
+                example = "10")
         },
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Returns a filtered list of trusted certificates.",
+                description = "Returns a filtered list of trusted certificates. Optional the download can be paginated"
+                    + " and a delta download will be enabled by the header parameter 'If-Modified-Since'.",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     array = @ArraySchema(schema = @Schema(implementation = TrustListDto.class)))),
@@ -221,14 +306,24 @@ public class TrustListController {
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(
         @Valid @PathVariable("type") CertificateTypeDto type,
         @Valid @Size(max = 2, min = 2) @PathVariable("country") String countryCode,
+        @RequestHeader(value = IF_MODIFIED_SINCE_HEADER, required = false) Long ifModifiedSinceTimestamp,
+        @RequestParam(value = "page", required = false) Integer page,
+        @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
 
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
         countryCode = countryCode.toUpperCase(Locale.ROOT);
 
-        List<TrustListDto> trustList = trustListMapper.trustListToTrustListDto(
-            trustListService.getTrustList(mappedType, countryCode));
+        List<TrustListDto> trustList;
+
+        if (isPaginationRequired(page,size)) {
+            trustList = trustListMapper.trustListToTrustListDto(
+                trustListService.getTrustList(mappedType, countryCode, ifModifiedSinceTimestamp, page, size));
+        } else {
+            trustList = trustListMapper.trustListToTrustListDto(
+                trustListService.getTrustList(mappedType, countryCode, ifModifiedSinceTimestamp, null, null));
+        }
 
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_TYPE, type.name());
@@ -239,4 +334,57 @@ public class TrustListController {
         return ResponseEntity.ok(trustList);
     }
 
+    /**
+     * TrustedIssuer TrustList Download.
+     */
+    @CertificateAuthenticationRequired
+    @GetMapping(path = "/issuers", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            security = {
+                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+            },
+            summary = "Returns the list of trusted issuers filtered by criterias.",
+            tags = {"Trust List"},
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.QUERY,
+                            name = "country",
+                            description = "Two-Digit Country Code",
+                            examples = {@ExampleObject("EU"), @ExampleObject("DE")}
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Returns the list of trusted issuers.",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = TrustedIssuerDto.class)))),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized. No Access to the system."
+                                    + "(Client Certificate not present or whitelisted)",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ProblemReportDto.class)
+                            ))
+            })
+    public ResponseEntity<List<TrustedIssuerDto>> getTrustedIssuersByCountry(
+            @RequestParam(value = "country", required = false) List<@Size(min = 2, max = 2) String> searchCountry
+    ) {
+        if (CollectionUtils.isNotEmpty(searchCountry)) {
+            log.debug("Downloading TrustedIssuers TrustList. Parameters country: {}", searchCountry);
+            return ResponseEntity.ok(trustedIssuerMapper.trustedIssuerEntityToTrustedIssuerDto(
+                    trustedIssuerService.getAllIssuers(searchCountry)));
+        } else {
+            log.debug("Downloading all TrustedIssuers TrustList.");
+            return ResponseEntity.ok(trustedIssuerMapper.trustedIssuerEntityToTrustedIssuerDto(
+                    trustedIssuerService.getAllIssuers()));
+        }
+    }
+
+    private boolean isPaginationRequired(Integer page, Integer size) {
+        return page != null && size != null && page >= 0 && size > 0;
+    }
 }
