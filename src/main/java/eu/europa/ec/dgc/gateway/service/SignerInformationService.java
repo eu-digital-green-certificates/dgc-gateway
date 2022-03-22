@@ -28,8 +28,6 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -99,19 +97,17 @@ public class SignerInformationService {
      * Finds a list of SignerInformation.
      * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
+     * @param ifModifiedSince since timestamp for filtering SignerInformation.
      * @param page zero-based page index, must NOT be negative.
      * @param size number of items in a page to be returned, must be greater than 0.
      * @return list of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation(Long ifModifiedSinceTimestamp,
+    public List<SignerInformationEntity> getSignerInformation(ZonedDateTime  ifModifiedSince,
                                                                Integer page, Integer size) {
-        if (ifModifiedSinceTimestamp != null && page != null && size != null) {
-            return signerInformationRepository.getIsSince(
-                epochMillisToZonedDateTime(ifModifiedSinceTimestamp), PageRequest.of(page, size));
-        } else if (ifModifiedSinceTimestamp != null) {
-            return signerInformationRepository.getIsSince(
-                epochMillisToZonedDateTime(ifModifiedSinceTimestamp));
+        if (ifModifiedSince != null && page != null && size != null) {
+            return signerInformationRepository.getIsSince(ifModifiedSince, PageRequest.of(page, size));
+        } else if (ifModifiedSince != null) {
+            return signerInformationRepository.getIsSince(ifModifiedSince);
         } else if (page != null && size != null) {
             return signerInformationRepository.findAll(PageRequest.of(page, size)).toList();
         } else {
@@ -124,21 +120,19 @@ public class SignerInformationService {
      *  Optional the list can be filtered by a timestamp and paginated.
      *
      * @param type type to filter for
-     * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
+     * @param ifModifiedSince since timestamp for filtering SignerInformation.
      * @param page zero-based page index, must NOT be negative.
      * @param size number of items in a page to be returned, must be greater than 0.
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type,
-                                                              Long ifModifiedSinceTimestamp,
+                                                              ZonedDateTime ifModifiedSince,
                                                               Integer page, Integer size) {
-        if (ifModifiedSinceTimestamp != null && page != null && size != null) {
+        if (ifModifiedSince != null && page != null && size != null) {
             return signerInformationRepository.getByCertificateTypeIsSince(type,
-                epochMillisToZonedDateTime(ifModifiedSinceTimestamp),
-                PageRequest.of(page, size));
-        } else if (ifModifiedSinceTimestamp != null) {
-            return signerInformationRepository.getByCertificateTypeIsSince(type,
-                epochMillisToZonedDateTime(ifModifiedSinceTimestamp));
+                ifModifiedSince, PageRequest.of(page, size));
+        } else if (ifModifiedSince != null) {
+            return signerInformationRepository.getByCertificateTypeIsSince(type, ifModifiedSince);
         } else if (page != null && size != null) {
             return signerInformationRepository.getByCertificateType(type,
                 PageRequest.of(page, size));
@@ -153,7 +147,7 @@ public class SignerInformationService {
      *
      * @param countryCode 2-digit country Code to filter for.
      * @param type        type to filter for
-     * @param ifModifiedSinceTimestamp since timestamp for filtering SignerInformation.
+     * @param ifModifiedSince since timestamp for filtering SignerInformation.
      * @param page zero-based page index, must NOT be negative.
      * @param size number of items in a page to be returned, must be greater than 0.
      * @return List of SignerInformation
@@ -161,15 +155,14 @@ public class SignerInformationService {
     public List<SignerInformationEntity> getSignerInformation(
         String countryCode,
         SignerInformationEntity.CertificateType type,
-        Long ifModifiedSinceTimestamp,
+        ZonedDateTime ifModifiedSince,
         Integer page, Integer size) {
-        if (ifModifiedSinceTimestamp != null && page != null && size != null) {
+        if (ifModifiedSince != null && page != null && size != null) {
             return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
-                epochMillisToZonedDateTime(ifModifiedSinceTimestamp),
-                PageRequest.of(page, size));
-        } else if (ifModifiedSinceTimestamp != null) {
+                ifModifiedSince, PageRequest.of(page, size));
+        } else if (ifModifiedSince != null) {
             return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
-                epochMillisToZonedDateTime(ifModifiedSinceTimestamp));
+                ifModifiedSince);
         } else if (page != null && size != null) {
             return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode,
                 PageRequest.of(page, size));
@@ -315,12 +308,6 @@ public class SignerInformationService {
             .stream()
             .map(it -> new CmsPackageDto(it.getSignature(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
             .collect(Collectors.toList());
-    }
-
-
-    private ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
-        return ZonedDateTime.ofInstant(
-            Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
     }
 
     private void contentCheckUploaderCertificate(

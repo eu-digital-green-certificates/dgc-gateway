@@ -70,12 +70,8 @@ class TrustedPartyServiceTest {
             trustedPartyService.getCertificates(null, null, null);
         Assertions.assertEquals(TEST_CERTIFICATE_LIST_SIZE, trustedPartyEntities.size());
 
-        List<TrustedPartyEntity> trustedPartyEntities2 =
-            trustedPartyService.getCertificates( nowMinusOneHour.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(TEST_CERTIFICATE_LIST_SIZE, trustedPartyEntities2.size());
-
         List<TrustedPartyEntity> trustedPartyEntities3 =
-            trustedPartyService.getCertificates( nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
+            trustedPartyService.getCertificates( nowMinusOneMinute, null, null);
         Assertions.assertEquals(TEST_CERTIFICATE_LIST_SIZE /2, trustedPartyEntities3.size());
 
         List<TrustedPartyEntity> trustedPartyEntities4 =
@@ -95,11 +91,11 @@ class TrustedPartyServiceTest {
         Assertions.assertEquals(0, trustedPartyEntities7.size());
 
         List<TrustedPartyEntity> trustedPartyEntities8 =
-            trustedPartyService.getCertificates( nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
+            trustedPartyService.getCertificates( nowMinusOneMinute, 0, 10);
         Assertions.assertEquals(TEST_CERTIFICATE_LIST_SIZE /2, trustedPartyEntities8.size());
 
         List<TrustedPartyEntity> trustedPartyEntities9 =
-            trustedPartyService.getCertificates( nowMinusOneMinute.toInstant().toEpochMilli(), 1, 10);
+            trustedPartyService.getCertificates( nowMinusOneMinute, 1, 10);
         Assertions.assertEquals(0, trustedPartyEntities9.size());
     }
 
@@ -116,14 +112,9 @@ class TrustedPartyServiceTest {
                 null, null, null);
         Assertions.assertEquals(4, trustedPartyEntities.size());
 
-        List<TrustedPartyEntity> trustedPartyEntities2 =
-            trustedPartyService.getCertificates(TrustedPartyEntity.CertificateType.AUTHENTICATION,
-                nowMinusOneHour.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(4, trustedPartyEntities2.size());
-
         List<TrustedPartyEntity> trustedPartyEntities3 =
             trustedPartyService.getCertificates(TrustedPartyEntity.CertificateType.CSCA,
-                nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
+                nowMinusOneMinute, null, null);
         Assertions.assertEquals(2, trustedPartyEntities3.size());
 
         List<TrustedPartyEntity> trustedPartyEntities4 =
@@ -138,12 +129,12 @@ class TrustedPartyServiceTest {
 
         List<TrustedPartyEntity> trustedPartyEntities6 =
             trustedPartyService.getCertificates(countryCode, TrustedPartyEntity.CertificateType.CSCA,
-                nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
+                nowMinusOneMinute, 0, 10);
         Assertions.assertEquals(1, trustedPartyEntities6.size());
 
         List<TrustedPartyEntity> trustedPartyEntities7 =
             trustedPartyService.getCertificates(countryCode, TrustedPartyEntity.CertificateType.CSCA,
-                nowMinusOneMinute.toInstant().toEpochMilli(), 1, 10);
+                nowMinusOneMinute, 1, 10);
         Assertions.assertEquals(0, trustedPartyEntities7.size());
     }
 

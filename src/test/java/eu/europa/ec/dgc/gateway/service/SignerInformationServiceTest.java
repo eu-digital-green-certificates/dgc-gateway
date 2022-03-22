@@ -84,28 +84,24 @@ class SignerInformationServiceTest {
         Assertions.assertEquals(6, signerInformationEntities.size());
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
-            nowMinusOneHour.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(6, signerInformationEntities2.size());
+            nowMinusOneMinute, null, null);
+        Assertions.assertEquals(3, signerInformationEntities2.size());
 
         List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
-            nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(3, signerInformationEntities3.size());
+            null, 0, 10);
+        Assertions.assertEquals(6, signerInformationEntities3.size());
 
         List<SignerInformationEntity> signerInformationEntities4 = signerInformationService.getSignerInformation(
-            null, 0, 10);
-        Assertions.assertEquals(6, signerInformationEntities4.size());
+            null, 10, 10);
+        Assertions.assertEquals(0, signerInformationEntities4.size());
 
         List<SignerInformationEntity> signerInformationEntities5 = signerInformationService.getSignerInformation(
-            null, 10, 10);
-        Assertions.assertEquals(0, signerInformationEntities5.size());
+            nowMinusOneMinute, 0, 10);
+        Assertions.assertEquals(3, signerInformationEntities5.size());
 
         List<SignerInformationEntity> signerInformationEntities6 = signerInformationService.getSignerInformation(
-            nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
-        Assertions.assertEquals(3, signerInformationEntities6.size());
-
-        List<SignerInformationEntity> signerInformationEntities7 = signerInformationService.getSignerInformation(
-            nowMinusOneMinute.toInstant().toEpochMilli(), 1, 2);
-        Assertions.assertEquals(1, signerInformationEntities7.size());
+            nowMinusOneMinute, 1, 2);
+        Assertions.assertEquals(1, signerInformationEntities6.size());
 
         cleanupTestSignerInformation();
     }
@@ -147,33 +143,23 @@ class SignerInformationServiceTest {
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
             SignerInformationEntity.CertificateType.DSC,
-            nowMinusOneHour.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(6, signerInformationEntities2.size());
+            nowMinusOneMinute, null, null);
+        Assertions.assertEquals(3, signerInformationEntities2.size());
 
         List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
-            SignerInformationEntity.CertificateType.DSC,
-            nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(3, signerInformationEntities3.size());
+            "DE", SignerInformationEntity.CertificateType.DSC,
+            null, 0, 10);
+        Assertions.assertEquals(2, signerInformationEntities3.size());
 
         List<SignerInformationEntity> signerInformationEntities4 = signerInformationService.getSignerInformation(
             "DE", SignerInformationEntity.CertificateType.DSC,
-            null, 0, 10);
-        Assertions.assertEquals(2, signerInformationEntities4.size());
+            nowMinusOneMinute, 0, 10);
+        Assertions.assertEquals(1, signerInformationEntities4.size());
 
         List<SignerInformationEntity> signerInformationEntities5 = signerInformationService.getSignerInformation(
-            "DE", SignerInformationEntity.CertificateType.DSC,
-            nowMinusOneHour.toInstant().toEpochMilli(), 0, 10);
-        Assertions.assertEquals(2, signerInformationEntities5.size());
-
-        List<SignerInformationEntity> signerInformationEntities6 = signerInformationService.getSignerInformation(
-            "DE", SignerInformationEntity.CertificateType.DSC,
-            nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
-        Assertions.assertEquals(1, signerInformationEntities6.size());
-
-        List<SignerInformationEntity> signerInformationEntities7 = signerInformationService.getSignerInformation(
             "D", SignerInformationEntity.CertificateType.DSC,
-            nowMinusOneHour.toInstant().toEpochMilli(), 0, 10);
-        Assertions.assertEquals(0, signerInformationEntities7.size());
+            nowMinusOneHour, 0, 10);
+        Assertions.assertEquals(0, signerInformationEntities5.size());
 
         cleanupTestSignerInformation();
     }
