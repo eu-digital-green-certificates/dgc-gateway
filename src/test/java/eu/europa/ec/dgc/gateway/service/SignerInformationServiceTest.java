@@ -77,15 +77,16 @@ class SignerInformationServiceTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         prepareTestSignerInformation();
 
-        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
 
         List<SignerInformationEntity> signerInformationEntities =
             signerInformationService.getSignerInformation(null, null, null);
-        Assertions.assertEquals(6, signerInformationEntities.size());
+        Assertions.assertEquals(7, signerInformationEntities.size());
+        Assertions.assertTrue(signerInformationEntities.stream().anyMatch(it -> it.getDeletedAt() != null && it.getDeletedAt().equals(nowMinusOneHour) && it.getSignature() == null));
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
             nowMinusOneHour.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(6, signerInformationEntities2.size());
+        Assertions.assertEquals(7, signerInformationEntities2.size());
 
         List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
             nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
@@ -93,7 +94,7 @@ class SignerInformationServiceTest {
 
         List<SignerInformationEntity> signerInformationEntities4 = signerInformationService.getSignerInformation(
             null, 0, 10);
-        Assertions.assertEquals(6, signerInformationEntities4.size());
+        Assertions.assertEquals(7, signerInformationEntities4.size());
 
         List<SignerInformationEntity> signerInformationEntities5 = signerInformationService.getSignerInformation(
             null, 10, 10);
@@ -115,11 +116,11 @@ class SignerInformationServiceTest {
         cleanupTestSignerInformation();
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         prepareTestSignerInformation();
-        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
 
         Assertions.assertThrows(IllegalArgumentException.class, () ->
             signerInformationService.getSignerInformation(null, -1, 2));
-        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
 
         Assertions.assertThrows(IllegalArgumentException.class, () ->
             signerInformationService.getSignerInformation(null, 0, 0));
@@ -127,7 +128,7 @@ class SignerInformationServiceTest {
         Assertions.assertThrows(IllegalArgumentException.class, () ->
             signerInformationService.getSignerInformation(null, -1, 0));
 
-        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
 
         cleanupTestSignerInformation();
     }
@@ -138,17 +139,17 @@ class SignerInformationServiceTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         prepareTestSignerInformation();
 
-        Assertions.assertEquals(signerInformationEntitiesInDb + 6, signerInformationRepository.count());
+        Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
 
         List<SignerInformationEntity> signerInformationEntities =
             signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC,
                 null, null, null);
-        Assertions.assertEquals(6, signerInformationEntities.size());
+        Assertions.assertEquals(7, signerInformationEntities.size());
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
             SignerInformationEntity.CertificateType.DSC,
             nowMinusOneHour.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(6, signerInformationEntities2.size());
+        Assertions.assertEquals(7, signerInformationEntities2.size());
 
         List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
             SignerInformationEntity.CertificateType.DSC,
@@ -171,7 +172,7 @@ class SignerInformationServiceTest {
         Assertions.assertEquals(1, signerInformationEntities6.size());
 
         List<SignerInformationEntity> signerInformationEntities7 = signerInformationService.getSignerInformation(
-            "D", SignerInformationEntity.CertificateType.DSC,
+            "XX", SignerInformationEntity.CertificateType.DSC,
             nowMinusOneHour.toInstant().toEpochMilli(), 0, 10);
         Assertions.assertEquals(0, signerInformationEntities7.size());
 
@@ -203,6 +204,9 @@ class SignerInformationServiceTest {
         signerInformationTestHelper.createSignerInformationInDB("EU", "sig6",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
                 "EU", "EUTest2"), now);
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig7_deleted",
+                CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                        "EU", "EUTest3"), now.minusHours(2), nowMinusOneHour);
     }
 
 
@@ -249,7 +253,7 @@ class SignerInformationServiceTest {
         SignerInformationEntity deletedSignerInformationEntity = entities.get(0);
         Assertions.assertEquals(createdSignerInformationEntity.get().getThumbprint(), deletedSignerInformationEntity.getThumbprint());
         Assertions.assertNull(deletedSignerInformationEntity.getSignature());
-        Assertions.assertNull(deletedSignerInformationEntity.getRawData());
+        Assertions.assertEquals(createdSignerInformationEntity.get().getRawData(), deletedSignerInformationEntity.getRawData());
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }
 

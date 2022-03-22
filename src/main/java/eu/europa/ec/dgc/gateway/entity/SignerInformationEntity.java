@@ -72,7 +72,7 @@ public class SignerInformationEntity {
     /**
      * Base64 encoded certificate raw data.
      */
-    @Column(name = "raw_data", length = 4096)
+    @Column(name = "raw_data", nullable = false, length = 4096)
     String rawData;
 
     /**

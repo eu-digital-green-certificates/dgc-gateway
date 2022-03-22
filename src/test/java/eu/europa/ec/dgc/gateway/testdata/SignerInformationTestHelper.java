@@ -39,14 +39,19 @@ public class SignerInformationTestHelper {
 
     public void createSignerInformationInDB(String countryCode, String signature,
                                             X509Certificate certificate, ZonedDateTime createdAt) throws Exception {
+        createSignerInformationInDB(countryCode, signature, certificate, createdAt, null);
+    }
+    public void createSignerInformationInDB(String countryCode, String signature,
+                                            X509Certificate certificate, ZonedDateTime createdAt,
+                                            ZonedDateTime deletedAt) throws Exception {
         signerInformationRepository.save(new SignerInformationEntity(
             null,
             createdAt,
-            null,
+            deletedAt,
             countryCode,
             certificateUtils.getCertThumbprint(certificate),
             Base64.getEncoder().encodeToString(certificate.getEncoded()),
-            signature,
+            deletedAt == null ? signature : null,
             SignerInformationEntity.CertificateType.DSC
         ));
     }

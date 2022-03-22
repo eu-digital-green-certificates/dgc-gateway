@@ -104,7 +104,7 @@ class TrustListIntegrationTest {
     private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now().minusHours(1);
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu,
-        certUploadDe2, certUploadEu2, certCscaDe2, certCscaEu2, certAuthDe2, certAuthEu2, certDscDe2, certDscEu2;
+        certUploadDe2, certUploadEu2, certCscaDe2, certCscaEu2, certAuthDe2, certAuthEu2, certDscDe2, certDscEu2, certDscEuDeleted;
 
     @BeforeEach
     void testData() throws Exception {
@@ -150,6 +150,7 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListItem(c, certDscEu, "EU", CertificateTypeDto.DSC, "sig2"))
             .andExpect(c -> assertTrustListItem(c, certDscDe2, "DE", CertificateTypeDto.DSC, "sig3"))
             .andExpect(c -> assertTrustListItem(c, certDscEu2, "EU", CertificateTypeDto.DSC, "sig4"))
+            .andExpect(c -> assertTrustListItem(c, certDscEuDeleted, "EU", CertificateTypeDto.DSC, null, true))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListItem(c, certCscaEu, "EU", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
@@ -162,7 +163,7 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListItem(c, certUploadEu2, "EU", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListItem(c, certAuthDe2, "DE", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListItem(c, certAuthEu2, "EU", CertificateTypeDto.AUTHENTICATION, null))
-            .andExpect(c -> assertTrustListLength(c, 16));
+            .andExpect(c -> assertTrustListLength(c, 17));
 
         mockMvc.perform(get("/trustList?page=0&pagesize=100")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -175,6 +176,7 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListItem(c, certDscEu, "EU", CertificateTypeDto.DSC, "sig2"))
             .andExpect(c -> assertTrustListItem(c, certDscDe2, "DE", CertificateTypeDto.DSC, "sig3"))
             .andExpect(c -> assertTrustListItem(c, certDscEu2, "EU", CertificateTypeDto.DSC, "sig4"))
+            .andExpect(c -> assertTrustListItem(c, certDscEuDeleted, "EU", CertificateTypeDto.DSC, null, true))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListItem(c, certCscaEu, "EU", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
@@ -187,7 +189,7 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListItem(c, certUploadEu2, "EU", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListItem(c, certAuthDe2, "DE", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListItem(c, certAuthEu2, "EU", CertificateTypeDto.AUTHENTICATION, null))
-            .andExpect(c -> assertTrustListLength(c, 16));
+            .andExpect(c -> assertTrustListLength(c, 17));
 
         mockMvc.perform(get("/trustList?page=-1&pagesize=10")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -197,7 +199,7 @@ class TrustListIntegrationTest {
             )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(c -> assertTrustListLength(c, 16));
+            .andExpect(c -> assertTrustListLength(c, 17));
 
         mockMvc.perform(get("/trustList?page=0&pagesize=10")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -669,11 +671,14 @@ class TrustListIntegrationTest {
     private void prepareTestCertsCreatedAtNowMinusOneHour() throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
         certDscDe2 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
-            "DE", "DETest");
+                "DE", "DETest");
         certDscEu2 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
-            "EU", "EUTest");
+                "EU", "EUTest");
+        certDscEuDeleted = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+                "EU", "EUTestDeleted");
         signerInformationTestHelper.createSignerInformationInDB("DE", "sig3", certDscDe2, nowMinusOneHour);
         signerInformationTestHelper.createSignerInformationInDB("EU", "sig4",certDscEu2, nowMinusOneHour);
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig5_deleted",certDscEuDeleted, now.minusHours(2), nowMinusOneHour);
 
         certUploadDe2 = trustedPartyTestHelper.getTestCert("test1", TrustedPartyEntity.CertificateType.UPLOAD, "DE", nowMinusOneHour);
         certCscaDe2 = trustedPartyTestHelper.getTestCert("test2", TrustedPartyEntity.CertificateType.CSCA, "DE", nowMinusOneHour);
@@ -683,7 +688,11 @@ class TrustListIntegrationTest {
         certAuthEu2 = trustedPartyTestHelper.getTestCert("test6", TrustedPartyEntity.CertificateType.AUTHENTICATION, "EU", nowMinusOneHour);
     }
 
-    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature) throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
+    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature) throws UnsupportedEncodingException, CertificateEncodingException, JsonProcessingException {
+        assertTrustListItem(result, certificate, country, certificateTypeDto, signature, false);
+    }
+
+    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature, boolean deleted) throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
         List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
@@ -702,8 +711,11 @@ class TrustListIntegrationTest {
         Assertions.assertEquals(country, trustListItem.getCountry());
         Assertions.assertEquals(certificateTypeDto, trustListItem.getCertificateType());
         Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
-
+        if (deleted) {
+            Assertions.assertNull(trustListItem.getRawData());
+        } else {
+            Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+        }
         if (signature != null) {
             Assertions.assertEquals(signature, trustListItem.getSignature());
         }

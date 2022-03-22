@@ -41,19 +41,21 @@ class SignerInformationCleanUpServiceTest {
     void testCleanup() throws Exception {
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
+        X509Certificate x509Certificate1 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest1");
+        X509Certificate x509Certificate2 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest2");
+        X509Certificate x509Certificate3 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest3");
 
         SignerInformationEntity deleted3DaysAgo = createSignerInformationInDB("DE", null,
-                "thumb1", null,
+                certificateUtils.getCertThumbprint(x509Certificate2), Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
                 ZonedDateTime.now().minusDays(30), ZonedDateTime.now().minusDays(3));
 
         SignerInformationEntity deleted3WeeksAgo = createSignerInformationInDB("DE", null,
-                "thumb2", null,
+                certificateUtils.getCertThumbprint(x509Certificate3), Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
                 ZonedDateTime.now().minusDays(40), ZonedDateTime.now().minusDays(21));
 
-        X509Certificate x509Certificate = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest");
 
         SignerInformationEntity notDeleted = createSignerInformationInDB("DE", "sig3",
-                certificateUtils.getCertThumbprint(x509Certificate), Base64.getEncoder().encodeToString(x509Certificate.getEncoded()),
+                certificateUtils.getCertThumbprint(x509Certificate1), Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
                 ZonedDateTime.now().minusDays(40), null);
 
         underTest.cleanup();

@@ -299,7 +299,6 @@ public class SignerInformationService {
 
         // All checks passed --> Delete from DB, set fields to null
         signerInformationEntity.setDeletedAt(ZonedDateTime.now());
-        signerInformationEntity.setRawData(null);
         signerInformationEntity.setSignature(null);
         signerInformationRepository.save(signerInformationEntity);
 

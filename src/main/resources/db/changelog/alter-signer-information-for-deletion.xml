@@ -9,7 +9,6 @@
         <addColumn tableName="signer_information">
             <column name="deleted_at" type="DATETIME"/>
         </addColumn>
-        <dropNotNullConstraint tableName="signer_information" columnName="raw_data"/>
         <dropNotNullConstraint tableName="signer_information" columnName="signature"/>
     </changeSet>
 

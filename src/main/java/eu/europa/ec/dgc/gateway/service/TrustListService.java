@@ -249,7 +249,7 @@ public class TrustListService {
             map(signerInformationEntity.getCertificateType()),
             signerInformationEntity.getThumbprint(),
             signerInformationEntity.getSignature(),
-            signerInformationEntity.getRawData()
+            signerInformationEntity.getDeletedAt() == null ? signerInformationEntity.getRawData() : null
         );
     }
 

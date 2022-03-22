@@ -33,12 +33,15 @@ import org.springframework.data.repository.query.Param;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
-    String SELECT_SINCE = "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since";
+    String SELECT_SINCE =
+        "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since OR s.deletedAt >= :since";
     String SELECT_BY_TYPE_SINCE =
-        "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND s.createdAt >= :since";
+        "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND (s.createdAt >= :since "
+            +  " OR s.deletedAt >= :since)";
     String SELECT_BY_TYPE_AND_COUNTRY_SINCE =
         "SELECT s FROM SignerInformationEntity s"
-            + " WHERE s.certificateType = :certType AND s.country = :country AND s.createdAt >= :since";
+            + " WHERE s.certificateType = :certType AND s.country = :country AND (s.createdAt >= :since"
+            +  " OR s.deletedAt >= :since)";
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
