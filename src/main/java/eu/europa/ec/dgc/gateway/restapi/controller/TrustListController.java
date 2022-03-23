@@ -342,20 +342,12 @@ public class TrustListController {
         countryCode = countryCode.toUpperCase(Locale.ROOT);
 
         List<TrustListDto> trustList;
-        ZonedDateTime ifModifiedDateTime = null;
-        if (ifModifiedSince != null) {
-            try {
-                ifModifiedDateTime = ZonedDateTime.parse(ifModifiedSince, dateTimeFormatter);
-            } catch (DateTimeParseException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
-        }
         if (isPaginationRequired(page,size)) {
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, countryCode, ifModifiedDateTime, page, size));
+                trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, countryCode, ifModifiedDateTime, null, null));
+                trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, null, null));
         }
 
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
