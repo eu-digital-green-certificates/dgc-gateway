@@ -252,6 +252,7 @@ public class RevocationListService {
     public List<CmsPackageDto> getCmsPackage(String country) {
         List<RevocationBatchEntity> revocationBatchEntities = revocationBatchRepository.getAllByCountry(country);
         return revocationBatchEntities.stream()
+                .filter(it -> !it.getDeleted())
                 .map(it -> new CmsPackageDto(it.getSignedBatch(), it.getId(),
                         CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST))
                 .collect(Collectors.toList());
