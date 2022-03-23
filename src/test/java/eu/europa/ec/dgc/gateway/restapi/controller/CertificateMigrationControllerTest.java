@@ -123,7 +123,7 @@ class CertificateMigrationControllerTest {
         String cmsBase64 = Base64.getEncoder().encodeToString(certDscEu.getEncoded());
 
         createSignerInfo(cmsBase64, certDscEu, "signature1");
-        createRevocation(cmsBase64);
+        createRevocation("id1", cmsBase64, false);
         createValidationEntry(cmsBase64);
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
@@ -138,6 +138,25 @@ class CertificateMigrationControllerTest {
                 .andExpect(jsonPath("$[1].cms", is(cmsBase64)))
                 .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())))
                 .andExpect(jsonPath("$[2].cms", is(cmsBase64)));
+    }
+
+    @Test
+    void testRevocationDeleted() throws Exception {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
+        X509Certificate certDscEu = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), countryCode, "Test");
+        String cmsBase64 = Base64.getEncoder().encodeToString(certDscEu.getEncoded());
+
+        createRevocation("id1", null, true);
+        RevocationBatchEntity entity = createRevocation("id2", cmsBase64, false);
+
+        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        mockMvc.perform(get("/cms-migration")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].entityId", is(entity.getId()), Long.class))
+                .andExpect(jsonPath("$[0].cms", is(cmsBase64)));
     }
 
     @Test
@@ -607,10 +626,10 @@ class CertificateMigrationControllerTest {
         ));
     }
 
-    private RevocationBatchEntity createRevocation(final String cmsBase64) {
+    private RevocationBatchEntity createRevocation(final String batchId, final String cmsBase64, boolean deleted) {
         RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity(
-                null, "batchId", countryCode, ZonedDateTime.now(), ZonedDateTime.now().plusDays(2),
-                false, RevocationBatchEntity.RevocationHashType.SIGNATURE, "UNKNOWN_KID", cmsBase64);
+                null, batchId, countryCode, ZonedDateTime.now(), ZonedDateTime.now().plusDays(2),
+                deleted, RevocationBatchEntity.RevocationHashType.SIGNATURE, "UNKNOWN_KID", cmsBase64);
         return revocationBatchRepository.save(revocationBatchEntity);
     }
 
