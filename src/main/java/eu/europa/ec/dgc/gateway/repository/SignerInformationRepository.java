@@ -27,24 +27,30 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
 
-    String SELECT_SINCE = "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since";
+    String SELECT_SINCE =
+        "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since OR s.deletedAt >= :since";
     String SELECT_BY_TYPE_SINCE =
-        "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND s.createdAt >= :since";
+        "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND (s.createdAt >= :since "
+            +  " OR s.deletedAt >= :since)";
     String SELECT_BY_TYPE_AND_COUNTRY_SINCE =
         "SELECT s FROM SignerInformationEntity s"
-            + " WHERE s.certificateType = :certType AND s.country = :country AND s.createdAt >= :since";
+            + " WHERE s.certificateType = :certType AND s.country = :country AND (s.createdAt >= :since"
+            +  " OR s.deletedAt >= :since)";
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
     Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
 
     @Transactional
-    void deleteByThumbprint(String thumbprint);
+    @Modifying
+    @Query("DELETE FROM SignerInformationEntity s WHERE s.deletedAt < :threshold")
+    int deleteDeletedSignerInformationOlderThan(@Param("threshold") ZonedDateTime threshold);
 
     List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type,
                                                        Pageable pageable);

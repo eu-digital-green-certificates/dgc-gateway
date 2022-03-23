@@ -286,12 +286,14 @@ public class SignerInformationService {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
-        contentCheckExists(uploadedCertificate);
+        SignerInformationEntity signerInformationEntity = contentCheckExists(uploadedCertificate);
 
         log.info("Revoking SignerInformation Entity");
 
-        // All checks passed --> Delete from DB
-        signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        // All checks passed --> Delete from DB, set fields to null
+        signerInformationEntity.setDeletedAt(ZonedDateTime.now());
+        signerInformationEntity.setSignature(null);
+        signerInformationRepository.save(signerInformationEntity);
 
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
     }
@@ -403,16 +405,16 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private SignerInformationEntity contentCheckExists(X509CertificateHolder uploadedCertificate)
+            throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(uploadedCertificateThumbprint);
 
-        if (signerInformationEntity.isEmpty()) {
-            throw new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
-                "Uploaded certificate does not exists");
-        }
+        return signerInformationEntity.orElseThrow(
+            () -> new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
+                    "Uploaded certificate does not exists"));
     }
 
     private boolean certificateSignedByCa(X509CertificateHolder certificate, TrustedPartyEntity caCertificateEntity) {
