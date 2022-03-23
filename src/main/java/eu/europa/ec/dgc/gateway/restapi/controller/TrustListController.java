@@ -151,14 +151,6 @@ public class TrustListController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
         List<TrustListDto> trustList;
-        ZonedDateTime ifModifiedDateTime = null;
-        if (ifModifiedSince != null) {
-            try {
-                ifModifiedDateTime = ZonedDateTime.parse(ifModifiedSince, dateTimeFormatter);
-            } catch (DateTimeParseException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
-        }
         if (isPaginationRequired(page,size)) {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(ifModifiedDateTime, page, size));
