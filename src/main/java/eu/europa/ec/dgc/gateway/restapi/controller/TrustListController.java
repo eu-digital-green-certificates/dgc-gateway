@@ -233,7 +233,7 @@ public class TrustListController {
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByType(
         @Valid @PathVariable("type") CertificateTypeDto type,
-        @RequestHeader(value = IF_MODIFIED_SINCE_HEADER, required = false) String ifModifiedSince,
+        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false) ZonedDateTime ifModifiedSince,
         @RequestParam(value = "page", required = false) Integer page,
         @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
