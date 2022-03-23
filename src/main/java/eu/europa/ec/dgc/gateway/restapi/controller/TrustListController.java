@@ -243,10 +243,10 @@ public class TrustListController {
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, ifModifiedDateTime, page, size));
+                trustListService.getTrustList(mappedType, ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, ifModifiedDateTime, null, null));
+                trustListService.getTrustList(mappedType, ifModifiedSince, null, null));
         }
 
         DgcMdc.put(MDC_PROP_DOWNLOAD_KEYS_COUNT, trustList.size());
