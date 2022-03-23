@@ -33,8 +33,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -103,17 +101,17 @@ public class TrustedPartyService {
      * Finds a list of Certificates.
      * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param ifModifiedSinceTimestamp since timestamp for filtering Certificate.
+     * @param ifModifiedSince since timestamp for filtering Certificate.
      * @param page zero-based page index, must NOT be negative.
      * @param size number of items in a page to be returned, must be greater than 0.
      * @return List of certificates.
      */
-    public List<TrustedPartyEntity> getCertificates(Long ifModifiedSinceTimestamp,
+    public List<TrustedPartyEntity> getCertificates(ZonedDateTime ifModifiedSince,
                                                     Integer page, Integer size) {
 
         List<TrustedPartyEntity> trustedPartyEntityFullList;
 
-        if (ifModifiedSinceTimestamp == null) {
+        if (ifModifiedSince == null) {
             trustedPartyEntityFullList = trustedPartyRepository.findAll()
                 .stream()
                 .filter(this::validateCertificateIntegrity)
@@ -121,7 +119,7 @@ public class TrustedPartyService {
 
         } else {
             trustedPartyEntityFullList =
-                trustedPartyRepository.getIsSince(epochMillisToZonedDateTime(ifModifiedSinceTimestamp))
+                trustedPartyRepository.getIsSince(ifModifiedSince)
                     .stream()
                     .filter(this::validateCertificateIntegrity)
                     .collect(Collectors.toList());
@@ -138,18 +136,18 @@ public class TrustedPartyService {
      * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param type type to filter for.
-     * @param ifModifiedSinceTimestamp since timestamp for filtering Certificate.
+     * @param ifModifiedSince since timestamp for filtering Certificate.
      * @param page zero-based page index, must NOT be negative.
      * @param size number of items in a page to be returned, must be greater than 0.
      * @return List of certificates.
      */
     public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type,
-                                                    Long ifModifiedSinceTimestamp,
+                                                    ZonedDateTime ifModifiedSince,
                                                     Integer page, Integer size) {
 
         List<TrustedPartyEntity> trustedPartyEntityByTypeList;
 
-        if (ifModifiedSinceTimestamp == null) {
+        if (ifModifiedSince == null) {
             trustedPartyEntityByTypeList = trustedPartyRepository.getByCertificateType(type)
                 .stream()
                 .filter(this::validateCertificateIntegrity)
@@ -158,7 +156,7 @@ public class TrustedPartyService {
         } else {
             trustedPartyEntityByTypeList =
                 trustedPartyRepository.getByCertificateTypeIsSince(
-                    type,epochMillisToZonedDateTime(ifModifiedSinceTimestamp))
+                    type, ifModifiedSince)
                     .stream()
                     .filter(this::validateCertificateIntegrity)
                     .collect(Collectors.toList());
@@ -176,19 +174,19 @@ public class TrustedPartyService {
      *
      * @param country country of certificate.
      * @param type type to filter for.
-     * @param ifModifiedSinceTimestamp since timestamp for filtering Certificate.
+     * @param ifModifiedSince since timestamp for filtering Certificate.
      * @param page zero-based page index, must NOT be negative.
      * @param size number of items in a page to be returned, must be greater than 0.
      * @return List of certificates.
      */
     public List<TrustedPartyEntity> getCertificates(String country,
                                                     TrustedPartyEntity.CertificateType type,
-                                                    Long ifModifiedSinceTimestamp,
+                                                    ZonedDateTime ifModifiedSince,
                                                     Integer page, Integer size) {
 
         List<TrustedPartyEntity> trustedPartyEntityByTypeAndCountryList;
 
-        if (ifModifiedSinceTimestamp == null) {
+        if (ifModifiedSince == null) {
             trustedPartyEntityByTypeAndCountryList =
                 trustedPartyRepository.getByCountryAndCertificateType(country, type)
                     .stream()
@@ -198,7 +196,7 @@ public class TrustedPartyService {
         } else {
             trustedPartyEntityByTypeAndCountryList =
                 trustedPartyRepository.getByCountryAndCertificateTypeIsSince(country,
-                        type, epochMillisToZonedDateTime(ifModifiedSinceTimestamp))
+                        type, ifModifiedSince)
                     .stream()
                     .filter(this::validateCertificateIntegrity)
                     .collect(Collectors.toList());
@@ -234,10 +232,6 @@ public class TrustedPartyService {
         return trustedPartyRepository.getCountryCodeList();
     }
 
-    private ZonedDateTime epochMillisToZonedDateTime(long epochMilliSeconds) {
-        return ZonedDateTime.ofInstant(
-            Instant.ofEpochMilli(epochMilliSeconds), ZoneOffset.systemDefault());
-    }
 
     private boolean validateCertificateIntegrity(TrustedPartyEntity trustedPartyEntity) {
 

@@ -96,24 +96,20 @@ class TrustListServiceTest {
         List<TrustList> trustLists = trustListService.getTrustList(null, null, null);
         Assertions.assertEquals(16, trustLists.size());
 
-        List<TrustList> trustLists2 = trustListService.getTrustList(nowMinusOneHour.toInstant().toEpochMilli(),
+        List<TrustList> trustLists2 = trustListService.getTrustList(nowMinusOneMinute,
             null, null);
-        Assertions.assertEquals(16, trustLists2.size());
+        Assertions.assertEquals(8, trustLists2.size());
 
-        List<TrustList> trustLists3 = trustListService.getTrustList(nowMinusOneMinute.toInstant().toEpochMilli(),
-            null, null);
-        Assertions.assertEquals(8, trustLists3.size());
+        List<TrustList> trustLists3 = trustListService.getTrustList(TrustListType.DSC,
+            nowMinusOneMinute, null, null);
+        Assertions.assertEquals(2, trustLists3.size());
 
-        List<TrustList> trustLists4 = trustListService.getTrustList(TrustListType.DSC,
-            nowMinusOneMinute.toInstant().toEpochMilli(), null, null);
-        Assertions.assertEquals(2, trustLists4.size());
+        List<TrustList> trustLists4 = trustListService.getTrustList(TrustListType.DSC, null, 0, 10);
+        Assertions.assertEquals(4, trustLists4.size());
 
-        List<TrustList> trustLists5 = trustListService.getTrustList(TrustListType.DSC, null, 0, 10);
-        Assertions.assertEquals(4, trustLists5.size());
-
-        List<TrustList> trustLists6 = trustListService.getTrustList(TrustListType.UPLOAD, "DE",
-            nowMinusOneMinute.toInstant().toEpochMilli(), 0, 10);
-        Assertions.assertEquals(1, trustLists6.size());
+        List<TrustList> trustLists5 = trustListService.getTrustList(TrustListType.UPLOAD, "DE",
+            nowMinusOneMinute, 0, 10);
+        Assertions.assertEquals(1, trustLists5.size());
     }
 
     @Test
