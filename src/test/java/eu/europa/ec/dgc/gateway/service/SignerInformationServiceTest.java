@@ -37,7 +37,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,10 +72,18 @@ class SignerInformationServiceTest {
     private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now().minusMinutes(1);
     private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now().minusHours(1);
 
+    @BeforeEach
+    void setUp() {
+        cleanupTestSignerInformation();
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanupTestSignerInformation();
+    }
 
     @Test
     void testSuccessfulGetSignerInformationIsSincePageable() throws Exception {
-        cleanupTestSignerInformation();
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         prepareTestSignerInformation();
 
@@ -104,12 +114,10 @@ class SignerInformationServiceTest {
             nowMinusOneMinute, 1, 2);
         Assertions.assertEquals(1, signerInformationEntities6.size());
 
-        cleanupTestSignerInformation();
     }
 
     @Test
     void testFailedGetSignerInformationIsSincePageable() throws Exception {
-        cleanupTestSignerInformation();
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         prepareTestSignerInformation();
         Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
@@ -126,12 +134,10 @@ class SignerInformationServiceTest {
 
         Assertions.assertEquals(signerInformationEntitiesInDb + 7, signerInformationRepository.count());
 
-        cleanupTestSignerInformation();
     }
 
     @Test
     void testSuccessfulGetSignerInformationByTypeAndCountryIsSincePageable() throws Exception {
-        cleanupTestSignerInformation();
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         prepareTestSignerInformation();
 
@@ -161,8 +167,6 @@ class SignerInformationServiceTest {
             "D", SignerInformationEntity.CertificateType.DSC,
             nowMinusOneHour, 0, 10);
         Assertions.assertEquals(0, signerInformationEntities5.size());
-
-        cleanupTestSignerInformation();
     }
 
     private void cleanupTestSignerInformation() {
