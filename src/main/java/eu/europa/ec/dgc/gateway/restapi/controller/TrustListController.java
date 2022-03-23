@@ -83,7 +83,6 @@ public class TrustListController {
     private static final String MDC_PROP_DOWNLOAD_KEYS_TYPE = "downloadedKeysType";
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNTRY = "downloadedKeysCountry";
     private static final String DOWNLOADED_TRUSTLIST_LOG_MESSAGE = "Downloaded TrustList";
-    private static final String IF_MODIFIED_SINCE_HEADER = "If-Modified-Since";
     private static final DateTimeFormatter dateTimeFormatter =
         DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz");
 
