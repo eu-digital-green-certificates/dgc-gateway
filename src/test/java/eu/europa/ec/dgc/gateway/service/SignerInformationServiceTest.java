@@ -92,7 +92,7 @@ class SignerInformationServiceTest {
         List<SignerInformationEntity> signerInformationEntities =
             signerInformationService.getSignerInformation(null, null, null);
         Assertions.assertEquals(7, signerInformationEntities.size());
-        Assertions.assertTrue(signerInformationEntities.stream().anyMatch(it -> it.getDeletedAt() != null && it.getDeletedAt().equals(nowMinusOneHour) && it.getSignature() == null));
+        Assertions.assertTrue(signerInformationEntities.stream().anyMatch(it -> it.getDeletedAt() != null && it.getSignature() == null));
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
             nowMinusOneMinute, null, null);
