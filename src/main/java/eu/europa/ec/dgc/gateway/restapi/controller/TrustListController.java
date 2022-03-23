@@ -285,7 +285,7 @@ public class TrustListController {
                 required = true),
             @Parameter(
                 in = ParameterIn.HEADER,
-                name = "If-Modified-Since",
+                name = HttpHeaders.IF_MODIFIED_SINCE,
                 description = "Defines if only updated certificates since the given date should be returned.",
                 required = false,
                 schema = @Schema(implementation = String.class),
