@@ -39,7 +39,8 @@ backend-to-backend integration is facilitated, and countries can onboard increme
 retain flexibility and can control data processing of their users.
 
 ## Development
-
+Please be aware that the provided configuration files contain passwords that do not conform to any reasonable password policies, hence under no circumstances should be applied to productive or even broader test environments.
+Passwords used in productive scenarios should be provided only at runtime and stored in safe place, with restricted and logged access.  
 ### Prerequisites
 
 - OpenJDK 11 (with installed ```keytool``` CLI)
