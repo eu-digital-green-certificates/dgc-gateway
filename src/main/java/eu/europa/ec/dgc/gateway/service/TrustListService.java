@@ -24,7 +24,9 @@ import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.model.TrustList;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
+import eu.europa.ec.dgc.gateway.utils.ListUtils;
 import eu.europa.ec.dgc.utils.CertificateUtils;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -78,7 +80,7 @@ public class TrustListService {
     }
 
     /**
-     * Get a TrustList with TrustList Entries filtered by countriy and type.
+     * Get a TrustList with TrustList Entries filtered by country and type.
      *
      * @param type        the type to filter for.
      * @param countryCode the 2-Digit country code to filter for.
@@ -95,6 +97,124 @@ public class TrustListService {
                 trustedPartyService.getCertificates(countryCode, map(type)),
                 Collections.emptyList()
             );
+        }
+    }
+
+    /**
+     * Finds a list of TrustList.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param ifModifiedSince since timestamp for filtering TrustList.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of {@link TrustList} ordered by KID
+     */
+    public List<TrustList> getTrustList(ZonedDateTime ifModifiedSince,
+                                        Integer page, Integer size) {
+
+        List<TrustList> fullTrustLists;
+
+        if (ifModifiedSince == null) {
+            fullTrustLists = mergeAndConvert(
+                trustedPartyService.getCertificates(),
+                signerInformationService.getSignerInformation());
+        } else {
+            fullTrustLists = mergeAndConvert(
+                trustedPartyService.getCertificates(ifModifiedSince, null, null),
+                signerInformationService.getSignerInformation(ifModifiedSince, null, null)
+            );
+        }
+        if (page != null && size != null) {
+            return ListUtils.getPage(fullTrustLists, page, size);
+        } else {
+            return fullTrustLists;
+        }
+    }
+
+    /**
+     * Finds a list of TrustList filtered by type.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param type the type to filter for.
+     * @param ifModifiedSince since timestamp for filtering TrustList.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of {@link TrustList} ordered by KID
+     */
+    public List<TrustList> getTrustList(TrustListType type,
+                                        ZonedDateTime ifModifiedSince,
+                                        Integer page, Integer size) {
+        List<TrustList> trustListsByType;
+
+        if (ifModifiedSince == null) {
+            if (type == TrustListType.DSC) {
+                trustListsByType = mergeAndConvert(Collections.emptyList(),
+                    signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC));
+            } else {
+                trustListsByType = mergeAndConvert(trustedPartyService.getCertificates(map(type)),
+                    Collections.emptyList());
+            }
+        } else {
+            if (type == TrustListType.DSC) {
+                trustListsByType = mergeAndConvert(Collections.emptyList(),
+                        signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC,
+                            ifModifiedSince, null, null));
+            } else {
+                trustListsByType = mergeAndConvert(trustedPartyService.getCertificates(map(type),
+                    ifModifiedSince, null, null),
+                    Collections.emptyList());
+            }
+        }
+        if (page != null && size != null) {
+            return ListUtils.getPage(trustListsByType, page, size);
+        } else {
+            return trustListsByType;
+        }
+    }
+
+    /**
+     *  Finds a list of TrustList filtered by country and type.
+     *  Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param type        the type to filter for.
+     * @param countryCode the 2-Digit country code to filter for.
+     * @param ifModifiedSince since timestamp for filtering TrustList.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of {@link TrustList} ordered by KID
+     */
+    public List<TrustList> getTrustList(TrustListType type, String countryCode,
+                                        ZonedDateTime ifModifiedSince,
+                                        Integer page, Integer size) {
+        List<TrustList> trustListsByTypeAndCountry;
+
+        if (ifModifiedSince == null) {
+            if (type == TrustListType.DSC) {
+                trustListsByTypeAndCountry = mergeAndConvert(Collections.emptyList(),
+                    signerInformationService.getSignerInformation(countryCode,
+                        SignerInformationEntity.CertificateType.DSC));
+            } else {
+                trustListsByTypeAndCountry = mergeAndConvert(
+                    trustedPartyService.getCertificates(countryCode, map(type)),
+                    Collections.emptyList());
+            }
+        } else {
+            if (type == TrustListType.DSC) {
+                trustListsByTypeAndCountry = mergeAndConvert(Collections.emptyList(),
+                    signerInformationService.getSignerInformation(countryCode,
+                        SignerInformationEntity.CertificateType.DSC,
+                        ifModifiedSince, null, null));
+            } else {
+                trustListsByTypeAndCountry = mergeAndConvert(
+                    trustedPartyService.getCertificates(countryCode, map(type),
+                        ifModifiedSince, null, null),
+                    Collections.emptyList());
+            }
+        }
+        if (page != null && size != null) {
+            return ListUtils.getPage(trustListsByTypeAndCountry, page, size);
+        } else {
+            return trustListsByTypeAndCountry;
         }
     }
 
@@ -130,7 +250,7 @@ public class TrustListService {
             map(signerInformationEntity.getCertificateType()),
             signerInformationEntity.getThumbprint(),
             signerInformationEntity.getSignature(),
-            signerInformationEntity.getRawData()
+            signerInformationEntity.getDeletedAt() == null ? signerInformationEntity.getRawData() : null
         );
     }
 
