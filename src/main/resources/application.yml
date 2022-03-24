@@ -39,6 +39,19 @@ dgc:
     keyStorePath: /ec/prod/app/san/dgc/dgc-ta.jks
     keyStorePass: dgc-p4ssw0rd
     certificateAlias: dgc_trust_anchor
+  publication:
+    keystore:
+      keyStorePath: /ec/prod/app/san/dgcg/dgc-publication.jks
+      keyStorePass: dgc-p4ssw0rd
+      certificateAlias: dgc_publication
+    url: https://example.org/asset-manager
+    amngr-uid: 00000000-0000-0000-0000-000000000000
+    path: /assets
+    user: ${https.proxyUser}
+    password: ${https.proxyPassword}
+    notifyEmails: [ ]
+    archiveFilename: dcc_trustlist.zip
+    signatureFilename: dcc_trustlist.zip.sig.txt
   cert-auth:
     header-fields:
       thumbprint: X-SSL-Client-SHA256

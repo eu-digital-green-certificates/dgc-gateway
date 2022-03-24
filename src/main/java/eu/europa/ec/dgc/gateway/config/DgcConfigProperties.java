@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +33,7 @@ public class DgcConfigProperties {
 
     private final CertAuth certAuth = new CertAuth();
     private final KeyStoreWithAlias trustAnchor = new KeyStoreWithAlias();
-    private final KeyStoreWithAlias publication = new KeyStoreWithAlias();
+    private final Publication publication = new Publication();
 
     private String validationRuleSchema;
 
@@ -41,6 +42,20 @@ public class DgcConfigProperties {
     private Revocation revocation = new Revocation();
 
     private SignerInformation signerInformation = new SignerInformation();
+
+    @Getter
+    @Setter
+    public static class Publication {
+        private KeyStoreWithAlias keystore = new KeyStoreWithAlias();
+        private String url;
+        private String amngrUid;
+        private String path;
+        private String user;
+        private String password;
+        private String archiveFilename;
+        private String signatureFilename;
+        private List<String> notifyEmails = new ArrayList<>();
+    }
 
     @Getter
     @Setter

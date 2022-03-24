@@ -1,10 +1,15 @@
 package eu.europa.ec.dgc.gateway.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.dgc.gateway.client.AssetManagerClient;
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
+import eu.europa.ec.dgc.gateway.model.AssetManagerSynchronizeResponseDto;
 import eu.europa.ec.dgc.signing.SignedByteArrayMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
+import feign.FeignException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,7 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -23,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
@@ -39,6 +46,10 @@ public class PublishingService {
     private final CertificateUtils certificateUtils;
 
     private final DgcConfigProperties properties;
+
+    private final AssetManagerClient assetManagerClient;
+
+    private final ObjectMapper objectMapper;
 
     @Qualifier("publication")
     private final KeyStore publicationKeyStore;
@@ -81,44 +92,44 @@ public class PublishingService {
             /*
              * Add Static Files
              */
-            addFile(zipOutputStream, "Readme.txt", getClasspathFileContent("Readme.txt"));
-            addFile(zipOutputStream, "License.txt", getClasspathFileContent("License.txt"));
-            addFile(zipOutputStream, "Version.txt", getVersionFileContent());
+            addFileToZip(zipOutputStream, "Readme.txt", getClasspathFileContent("Readme.txt"));
+            addFileToZip(zipOutputStream, "License.txt", getClasspathFileContent("License.txt"));
+            addFileToZip(zipOutputStream, "Version.txt", getVersionFileContent());
 
             /*
              * Add DSC
              */
-            addDirectory(zipOutputStream, "DSC/");
-            addDirectory(zipOutputStream, "DSC/DCC/");
+            addDirectoryToZip(zipOutputStream, "DSC/");
+            addDirectoryToZip(zipOutputStream, "DSC/DCC/");
             signerInformationList.stream()
                 .map(SignerInformationEntity::getCountry)
                 .distinct()
-                .forEach(country -> addDirectory(zipOutputStream, "DSC/DCC/" + country + "/"));
+                .forEach(country -> addDirectoryToZip(zipOutputStream, "DSC/DCC/" + country + "/"));
 
             signerInformationList.forEach(signerInformation -> {
                 X509Certificate cert = signerInformationService.getX509CertificateFromEntity(signerInformation);
                 String thumbprint = certificateUtils.getCertThumbprint(cert);
                 byte[] pem = getPemBytes(Base64.getDecoder().decode(signerInformation.getRawData()));
                 String filename = "DSC/DCC/" + signerInformation.getCountry() + "/" + thumbprint + ".pem";
-                addFile(zipOutputStream, filename, pem);
+                addFileToZip(zipOutputStream, filename, pem);
             });
 
             /*
              * Add CSCA
              */
-            addDirectory(zipOutputStream, "CSCA/");
-            addDirectory(zipOutputStream, "CSCA/DCC/");
+            addDirectoryToZip(zipOutputStream, "CSCA/");
+            addDirectoryToZip(zipOutputStream, "CSCA/DCC/");
             cscaTrustedParties.stream()
                 .map(TrustedPartyEntity::getCountry)
                 .distinct()
-                .forEach(country -> addDirectory(zipOutputStream, "CSCA/DCC/" + country + "/"));
+                .forEach(country -> addDirectoryToZip(zipOutputStream, "CSCA/DCC/" + country + "/"));
 
             cscaTrustedParties.forEach(trustedPartyEntity -> {
                 X509Certificate cert = trustedPartyService.getX509CertificateFromEntity(trustedPartyEntity);
                 String thumbprint = certificateUtils.getCertThumbprint(cert);
                 byte[] pem = getPemBytes(Base64.getDecoder().decode(trustedPartyEntity.getRawData()));
                 String filename = "CSCA/DCC/" + trustedPartyEntity.getCountry() + "/" + thumbprint + ".pem";
-                addFile(zipOutputStream, filename, pem);
+                addFileToZip(zipOutputStream, filename, pem);
             });
 
             log.info("Generated Publication Archive with {} CSCA and {} DSC certificates",
@@ -141,13 +152,13 @@ public class PublishingService {
 
         try {
             privateKey = (PrivateKey) publicationKeyStore.getKey(
-                properties.getPublication().getCertificateAlias(),
-                properties.getPublication().getKeyStorePass().toCharArray()
+                properties.getPublication().getKeystore().getCertificateAlias(),
+                properties.getPublication().getKeystore().getKeyStorePass().toCharArray()
             );
 
             signingCertificate = certificateUtils.convertCertificate(
                 (X509Certificate) publicationKeyStore.getCertificate(
-                    properties.getPublication().getCertificateAlias()));
+                    properties.getPublication().getKeystore().getCertificateAlias()));
         } catch (Exception e) {
             log.error("Failed to load Publication Signing KeyPair from KeyStore: {}", e.getClass().getName());
             log.debug("Failed to load Publication Signing KeyPair from KeyStore", e);
@@ -161,13 +172,95 @@ public class PublishingService {
     }
 
     private void uploadGatewayData(byte[] zip, byte[] signature) {
-        // TODO: Implement Upload
+        String archiveFilename = properties.getPublication().getArchiveFilename();
+        String signatureFilename = properties.getPublication().getSignatureFilename();
+
+        log.info("Uploading DGCG Publication Archive: {}, {}", archiveFilename, signatureFilename);
+
+        try {
+            ResponseEntity<Void> zipUploadResponse = assetManagerClient.uploadFile(getAuthHeader(),
+                properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), archiveFilename, zip);
+
+            if (zipUploadResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("Upload of ZIP Archive was successful.");
+            } else {
+                log.error("Failed to Upload ZIP Archive: {}", zipUploadResponse.getStatusCode());
+                return;
+            }
+        } catch (FeignException.FeignServerException e) {
+            log.error("Failed to Upload ZIP Archive: {}", e.status());
+            return;
+        }
+
+        try {
+            ResponseEntity<Void> signatureUploadResponse = assetManagerClient.uploadFile(getAuthHeader(),
+                properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), signatureFilename,
+                signature);
+
+            if (signatureUploadResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("Upload of Signature file was successful.");
+            } else {
+                log.error("Failed to Upload Signature file: {}", signatureUploadResponse.getStatusCode());
+                return;
+            }
+        } catch (FeignException.FeignServerException e) {
+            log.error("Failed to Upload Signature file: {}", e.status());
+            return;
+        }
+
+        log.info("All files uploaded, start synchronize process");
+
+        try {
+            ResponseEntity<AssetManagerSynchronizeResponseDto> synchronizeResponse = assetManagerClient.synchronize(
+                getAuthHeader(), "true",
+                new AssetManagerClient.SynchronizeFormData(
+                    properties.getPublication().getPath(),
+                    String.join(",", archiveFilename, signatureFilename),
+                    String.join(",", properties.getPublication().getNotifyEmails())));
+
+            if (synchronizeResponse.getBody() != null && synchronizeResponse.getStatusCode().is2xxSuccessful()) {
+                if (synchronizeResponse.getBody().getOcs().getData().getStatusCode() == 200
+                    && synchronizeResponse.getBody().getOcs().getMeta().getStatuscode() == 200) {
+
+                    log.info("Successfully triggered synchronization from acc to prd.");
+                } else {
+                    log.error("Failed to trigger synchronization from acc to prd: {}, {}, {}",
+                        synchronizeResponse.getStatusCode(),
+                        synchronizeResponse.getBody().getOcs().getData().getStatusMessage(),
+                        synchronizeResponse.getBody().getOcs().getMeta().getMessage());
+                }
+            } else {
+                log.error("Failed to trigger synchronization from acc to prd: {}, {}, {}",
+                    synchronizeResponse.getStatusCode(), synchronizeResponse.getBody(),
+                    objectMapper.writeValueAsString(synchronizeResponse.getBody()));
+                return;
+            }
+        } catch (FeignException e) {
+            log.error("Failed to trigger synchronization from acc to prd: {}", e.status());
+            return;
+        } catch (JsonProcessingException e) {
+            log.error("Failed to trigger synchronization from acc to prd: {}", e.getMessage());
+            return;
+        }
+
+        log.info("Upload and Synchronize successful");
+    }
+
+    private String getAuthHeader() {
+        String header = "Basic ";
+        header += Base64.getEncoder().encodeToString((properties.getPublication().getUser() + ":"
+            + properties.getPublication().getPassword()).getBytes(StandardCharsets.UTF_8));
+        return header;
     }
 
     private byte[] getVersionFileContent() {
         String fileContent =
-            "DCCG Data Export" + LINE_SEPERATOR + LINE_SEPERATOR
-                + "Export Version: " + Instant.now().getEpochSecond() + LINE_SEPERATOR;
+            "DGCG Data Export"
+                + LINE_SEPERATOR + LINE_SEPERATOR
+                + "Export Timestamp: "
+                + ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                + LINE_SEPERATOR;
+
         return fileContent.getBytes(StandardCharsets.UTF_8);
     }
 
@@ -191,7 +284,7 @@ public class PublishingService {
         }
     }
 
-    private void addDirectory(ZipOutputStream zipOutputStream, String directory) {
+    private void addDirectoryToZip(ZipOutputStream zipOutputStream, String directory) {
         log.debug("Adding directory {} to publication archive", directory);
         try {
             zipOutputStream.putNextEntry(new ZipEntry(directory));
@@ -201,7 +294,7 @@ public class PublishingService {
         }
     }
 
-    private void addFile(ZipOutputStream zipOutputStream, String filename, byte[] bytes) {
+    private void addFileToZip(ZipOutputStream zipOutputStream, String filename, byte[] bytes) {
         log.debug("Adding file {} ({} Bytes) to publication archive", filename, bytes.length);
         try {
             zipOutputStream.putNextEntry(new ZipEntry(filename));

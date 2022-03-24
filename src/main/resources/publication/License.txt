@@ -1,1 +1,43 @@
-Dummy Content for License File
+DATA LICENSE for the database of public keys of digital signer certificates, originally
+available from [URL]
+
+1. This data license shall govern the use of the database of public keys of digital signer certificates, originally
+available from [URL]. The use of the copyright and database right material provided in this database (the "Data")
+indicates that you accept the terms and conditions of this license. You may not amend this license under any
+circumstances.
+
+2. Licensor of this database is the European Commission. The Licensor grants you a worldwide, royalty-free, perpetual,
+non-exclusive licence to use the Data subject to the conditions below.
+
+3. This license grants the exercise of the following rights regarding the Data, subject to the observation of the
+conditions in sections 4:
+
+	a) to copy, publish, distribute and transmit the Data;
+	b) to incorporate the data in commercially and non-commercially available products and/or services.
+
+These rights are restricted to the Data itself and shall not be construed to extend beyond implicitly.
+
+4. Any exercise of the rights granted in section 3 shall be conditional upon the observance and fulfilment of the
+following obligations:
+
+	a) to acknowledge the use of the database and attribute the copyright and database rights of the European
+	Commission in an appropriate manner and with an appropriate notice;
+	b) to acknowledge and to notify in an appropriate manner and with an appropriate notice that the use of the
+	database does not constitute endorsement of any products and/or services by the European commission;
+	c) to provide the text of this license in an appropriate manner and with an appropriate notice to any intended
+	recipient of the Data.
+
+You may use the following notices at your discretion:
+
+	"Contains data provided by the European Commission under the following license: [URL]. The European Commission
+	does not endorse any products and/or services by providing this data."
+
+5. Foremost, this license is governed by the law of the European Union and additionally by the law of the Member State
+of the European Union you or an intended recipient resides in. If you or any intended recipient do not reside in a
+Member State of the European Union, the laws of the Kingdom of Belgium shall apply in addition to the law of the
+European Union.
+
+6. The European Commission shall not be liable in any capacity for any use of the Data by third parties. It shall only
+be liable for any deliberate and intentional damage caused by a deliberate and intentional default of the Data under any
+statutory law applicable according to section 5. Any further liability, representation, warranty or obligation of
+the European Commission is explicitly excluded.

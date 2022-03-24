@@ -70,8 +70,8 @@ public class DgcKeyStore {
 
         loadKeyStore(
             keyStore,
-            dgcConfigProperties.getPublication().getKeyStorePath(),
-            dgcConfigProperties.getPublication().getKeyStorePass().toCharArray());
+            dgcConfigProperties.getPublication().getKeystore().getKeyStorePath(),
+            dgcConfigProperties.getPublication().getKeystore().getKeyStorePass().toCharArray());
 
         return keyStore;
     }

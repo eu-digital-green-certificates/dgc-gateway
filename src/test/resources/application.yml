@@ -23,13 +23,18 @@ dgc:
   jrc:
     url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat
   validationRuleSchema: classpath:validation-rule.schema.json
-  dbencryption:
-    initVector: Ho^RDYDuGt0Ki`\x
-    password: G&B3zSk|fNE!.Pa9+Xv2kUYRx2zp|@=|
   trustAnchor:
-    keyStorePath: keystore/dgc-ta.jks
-    keyStorePass: dgc-p4ssw0rd
-    certificateAlias: dgc_trust_anchor
+    keyStorePath: classpath:ta_tst.jks
+    keyStorePass: dgcg-p4ssw0rd
+    certificateAlias: ta_tst
+  publication:
+    keystore:
+      keyStorePath: keystore/dgc-signer.jks
+      keyStorePass: dgc-p4ssw0rd
+      certificateAlias: dgc_tst_publication
+    url: https://example.org/asset-manager
+    user: user
+    password: password
   cert-auth:
     header-fields:
       thumbprint: X-SSL-Client-SHA256
