@@ -43,8 +43,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import javax.validation.Valid;
@@ -52,8 +50,8 @@ import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -84,8 +82,6 @@ public class TrustListController {
     private static final String MDC_PROP_DOWNLOAD_KEYS_TYPE = "downloadedKeysType";
     private static final String MDC_PROP_DOWNLOAD_KEYS_COUNTRY = "downloadedKeysCountry";
     private static final String DOWNLOADED_TRUSTLIST_LOG_MESSAGE = "Downloaded TrustList";
-    private static final DateTimeFormatter dateTimeFormatter =
-        DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz");
 
     /**
      * TrustList Download Controller.
@@ -145,7 +141,8 @@ public class TrustListController {
                 ))
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustList(
-        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false) ZonedDateTime ifModifiedSince,
+        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime ifModifiedSince,
         @RequestParam(value = "page", required = false) Integer page,
         @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
@@ -233,7 +230,8 @@ public class TrustListController {
         })
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByType(
         @Valid @PathVariable("type") CertificateTypeDto type,
-        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false) ZonedDateTime ifModifiedSince,
+        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime ifModifiedSince,
         @RequestParam(value = "page", required = false) Integer page,
         @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
@@ -332,7 +330,8 @@ public class TrustListController {
     public ResponseEntity<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(
         @Valid @PathVariable("type") CertificateTypeDto type,
         @Valid @Size(max = 2, min = 2) @PathVariable("country") String countryCode,
-        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false) ZonedDateTime ifModifiedSince,
+        @RequestHeader(value = HttpHeaders.IF_MODIFIED_SINCE, required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime ifModifiedSince,
         @RequestParam(value = "page", required = false) Integer page,
         @RequestParam(value = "pagesize", required = false) Integer size,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
