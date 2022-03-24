@@ -20,13 +20,13 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
-import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.model.TrustList;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
+import eu.europa.ec.dgc.gateway.testdata.SignerInformationTestHelper;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.security.KeyPairGenerator;
@@ -55,12 +55,19 @@ class TrustListServiceTest {
     TrustedPartyTestHelper trustedPartyTestHelper;
 
     @Autowired
+    SignerInformationTestHelper signerInformationTestHelper;
+
+    @Autowired
     TrustListService trustListService;
 
     @Autowired
     CertificateUtils certificateUtils;
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu;
+
+    private static final ZonedDateTime now = ZonedDateTime.now();
+    private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now().minusMinutes(1);
+    private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now().minusHours(1);
 
     @BeforeEach
     void testData() throws Exception {
@@ -78,25 +85,31 @@ class TrustListServiceTest {
         certDscDe = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "Test");
         certDscEu = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "EU", "Test");
 
-        signerInformationRepository.save(new SignerInformationEntity(
-            null,
-            ZonedDateTime.now(),
-            "DE",
-            certificateUtils.getCertThumbprint(certDscDe),
-            Base64.getEncoder().encodeToString(certDscDe.getEncoded()),
-            "sig1",
-            SignerInformationEntity.CertificateType.DSC
-        ));
+        signerInformationTestHelper.createSignerInformationInDB("DE", "sig1", certDscDe, now);
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig2", certDscEu, now);
+    }
 
-        signerInformationRepository.save(new SignerInformationEntity(
-            null,
-            ZonedDateTime.now(),
-            "EU",
-            certificateUtils.getCertThumbprint(certDscEu),
-            Base64.getEncoder().encodeToString(certDscEu.getEncoded()),
-            "sig2",
-            SignerInformationEntity.CertificateType.DSC
-        ));
+    @Test
+    void testSuccessfulGetTrustedListIsSincePageable() throws Exception {
+        prepareTestCertsCreatedAtNowMinusOneHour();
+
+        List<TrustList> trustLists = trustListService.getTrustList(null, null, null);
+        Assertions.assertEquals(16, trustLists.size());
+
+        List<TrustList> trustLists2 = trustListService.getTrustList(nowMinusOneMinute,
+            null, null);
+        Assertions.assertEquals(8, trustLists2.size());
+
+        List<TrustList> trustLists3 = trustListService.getTrustList(TrustListType.DSC,
+            nowMinusOneMinute, null, null);
+        Assertions.assertEquals(2, trustLists3.size());
+
+        List<TrustList> trustLists4 = trustListService.getTrustList(TrustListType.DSC, null, 0, 10);
+        Assertions.assertEquals(4, trustLists4.size());
+
+        List<TrustList> trustLists5 = trustListService.getTrustList(TrustListType.UPLOAD, "DE",
+            nowMinusOneMinute, 0, 10);
+        Assertions.assertEquals(1, trustLists5.size());
     }
 
     @Test
@@ -168,6 +181,24 @@ class TrustListServiceTest {
         Assertions.assertEquals(1, trustList.size());
         assertTrustListItem(trustList, certAuthEu, "EU", TrustListType.AUTHENTICATION, null);
     }
+
+    private void prepareTestCertsCreatedAtNowMinusOneHour() throws Exception {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
+        signerInformationTestHelper.createSignerInformationInDB("DE", "sig3",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+            "DE", "DETest"), nowMinusOneHour);
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig4",
+            CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
+            "EU", "EUTest"), nowMinusOneHour);
+
+        trustedPartyTestHelper.getTestCert("test1", TrustedPartyEntity.CertificateType.UPLOAD, "DE", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test2", TrustedPartyEntity.CertificateType.CSCA, "DE", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test3", TrustedPartyEntity.CertificateType.AUTHENTICATION, "DE", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test4", TrustedPartyEntity.CertificateType.UPLOAD, "EU", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test5", TrustedPartyEntity.CertificateType.CSCA, "EU", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test6", TrustedPartyEntity.CertificateType.AUTHENTICATION, "EU", nowMinusOneHour);
+    }
+
 
     private void assertTrustListItem(List<TrustList> trustList, X509Certificate certificate, String country, TrustListType trustListType, String signature) throws CertificateEncodingException {
         Optional<TrustList> trustListOptional = trustList

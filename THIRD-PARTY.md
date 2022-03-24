@@ -101,7 +101,7 @@ ThirdParty Licenses
 | org.junit.platform:junit-platform-commons:1.8.2 | Eclipse Public License v2.0 |
 | org.junit.platform:junit-platform-engine:1.8.2 | Eclipse Public License v2.0 |
 | org.latencyutils:LatencyUtils:2.0.3 | Public Domain, per Creative Commons CC0 |
-| org.liquibase:liquibase-core:4.8.0 | Apache License, Version 2.0 |
+| org.liquibase:liquibase-core:4.9.0 | Apache License, Version 2.0 |
 | org.mapstruct:mapstruct:1.4.2.Final | The Apache Software License, Version 2.0 |
 | org.mockito:mockito-core:4.3.1 | The MIT License |
 | org.mockito:mockito-junit-jupiter:4.3.1 | The MIT License |

@@ -28,6 +28,7 @@ import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,7 @@ import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.RuntimeOperatorException;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -89,6 +91,84 @@ public class SignerInformationService {
         String countryCode,
         SignerInformationEntity.CertificateType type) {
         return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+    }
+
+    /**
+     * Finds a list of SignerInformation.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param ifModifiedSince since timestamp for filtering SignerInformation.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return list of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(ZonedDateTime  ifModifiedSince,
+                                                               Integer page, Integer size) {
+        if (ifModifiedSince != null && page != null && size != null) {
+            return signerInformationRepository.getIsSince(ifModifiedSince, PageRequest.of(page, size));
+        } else if (ifModifiedSince != null) {
+            return signerInformationRepository.getIsSince(ifModifiedSince);
+        } else if (page != null && size != null) {
+            return signerInformationRepository.findAll(PageRequest.of(page, size)).toList();
+        } else {
+            return getSignerInformation();
+        }
+    }
+
+    /**
+     *  Finds a list of SignerInformation filtered by type.
+     *  Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param type type to filter for
+     * @param ifModifiedSince since timestamp for filtering SignerInformation.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type,
+                                                              ZonedDateTime ifModifiedSince,
+                                                              Integer page, Integer size) {
+        if (ifModifiedSince != null && page != null && size != null) {
+            return signerInformationRepository.getByCertificateTypeIsSince(type,
+                ifModifiedSince, PageRequest.of(page, size));
+        } else if (ifModifiedSince != null) {
+            return signerInformationRepository.getByCertificateTypeIsSince(type, ifModifiedSince);
+        } else if (page != null && size != null) {
+            return signerInformationRepository.getByCertificateType(type,
+                PageRequest.of(page, size));
+        } else {
+            return signerInformationRepository.getByCertificateType(type);
+        }
+    }
+
+    /**
+     * Finds a list of SignerInformation filtered by type and country.
+     * Optional the list can be filtered by a timestamp and paginated.
+     *
+     * @param countryCode 2-digit country Code to filter for.
+     * @param type        type to filter for
+     * @param ifModifiedSince since timestamp for filtering SignerInformation.
+     * @param page zero-based page index, must NOT be negative.
+     * @param size number of items in a page to be returned, must be greater than 0.
+     * @return List of SignerInformation
+     */
+    public List<SignerInformationEntity> getSignerInformation(
+        String countryCode,
+        SignerInformationEntity.CertificateType type,
+        ZonedDateTime ifModifiedSince,
+        Integer page, Integer size) {
+        if (ifModifiedSince != null && page != null && size != null) {
+            return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
+                ifModifiedSince, PageRequest.of(page, size));
+        } else if (ifModifiedSince != null) {
+            return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
+                ifModifiedSince);
+        } else if (page != null && size != null) {
+            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode,
+                PageRequest.of(page, size));
+        } else {
+            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+        }
     }
 
     /**
@@ -143,7 +223,7 @@ public class SignerInformationService {
     /**
      * Update a CMS package.
      *
-     * @param id                        The entity to update
+     * @param id                       The entity to update
      * @param uploadedCertificate      the certificate to add
      * @param signerCertificate        the certificate which was used to sign the message
      * @param signature                the detached signature of cms message
@@ -152,11 +232,11 @@ public class SignerInformationService {
      *                                  a reason property with detailed information why the validation has failed.
      */
     public SignerInformationEntity updateSignerCertificate(
-            Long id,
-            X509CertificateHolder uploadedCertificate,
-            X509CertificateHolder signerCertificate,
-            String signature,
-            String authenticatedCountryCode
+        Long id,
+        X509CertificateHolder uploadedCertificate,
+        X509CertificateHolder signerCertificate,
+        String signature,
+        String authenticatedCountryCode
     ) throws SignerCertCheckException {
 
         final SignerInformationEntity signerInformationEntity = signerInformationRepository.findById(id).orElseThrow(
@@ -206,12 +286,14 @@ public class SignerInformationService {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
-        contentCheckExists(uploadedCertificate);
+        SignerInformationEntity signerInformationEntity = contentCheckExists(uploadedCertificate);
 
         log.info("Revoking SignerInformation Entity");
 
-        // All checks passed --> Delete from DB
-        signerInformationRepository.deleteByThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        // All checks passed --> Delete from DB, set fields to null
+        signerInformationEntity.setDeletedAt(ZonedDateTime.now());
+        signerInformationEntity.setSignature(null);
+        signerInformationRepository.save(signerInformationEntity);
 
         DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
     }
@@ -224,10 +306,10 @@ public class SignerInformationService {
      */
     public List<CmsPackageDto> getCmsPackage(String country) {
         return signerInformationRepository
-                .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
-                .stream()
-                .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
-                .collect(Collectors.toList());
+            .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
+            .stream()
+            .map(it -> new CmsPackageDto(it.getSignature(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
+            .collect(Collectors.toList());
     }
 
     private void contentCheckUploaderCertificate(
@@ -323,16 +405,16 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private SignerInformationEntity contentCheckExists(X509CertificateHolder uploadedCertificate)
+            throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(uploadedCertificateThumbprint);
 
-        if (signerInformationEntity.isEmpty()) {
-            throw new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
-                "Uploaded certificate does not exists");
-        }
+        return signerInformationEntity.orElseThrow(
+            () -> new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
+                    "Uploaded certificate does not exists"));
     }
 
     private boolean certificateSignedByCa(X509CertificateHolder certificate, TrustedPartyEntity caCertificateEntity) {
