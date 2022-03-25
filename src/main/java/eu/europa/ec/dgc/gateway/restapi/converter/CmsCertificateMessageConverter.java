@@ -80,7 +80,7 @@ public class CmsCertificateMessageConverter extends AbstractHttpMessageConverter
             .payloadCertificate(certificateParser.getPayload())
             .signerCertificate(certificateParser.getSigningCertificate())
             .rawMessage(new String(inputBytes, StandardCharsets.UTF_8))
-            .signature(certificateParser.getSignature())
+            .signature(certificateParser.getDetachedSignature())
             .verified(certificateParser.isSignatureVerified())
             .build();
     }
