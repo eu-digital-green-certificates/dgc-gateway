@@ -50,8 +50,8 @@ dgc:
     user: ${https.proxyUser}
     password: ${https.proxyPassword}
     notifyEmails: [ ]
-    archiveFilename: dcc_trustlist.zip
-    signatureFilename: dcc_trustlist.zip.sig.txt
+    archiveFilename: dcc_trustlist_TST.zip
+    signatureFilename: dcc_trustlist_TST.zip.sig.txt
   cert-auth:
     header-fields:
       thumbprint: X-SSL-Client-SHA256

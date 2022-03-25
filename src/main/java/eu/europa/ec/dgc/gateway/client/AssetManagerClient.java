@@ -50,7 +50,7 @@ public interface AssetManagerClient {
                                     @RequestBody byte[] file);
 
     @PostMapping(
-        value = "/ocs/v2.php/apps/files/api/v2/synchonize",
+        value = "/ocs/v2.php/apps/files/api/v2/synchronize",
         consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
