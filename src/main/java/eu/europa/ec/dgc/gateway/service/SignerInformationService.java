@@ -25,6 +25,8 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
+import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -308,8 +310,22 @@ public class SignerInformationService {
         return signerInformationRepository
             .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
             .stream()
+            .map(this::addCertificateToSignaturePayload)
             .map(it -> new CmsPackageDto(it.getSignature(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
             .collect(Collectors.toList());
+    }
+
+    private SignerInformationEntity addCertificateToSignaturePayload(SignerInformationEntity entity) {
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(
+            entity.getSignature(), entity.getRawData());
+
+        if (parser.getParserState() == SignedMessageParser.ParserState.SUCCESS) {
+            entity.setSignature(parser.getEmbeddedSignature());
+        } else {
+            log.error("Failed to repack CMS for DSC {}, Parser State: {}", entity.getThumbprint(), parser.getParserState());
+        }
+
+        return entity;
     }
 
     private void contentCheckUploaderCertificate(

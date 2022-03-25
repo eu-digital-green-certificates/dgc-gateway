@@ -20,6 +20,15 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import static eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils.getDummyValidationRule;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -40,17 +49,9 @@ import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.signing.SignedStringMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -60,13 +61,15 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-
-import static eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils.getDummyValidationRule;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -122,22 +125,37 @@ class CertificateMigrationControllerTest {
         X509Certificate certDscEu = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), countryCode, "Test");
         String cmsBase64 = Base64.getEncoder().encodeToString(certDscEu.getEncoded());
 
-        createSignerInfo(cmsBase64, certDscEu, "signature1");
+        SignedCertificateMessageBuilder messageBuilder = new SignedCertificateMessageBuilder()
+            .withPayload(certificateUtils.convertCertificate(certDscEu))
+            .withSigningCertificate(
+                certificateUtils.convertCertificate(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode)),
+                trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode));
+
+        String detachedSignature = messageBuilder.buildAsString(true);
+
+        createSignerInfo(cmsBase64, certDscEu, detachedSignature);
         createRevocation("id1", cmsBase64, false);
         createValidationEntry(cmsBase64);
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(get("/cms-migration")
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[0].type", is(CmsPackageDto.CmsPackageTypeDto.DSC.name())))
-                .andExpect(jsonPath("$[0].cms", is("signature1")))
-                .andExpect(jsonPath("$[1].type", is(CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST.name())))
-                .andExpect(jsonPath("$[1].cms", is(cmsBase64)))
-                .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())))
-                .andExpect(jsonPath("$[2].cms", is(cmsBase64)));
+        MvcResult mvcResult = mockMvc.perform(get("/cms-migration")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
+            .andExpect(jsonPath("$", hasSize(3)))
+            .andExpect(jsonPath("$[0].type", is(CmsPackageDto.CmsPackageTypeDto.DSC.name())))
+            .andExpect(jsonPath("$[1].type", is(CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST.name())))
+            .andExpect(jsonPath("$[1].cms", is(cmsBase64)))
+            .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())))
+            .andExpect(jsonPath("$[2].cms", is(cmsBase64)))
+            .andReturn();
+
+        List<CmsPackageDto> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(response.get(0).getCms());
+        Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
+        Assertions.assertTrue(parser.isSignatureVerified());
+        Assertions.assertArrayEquals(certDscEu.getEncoded(), parser.getPayload().getEncoded());
     }
 
     @Test
