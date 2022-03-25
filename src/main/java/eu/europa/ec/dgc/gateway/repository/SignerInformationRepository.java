@@ -70,6 +70,10 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     @Query(SELECT_SINCE)
     List<SignerInformationEntity> getIsSince(@Param("since")ZonedDateTime since, Pageable pageable);
 
+    List<SignerInformationEntity> getByDeletedAtIsNull();
+
+    List<SignerInformationEntity> getByDeletedAtIsNull(Pageable pageable);
+
     @Query(SELECT_BY_TYPE_SINCE)
     List<SignerInformationEntity> getByCertificateTypeIsSince(
         @Param("certType")SignerInformationEntity.CertificateType type,

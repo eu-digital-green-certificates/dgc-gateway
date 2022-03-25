@@ -91,8 +91,16 @@ class SignerInformationServiceTest {
 
         List<SignerInformationEntity> signerInformationEntities =
             signerInformationService.getSignerInformation(null, null, null);
-        Assertions.assertEquals(7, signerInformationEntities.size());
-        Assertions.assertTrue(signerInformationEntities.stream().anyMatch(it -> it.getDeletedAt() != null && it.getSignature() == null));
+        // No deleted entries if modified-since is not set
+        Assertions.assertEquals(6, signerInformationEntities.size());
+        Assertions.assertFalse(signerInformationEntities.stream().anyMatch(it -> it.getDeletedAt() != null && it.getSignature() == null));
+
+        List<SignerInformationEntity> signerInformationEntities7 =
+                signerInformationService.getSignerInformation(nowMinusOneHour, null, null);
+        // Include deleted entries if modified-since is set
+        Assertions.assertEquals(7, signerInformationEntities7.size());
+        Assertions.assertTrue(signerInformationEntities7.stream().anyMatch(it -> it.getDeletedAt() != null && it.getSignature() == null));
+
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
             nowMinusOneMinute, null, null);
@@ -100,7 +108,7 @@ class SignerInformationServiceTest {
 
         List<SignerInformationEntity> signerInformationEntities3 = signerInformationService.getSignerInformation(
             null, 0, 10);
-        Assertions.assertEquals(7, signerInformationEntities3.size());
+        Assertions.assertEquals(6, signerInformationEntities3.size());
 
         List<SignerInformationEntity> signerInformationEntities4 = signerInformationService.getSignerInformation(
             null, 10, 10);

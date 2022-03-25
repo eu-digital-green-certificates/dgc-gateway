@@ -67,7 +67,7 @@ public class SignerInformationService {
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation() {
-        return signerInformationRepository.findAll();
+        return signerInformationRepository.getByDeletedAtIsNull();
     }
 
     /**
@@ -109,7 +109,7 @@ public class SignerInformationService {
         } else if (ifModifiedSince != null) {
             return signerInformationRepository.getIsSince(ifModifiedSince);
         } else if (page != null && size != null) {
-            return signerInformationRepository.findAll(PageRequest.of(page, size)).toList();
+            return signerInformationRepository.getByDeletedAtIsNull(PageRequest.of(page, size));
         } else {
             return getSignerInformation();
         }
