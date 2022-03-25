@@ -322,7 +322,8 @@ public class SignerInformationService {
         if (parser.getParserState() == SignedMessageParser.ParserState.SUCCESS) {
             entity.setSignature(parser.getEmbeddedSignature());
         } else {
-            log.error("Failed to repack CMS for DSC {}, Parser State: {}", entity.getThumbprint(), parser.getParserState());
+            log.error("Failed to repack CMS for DSC {}, Parser State: {}",
+                entity.getThumbprint(), parser.getParserState());
         }
 
         return entity;
