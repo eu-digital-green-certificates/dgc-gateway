@@ -154,7 +154,7 @@ class SignerInformationServiceTest {
         List<SignerInformationEntity> signerInformationEntities =
             signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC,
                 null, null, null);
-        Assertions.assertEquals(7, signerInformationEntities.size());
+        Assertions.assertEquals(6, signerInformationEntities.size());
 
         List<SignerInformationEntity> signerInformationEntities2 = signerInformationService.getSignerInformation(
             SignerInformationEntity.CertificateType.DSC,
@@ -244,9 +244,16 @@ class SignerInformationServiceTest {
             countryCode
         );
 
-        List<SignerInformationEntity> entities =
-            signerInformationRepository.getByCertificateType(SignerInformationEntity.CertificateType.DSC);
+        // Deleted certificate should not be returned in queries without isSince
+        List<SignerInformationEntity> entitiesByCertificateType =
+            signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType.DSC);
+        Assertions.assertTrue(entitiesByCertificateType.isEmpty());
+        List<SignerInformationEntity> entitiesByCertificateTypeAndCountry =
+                signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(
+                        SignerInformationEntity.CertificateType.DSC, countryCode);
+        Assertions.assertTrue(entitiesByCertificateTypeAndCountry.isEmpty());
 
+        List<SignerInformationEntity> entities = signerInformationRepository.findAll();
         Assertions.assertFalse(entities.isEmpty());
         SignerInformationEntity deletedSignerInformationEntity = entities.get(0);
         Assertions.assertEquals(createdSignerInformationEntity.get().getThumbprint(), deletedSignerInformationEntity.getThumbprint());

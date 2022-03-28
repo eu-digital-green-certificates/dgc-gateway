@@ -52,16 +52,16 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     @Query("DELETE FROM SignerInformationEntity s WHERE s.deletedAt < :threshold")
     int deleteDeletedSignerInformationOlderThan(@Param("threshold") ZonedDateTime threshold);
 
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type,
+    List<SignerInformationEntity> getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType type,
                                                        Pageable pageable);
 
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type);
+    List<SignerInformationEntity> getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType type);
 
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
+    List<SignerInformationEntity> getByCertificateTypeAndCountryAndDeletedAtIsNull(
         SignerInformationEntity.CertificateType type, String countryCode,
         Pageable pageable);
 
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
+    List<SignerInformationEntity> getByCertificateTypeAndCountryAndDeletedAtIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);
 
     @Query(SELECT_SINCE)
