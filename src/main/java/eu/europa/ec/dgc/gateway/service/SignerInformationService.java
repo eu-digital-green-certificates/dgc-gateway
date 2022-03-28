@@ -79,7 +79,7 @@ public class SignerInformationService {
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateType(type);
+        return signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(type);
     }
 
     /**
@@ -92,7 +92,7 @@ public class SignerInformationService {
     public List<SignerInformationEntity> getSignerInformation(
         String countryCode,
         SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+        return signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(type, countryCode);
     }
 
     /**
@@ -136,10 +136,10 @@ public class SignerInformationService {
         } else if (ifModifiedSince != null) {
             return signerInformationRepository.getByCertificateTypeIsSince(type, ifModifiedSince);
         } else if (page != null && size != null) {
-            return signerInformationRepository.getByCertificateType(type,
+            return signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(type,
                 PageRequest.of(page, size));
         } else {
-            return signerInformationRepository.getByCertificateType(type);
+            return signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(type);
         }
     }
 
@@ -166,10 +166,10 @@ public class SignerInformationService {
             return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
                 ifModifiedSince);
         } else if (page != null && size != null) {
-            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode,
+            return signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(type, countryCode,
                 PageRequest.of(page, size));
         } else {
-            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+            return signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(type, countryCode);
         }
     }
 
@@ -308,7 +308,7 @@ public class SignerInformationService {
      */
     public List<CmsPackageDto> getCmsPackage(String country) {
         return signerInformationRepository
-            .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
+            .getByCertificateTypeAndCountryAndDeletedAtIsNull(SignerInformationEntity.CertificateType.DSC, country)
             .stream()
             .map(this::addCertificateToSignaturePayload)
             .map(it -> new CmsPackageDto(it.getSignature(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
