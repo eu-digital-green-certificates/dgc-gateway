@@ -193,10 +193,11 @@ public class SignerInformationService {
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
         contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
-        contentCheckAlreadyExists(uploadedCertificate);
+        boolean deletedEntityExists = contentCheckAlreadyExists(uploadedCertificate);
         contentCheckKidAlreadyExists(uploadedCertificate);
 
         // All checks passed --> Save to DB
+        String thumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         byte[] certRawData;
         try {
             certRawData = uploadedCertificate.getEncoded();
@@ -204,10 +205,14 @@ public class SignerInformationService {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
         }
 
+        if (deletedEntityExists) {
+            signerInformationRepository.deleteByThumbprint(thumbprint);
+        }
+
         SignerInformationEntity newSignerInformation = new SignerInformationEntity();
         newSignerInformation.setCountry(authenticatedCountryCode);
         newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
-        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        newSignerInformation.setThumbprint(thumbprint);
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
 
@@ -394,27 +399,35 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private boolean contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate)
+        throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(uploadedCertificateThumbprint);
 
-        if (signerInformationEntity.isPresent()) {
+        if (signerInformationEntity.isPresent() && signerInformationEntity.get().getSignature() != null) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED,
                 "Uploaded certificate already exists");
         }
+
+        return signerInformationEntity.isPresent();
     }
 
     private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate)
         throws SignerCertCheckException {
+
+        /*
+         * Check if another certificate then the currently uploaded has the same KID.
+         */
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         // KID is the first 8 byte of hash. So we take the first 16 characters of the hash
         String thumbprintKidPart = uploadedCertificateThumbprint.substring(0, 16);
 
         Optional<SignerInformationEntity> signerInformationEntity =
-            signerInformationRepository.getFirstByThumbprintStartsWith(thumbprintKidPart);
+            signerInformationRepository.getFirstByThumbprintStartsWithAndThumbprintIsNot(
+                thumbprintKidPart, uploadedCertificateThumbprint);
 
         if (signerInformationEntity.isPresent()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
