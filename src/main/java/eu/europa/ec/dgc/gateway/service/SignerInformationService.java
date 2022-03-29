@@ -399,7 +399,8 @@ public class SignerInformationService {
         }
     }
 
-    private boolean contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private boolean contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate)
+        throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
