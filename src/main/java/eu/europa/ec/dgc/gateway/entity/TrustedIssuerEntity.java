@@ -99,7 +99,19 @@ public class TrustedIssuerEntity {
      * Signature of the TrustAnchor.
      */
     @Column(name = "signature", nullable = false, length = 6000)
-    String signature;
+    private String signature;
+
+    /**
+     * UUID of the TrustedIssuer.
+     */
+    @Column(name = "uuid", nullable = false, length = 36)
+    private String uuid;
+
+    /**
+     * Domain the TrustedIssuer is assigned to (currently only "DCC").
+     */
+    @Column(name = "domain", nullable = false, length = 10)
+    private String domain;
 
     public enum UrlType {
         HTTP,
