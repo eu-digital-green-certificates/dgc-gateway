@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.client;
 import eu.europa.ec.dgc.gateway.model.AssetManagerSynchronizeResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
     name = "assetManagerClient",
     url = "${dgc.publication.url}",
     configuration = AssetManagerClientConfig.class)
+@ConditionalOnProperty("dgc.publication.enabled")
 public interface AssetManagerClient {
 
     @PutMapping(

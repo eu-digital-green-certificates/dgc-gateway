@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ import org.springframework.util.ResourceUtils;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty("dgc.publication.enabled")
 public class PublishingService {
 
     private final TrustedPartyService trustedPartyService;

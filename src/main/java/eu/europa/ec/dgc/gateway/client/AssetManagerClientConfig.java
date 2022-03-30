@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty("dgc.publication.enabled")
 public class AssetManagerClientConfig {
 
     private final ObjectFactory<HttpMessageConverters> messageConverters;
@@ -65,39 +67,6 @@ public class AssetManagerClientConfig {
 
         httpClientBuilder.setSSLContext(SSLContext.getDefault());
         httpClientBuilder.setSSLHostnameVerifier(new DefaultHostnameVerifier());
-
-        /*if (config.getJrc().getProxy().getHost() != null
-            && config.getJrc().getProxy().getPort() != -1
-            && !config.getJrc().getProxy().getHost().isEmpty()) {
-            log.info("Using Proxy for ASSETMANAGER Connection");
-            // Set proxy
-            httpClientBuilder.setProxy(new HttpHost(
-                config.getJrc().getProxy().getHost(),
-                config.getJrc().getProxy().getPort()
-            ));
-
-            // Set proxy authentication
-            if (config.getJrc().getProxy().getUsername() != null
-                && config.getJrc().getProxy().getPassword() != null
-                && !config.getJrc().getProxy().getUsername().isEmpty()
-                && !config.getJrc().getProxy().getPassword().isEmpty()) {
-
-                log.info("Using Proxy with Authentication for ASSETMANAGER Connection");
-
-                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(
-                    new AuthScope(
-                        config.getJrc().getProxy().getHost(),
-                        config.getJrc().getProxy().getPort()),
-                    new UsernamePasswordCredentials(
-                        config.getJrc().getProxy().getUsername(),
-                        config.getJrc().getProxy().getPassword()));
-
-                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            }
-        } else {
-            log.info("Using no proxy for ASSETMANAGER Connection");
-        }*/
 
         return new ApacheHttpClient(httpClientBuilder.build());
     }

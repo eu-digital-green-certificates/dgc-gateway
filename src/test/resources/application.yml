@@ -28,6 +28,7 @@ dgc:
     keyStorePass: dgcg-p4ssw0rd
     certificateAlias: ta_tst
   publication:
+    enabled: true
     keystore:
       keyStorePath: keystore/dgc-signer.jks
       keyStorePass: dgc-p4ssw0rd
