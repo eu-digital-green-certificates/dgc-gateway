@@ -26,8 +26,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europa.ec.dgc.gateway.client.AssetManagerClient;
+import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.model.AssetManagerSynchronizeResponseDto;
+import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.service.PublishingService;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
@@ -60,6 +62,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -67,6 +70,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 
 @SpringBootTest(properties = {
+    "dgc.publication.enabled=true",
+    "dgc.publication.synchronizeEnabled=true",
     "dgc.publication.user=user",
     "dgc.publication.password=pass",
     "dgc.publication.amngruid=uid",
@@ -86,6 +91,9 @@ public class ArchivePublishingTest {
     TrustedPartyRepository trustedPartyRepository;
 
     @Autowired
+    SignerInformationRepository signerInformationRepository;
+
+    @Autowired
     PublishingService publishingService;
 
     @Autowired
@@ -103,6 +111,9 @@ public class ArchivePublishingTest {
     @Autowired
     CertificateUtils certificateUtils;
 
+    @Autowired
+    DgcConfigProperties properties;
+
     private static final String expectedAuthHeader =
         "Basic " + Base64.getEncoder().encodeToString("user:pass".getBytes(StandardCharsets.UTF_8));
     private static final String expectedUid = "uid";
@@ -115,6 +126,9 @@ public class ArchivePublishingTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        trustedPartyRepository.deleteAll();
+        signerInformationRepository.deleteAll();
+
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
 
         csca1 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, "C1");
@@ -225,6 +239,26 @@ public class ArchivePublishingTest {
         Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
         Assertions.assertArrayEquals(dgcTestKeyStore.getPublicationSigner().getEncoded(), parser.getSigningCertificate().getEncoded());
         Assertions.assertTrue(parser.isSignatureVerified());
+    }
+
+    @Test
+    public void testSynchronizeDisabled() {
+
+        when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName), any()))
+            .thenReturn(ResponseEntity.ok(null));
+
+        when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), any()))
+            .thenReturn(ResponseEntity.ok(null));
+
+        properties.getPublication().setSynchronizeEnabled(false);
+
+        publishingService.publishGatewayData();
+
+        properties.getPublication().setSynchronizeEnabled(true);
+
+        verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName), any());
+        verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), any());
+        verify(assetManagerClientMock, Mockito.never()).synchronize(eq(expectedAuthHeader), eq("true"), any());
     }
 
     private void checkPemFile(X509Certificate expected, byte[] pemFile) throws IOException, CertificateEncodingException {

@@ -194,23 +194,32 @@ public class PublishingService {
             return;
         }
 
-        try {
-            ResponseEntity<Void> signatureUploadResponse = assetManagerClient.uploadFile(getAuthHeader(),
-                properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), signatureFilename,
-                signature);
+        if (signature != null) {
+            try {
+                ResponseEntity<Void> signatureUploadResponse = assetManagerClient.uploadFile(getAuthHeader(),
+                    properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), signatureFilename,
+                    signature);
 
-            if (signatureUploadResponse.getStatusCode().is2xxSuccessful()) {
-                log.info("Upload of Signature file was successful.");
-            } else {
-                log.error("Failed to Upload Signature file: {}", signatureUploadResponse.getStatusCode());
+                if (signatureUploadResponse.getStatusCode().is2xxSuccessful()) {
+                    log.info("Upload of Signature file was successful.");
+                } else {
+                    log.error("Failed to Upload Signature file: {}", signatureUploadResponse.getStatusCode());
+                    return;
+                }
+            } catch (FeignException.FeignServerException e) {
+                log.error("Failed to Upload Signature file: {}", e.status());
                 return;
             }
-        } catch (FeignException.FeignServerException e) {
-            log.error("Failed to Upload Signature file: {}", e.status());
-            return;
+        } else {
+            log.info("Skipping Upload of Signature because it could not be created.");
         }
 
         log.info("All files uploaded, start synchronize process");
+
+        if (!properties.getPublication().getSynchronizeEnabled()) {
+            log.info("Synchronizing Files is disabled.");
+            return;
+        }
 
         try {
             ResponseEntity<AssetManagerSynchronizeResponseDto> synchronizeResponse = assetManagerClient.synchronize(

@@ -48,6 +48,7 @@ public class DgcConfigProperties {
     public static class Publication {
         private KeyStoreWithAlias keystore = new KeyStoreWithAlias();
         private Boolean enabled;
+        private Boolean synchronizeEnabled;
         private String url;
         private String amngrUid;
         private String path;

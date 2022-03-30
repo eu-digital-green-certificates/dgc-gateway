@@ -41,6 +41,7 @@ dgc:
     certificateAlias: dgc_trust_anchor
   publication:
     enbaled: false
+    synchronizeEnabled: false
     keystore:
       keyStorePath: /ec/prod/app/san/dgcg/dgc-publication.jks
       keyStorePass: dgc-p4ssw0rd
@@ -51,8 +52,8 @@ dgc:
     user: ${https.proxyUser}
     password: ${https.proxyPassword}
     notifyEmails: [ ]
-    archiveFilename: dcc_trustlist_TST.zip
-    signatureFilename: dcc_trustlist_TST.zip.sig.txt
+    archiveFilename: dcc_trustlist.zip
+    signatureFilename: dcc_trustlist.zip.sig.txt
   cert-auth:
     header-fields:
       thumbprint: X-SSL-Client-SHA256
