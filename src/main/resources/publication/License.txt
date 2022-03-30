@@ -1,10 +1,10 @@
 DATA LICENSE for the database of public keys of digital signer certificates, originally
-available from [URL]
+available from https://ec.europa.eu/assets/eu-dcc/dcc_database.zip
 
 1. This data license shall govern the use of the database of public keys of digital signer certificates, originally
-available from [URL]. The use of the copyright and database right material provided in this database (the "Data")
-indicates that you accept the terms and conditions of this license. You may not amend this license under any
-circumstances.
+available from https://ec.europa.eu/assets/eu-dcc/dcc_database.zip. The use of the copyright and database right
+material provided in this database (the "Data") indicates that you accept the terms and conditions of this license.
+You may not amend this license under any circumstances.
 
 2. Licensor of this database is the European Commission. The Licensor grants you a worldwide, royalty-free, perpetual,
 non-exclusive licence to use the Data subject to the conditions below.
@@ -29,8 +29,9 @@ following obligations:
 
 You may use the following notices at your discretion:
 
-	"Contains data provided by the European Commission under the following license: [URL]. The European Commission
-	does not endorse any products and/or services by providing this data."
+	"Contains data provided by the European Commission under the following license:
+	https://ec.europa.eu/assets/eu-dcc/dcc_database.zip/license.txt.
+	The European Commission	does not endorse any products and/or services by providing this data."
 
 5. Foremost, this license is governed by the law of the European Union and additionally by the law of the Member State
 of the European Union you or an intended recipient resides in. If you or any intended recipient do not reside in a

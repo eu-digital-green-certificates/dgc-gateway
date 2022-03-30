@@ -16,10 +16,10 @@ Content:
     issuer.
 
 2. Structure of archive
-    This archive contains two different certificate types: Digital Signer Certificate (DSC) and Country Signing Certificate
-    Authority (CSCA). The archive is structured by certificate type (DSC or CSCA), domain (currently just DCC) and the
-    2-digit country code.
-    The certificates are encoded as PKCS#8 saved in pem files named by there certificate SHA-256 thumbprint.
+    This archive contains two different certificate types: Digital Signer Certificate (DSC) and Country Signing
+    Certificate Authority (CSCA). The archive is structured by certificate type (DSC or CSCA), domain (currently just
+    DCC) and the 2-digit country code. The certificates are encoded as PKCS#8 saved in pem files named by there
+    certificate SHA-256 thumbprint.
 
     CSCA
       ∟ DCC
@@ -38,8 +38,9 @@ Content:
 
 4. How to verify integrity of this archive
     This archive and all of its contents are signed by a certificate of the European Commission.
-    The signature file will be seperatly distributed. You can find it on the same download page as this archive ([URL]).
-    The signature file contains a base64 encoded CMS-Message with detached payload (PKCS#7).
+    The signature file will be seperatly distributed. You can find it on the same download page as this archive
+    (https://ec.europa.eu/assets/eu-dcc/dcc_database.zip.sig.txt). The signature file contains a base64 encoded
+    CMS-Message with detached payload (PKCS#7).
 
     There are two options to verify the integrity of the archive:
 
