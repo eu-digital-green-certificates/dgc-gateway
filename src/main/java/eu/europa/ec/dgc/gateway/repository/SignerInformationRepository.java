@@ -37,31 +37,32 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
         "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since OR s.deletedAt >= :since";
     String SELECT_BY_TYPE_SINCE =
         "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND (s.createdAt >= :since "
-            +  " OR s.deletedAt >= :since)";
+            + " OR s.deletedAt >= :since)";
     String SELECT_BY_TYPE_AND_COUNTRY_SINCE =
         "SELECT s FROM SignerInformationEntity s"
             + " WHERE s.certificateType = :certType AND s.country = :country AND (s.createdAt >= :since"
-            +  " OR s.deletedAt >= :since)";
+            + " OR s.deletedAt >= :since)";
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
-    Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
+    Optional<SignerInformationEntity> getFirstByThumbprintStartsWithAndThumbprintIsNot(
+        String thumbprintStart, String thumbprint);
 
     @Transactional
     @Modifying
     @Query("DELETE FROM SignerInformationEntity s WHERE s.deletedAt < :threshold")
     int deleteDeletedSignerInformationOlderThan(@Param("threshold") ZonedDateTime threshold);
 
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type,
-                                                       Pageable pageable);
+    List<SignerInformationEntity> getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType type,
+                                                                         Pageable pageable);
 
-    List<SignerInformationEntity> getByCertificateType(SignerInformationEntity.CertificateType type);
+    List<SignerInformationEntity> getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType type);
 
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
+    List<SignerInformationEntity> getByCertificateTypeAndCountryAndDeletedAtIsNull(
         SignerInformationEntity.CertificateType type, String countryCode,
         Pageable pageable);
 
-    List<SignerInformationEntity> getByCertificateTypeAndCountry(
+    List<SignerInformationEntity> getByCertificateTypeAndCountryAndDeletedAtIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);
 
     @Query(SELECT_SINCE)
@@ -70,6 +71,10 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     @Query(SELECT_SINCE)
     List<SignerInformationEntity> getIsSince(@Param("since")ZonedDateTime since, Pageable pageable);
 
+    List<SignerInformationEntity> getByDeletedAtIsNull();
+
+    List<SignerInformationEntity> getByDeletedAtIsNull(Pageable pageable);
+
     @Query(SELECT_BY_TYPE_SINCE)
     List<SignerInformationEntity> getByCertificateTypeIsSince(
         @Param("certType")SignerInformationEntity.CertificateType type,
@@ -82,14 +87,18 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
 
     @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
     List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(
-        @Param("certType")SignerInformationEntity.CertificateType type,
-        @Param("country")String countryCode,
-        @Param("since")ZonedDateTime since);
+        @Param("certType") SignerInformationEntity.CertificateType type,
+        @Param("country") String countryCode,
+        @Param("since") ZonedDateTime since);
 
     @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
     List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(
-        @Param("certType")SignerInformationEntity.CertificateType type,
-        @Param("country")String countryCode,
-        @Param("since")ZonedDateTime since, Pageable pageable);
+        @Param("certType") SignerInformationEntity.CertificateType type,
+        @Param("country") String countryCode,
+        @Param("since") ZonedDateTime since, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    void deleteByThumbprint(String thumbprint);
 
 }

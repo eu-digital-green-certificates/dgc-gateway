@@ -23,10 +23,12 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Schema(name = "CmsPackage")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CmsPackageDto {
 
     @Schema(description = "CMS containing the signed String or certificate")

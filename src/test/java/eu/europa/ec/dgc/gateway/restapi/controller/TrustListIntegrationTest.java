@@ -193,7 +193,6 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListItem(c, certDscEu, "EU", CertificateTypeDto.DSC, "sig2"))
             .andExpect(c -> assertTrustListItem(c, certDscDe2, "DE", CertificateTypeDto.DSC, "sig3"))
             .andExpect(c -> assertTrustListItem(c, certDscEu2, "EU", CertificateTypeDto.DSC, "sig4"))
-            .andExpect(c -> assertTrustListItem(c, certDscEuDeleted, "EU", CertificateTypeDto.DSC, null, true))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListItem(c, certCscaEu, "EU", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
@@ -206,7 +205,7 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListItem(c, certUploadEu2, "EU", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListItem(c, certAuthDe2, "DE", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListItem(c, certAuthEu2, "EU", CertificateTypeDto.AUTHENTICATION, null))
-            .andExpect(c -> assertTrustListLength(c, 17));
+            .andExpect(c -> assertTrustListLength(c, 16));
     }
 
     @Test

@@ -25,6 +25,8 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
+import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -67,7 +69,7 @@ public class SignerInformationService {
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation() {
-        return signerInformationRepository.findAll();
+        return signerInformationRepository.getByDeletedAtIsNull();
     }
 
     /**
@@ -77,7 +79,7 @@ public class SignerInformationService {
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateType(type);
+        return signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(type);
     }
 
     /**
@@ -90,7 +92,7 @@ public class SignerInformationService {
     public List<SignerInformationEntity> getSignerInformation(
         String countryCode,
         SignerInformationEntity.CertificateType type) {
-        return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+        return signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(type, countryCode);
     }
 
     /**
@@ -109,7 +111,7 @@ public class SignerInformationService {
         } else if (ifModifiedSince != null) {
             return signerInformationRepository.getIsSince(ifModifiedSince);
         } else if (page != null && size != null) {
-            return signerInformationRepository.findAll(PageRequest.of(page, size)).toList();
+            return signerInformationRepository.getByDeletedAtIsNull(PageRequest.of(page, size));
         } else {
             return getSignerInformation();
         }
@@ -134,10 +136,10 @@ public class SignerInformationService {
         } else if (ifModifiedSince != null) {
             return signerInformationRepository.getByCertificateTypeIsSince(type, ifModifiedSince);
         } else if (page != null && size != null) {
-            return signerInformationRepository.getByCertificateType(type,
+            return signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(type,
                 PageRequest.of(page, size));
         } else {
-            return signerInformationRepository.getByCertificateType(type);
+            return signerInformationRepository.getByCertificateTypeAndDeletedAtIsNull(type);
         }
     }
 
@@ -164,10 +166,10 @@ public class SignerInformationService {
             return signerInformationRepository.getByCertificateTypeAndCountryIsSince(type, countryCode,
                 ifModifiedSince);
         } else if (page != null && size != null) {
-            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode,
+            return signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(type, countryCode,
                 PageRequest.of(page, size));
         } else {
-            return signerInformationRepository.getByCertificateTypeAndCountry(type, countryCode);
+            return signerInformationRepository.getByCertificateTypeAndCountryAndDeletedAtIsNull(type, countryCode);
         }
     }
 
@@ -191,10 +193,11 @@ public class SignerInformationService {
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
         contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
-        contentCheckAlreadyExists(uploadedCertificate);
+        boolean deletedEntityExists = contentCheckAlreadyExists(uploadedCertificate);
         contentCheckKidAlreadyExists(uploadedCertificate);
 
         // All checks passed --> Save to DB
+        String thumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         byte[] certRawData;
         try {
             certRawData = uploadedCertificate.getEncoded();
@@ -202,10 +205,14 @@ public class SignerInformationService {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
         }
 
+        if (deletedEntityExists) {
+            signerInformationRepository.deleteByThumbprint(thumbprint);
+        }
+
         SignerInformationEntity newSignerInformation = new SignerInformationEntity();
         newSignerInformation.setCountry(authenticatedCountryCode);
         newSignerInformation.setRawData(Base64.getEncoder().encodeToString(certRawData));
-        newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        newSignerInformation.setThumbprint(thumbprint);
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
 
@@ -306,10 +313,25 @@ public class SignerInformationService {
      */
     public List<CmsPackageDto> getCmsPackage(String country) {
         return signerInformationRepository
-            .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
+            .getByCertificateTypeAndCountryAndDeletedAtIsNull(SignerInformationEntity.CertificateType.DSC, country)
             .stream()
+            .map(this::addCertificateToSignaturePayload)
             .map(it -> new CmsPackageDto(it.getSignature(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
             .collect(Collectors.toList());
+    }
+
+    private SignerInformationEntity addCertificateToSignaturePayload(SignerInformationEntity entity) {
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(
+            entity.getSignature(), entity.getRawData());
+
+        if (parser.getParserState() == SignedMessageParser.ParserState.SUCCESS) {
+            entity.setSignature(parser.getEmbeddedSignature());
+        } else {
+            log.error("Failed to repack CMS for DSC {}, Parser State: {}",
+                entity.getThumbprint(), parser.getParserState());
+        }
+
+        return entity;
     }
 
     private void contentCheckUploaderCertificate(
@@ -377,27 +399,35 @@ public class SignerInformationService {
         }
     }
 
-    private void contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate) throws SignerCertCheckException {
+    private boolean contentCheckAlreadyExists(X509CertificateHolder uploadedCertificate)
+        throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
             signerInformationRepository.getFirstByThumbprint(uploadedCertificateThumbprint);
 
-        if (signerInformationEntity.isPresent()) {
+        if (signerInformationEntity.isPresent() && signerInformationEntity.get().getSignature() != null) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED,
                 "Uploaded certificate already exists");
         }
+
+        return signerInformationEntity.isPresent();
     }
 
     private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate)
         throws SignerCertCheckException {
+
+        /*
+         * Check if another certificate then the currently uploaded has the same KID.
+         */
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         // KID is the first 8 byte of hash. So we take the first 16 characters of the hash
         String thumbprintKidPart = uploadedCertificateThumbprint.substring(0, 16);
 
         Optional<SignerInformationEntity> signerInformationEntity =
-            signerInformationRepository.getFirstByThumbprintStartsWith(thumbprintKidPart);
+            signerInformationRepository.getFirstByThumbprintStartsWithAndThumbprintIsNot(
+                thumbprintKidPart, uploadedCertificateThumbprint);
 
         if (signerInformationEntity.isPresent()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,
