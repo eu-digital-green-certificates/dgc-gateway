@@ -36,10 +36,12 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Profile("!int-test")
 public class TrustedPartyTestHelper {
 
     private final Map<TrustedPartyEntity.CertificateType, Map<String, String>> hashMap = Map.of(

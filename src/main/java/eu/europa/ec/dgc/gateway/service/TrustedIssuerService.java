@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -48,11 +49,18 @@ import org.springframework.stereotype.Service;
 public class TrustedIssuerService {
 
     private static final String MDC_PROP_ISSUER_UUID = "issuerUuid";
+
     private static final String MDC_PROP_PARSER_STATE = "parserState";
+
     private static final String HASH_SEPARATOR = ";";
+
     private final TrustedIssuerRepository trustedIssuerRepository;
+
+    @Qualifier("trustAnchor")
     private final KeyStore trustAnchorKeyStore;
+
     private final DgcConfigProperties dgcConfigProperties;
+
     private final CertificateUtils certificateUtils;
 
     /**

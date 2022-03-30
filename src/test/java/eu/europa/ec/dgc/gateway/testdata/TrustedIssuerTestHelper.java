@@ -23,10 +23,12 @@ package eu.europa.ec.dgc.gateway.testdata;
 import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Profile("!int-test")
 public class TrustedIssuerTestHelper {
 
     @Autowired

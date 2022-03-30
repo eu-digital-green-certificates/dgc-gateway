@@ -20,6 +20,7 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +32,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DgcConfigProperties {
 
     private final CertAuth certAuth = new CertAuth();
-    private final TrustAnchor trustAnchor = new TrustAnchor();
+    private final KeyStoreWithAlias trustAnchor = new KeyStoreWithAlias();
+    private final Publication publication = new Publication();
 
     private String validationRuleSchema;
 
@@ -40,6 +42,22 @@ public class DgcConfigProperties {
     private Revocation revocation = new Revocation();
 
     private SignerInformation signerInformation = new SignerInformation();
+
+    @Getter
+    @Setter
+    public static class Publication {
+        private KeyStoreWithAlias keystore = new KeyStoreWithAlias();
+        private Boolean enabled;
+        private Boolean synchronizeEnabled;
+        private String url;
+        private String amngrUid;
+        private String path;
+        private String user;
+        private String password;
+        private String archiveFilename;
+        private String signatureFilename;
+        private List<String> notifyEmails = new ArrayList<>();
+    }
 
     @Getter
     @Setter
@@ -61,7 +79,7 @@ public class DgcConfigProperties {
 
     @Getter
     @Setter
-    public static class TrustAnchor {
+    public static class KeyStoreWithAlias {
         private String keyStorePath;
         private String keyStorePass;
         private String certificateAlias;
