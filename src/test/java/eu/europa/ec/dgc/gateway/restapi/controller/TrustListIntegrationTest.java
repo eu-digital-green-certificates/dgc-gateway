@@ -104,6 +104,7 @@ class TrustListIntegrationTest {
     private static final ZonedDateTime now = ZonedDateTime.now(gmt);
     private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now(gmt).minusMinutes(1);
     private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now(gmt).minusHours(1);
+    private static final ZonedDateTime nowMinusOneHourFiveMinutes = nowMinusOneHour.minusMinutes(5);
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu,
         certUploadDe2, certUploadEu2, certCscaDe2, certCscaEu2, certAuthDe2, certAuthEu2, certDscDe2, certDscEu2, certDscEuDeleted;
@@ -142,7 +143,7 @@ class TrustListIntegrationTest {
 
         mockMvc.perform(get("/trustList")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
-                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour)
+                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHourFiveMinutes)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
@@ -215,7 +216,7 @@ class TrustListIntegrationTest {
 
         mockMvc.perform(get("/trustList?page=-1&pagesize=10")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
-                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour)
+                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHourFiveMinutes)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
@@ -225,7 +226,7 @@ class TrustListIntegrationTest {
 
         mockMvc.perform(get("/trustList?page=0&pagesize=10")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
-                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour)
+                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHourFiveMinutes)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )
@@ -271,7 +272,7 @@ class TrustListIntegrationTest {
 
         mockMvc.perform(get("/trustList/AUTHENTICATION")
                 .accept(MediaType.APPLICATION_JSON_VALUE)
-                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour)
+                .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHourFiveMinutes)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
             )

@@ -71,6 +71,7 @@ class SignerInformationServiceTest {
     private static final ZonedDateTime now = ZonedDateTime.now();
     private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now().minusMinutes(1);
     private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now().minusHours(1);
+    private static final ZonedDateTime nowMinusOneHourFiveMinutes = nowMinusOneHour.minusMinutes(5);
 
     @BeforeEach
     void setUp() {
@@ -96,7 +97,7 @@ class SignerInformationServiceTest {
         Assertions.assertFalse(signerInformationEntities.stream().anyMatch(it -> it.getDeletedAt() != null && it.getSignature() == null));
 
         List<SignerInformationEntity> signerInformationEntities7 =
-                signerInformationService.getSignerInformation(nowMinusOneHour, null, null);
+                signerInformationService.getSignerInformation(nowMinusOneHourFiveMinutes, null, null);
         // Include deleted entries if modified-since is set
         Assertions.assertEquals(7, signerInformationEntities7.size());
         Assertions.assertTrue(signerInformationEntities7.stream().anyMatch(it -> it.getDeletedAt() != null && it.getSignature() == null));
@@ -173,7 +174,7 @@ class SignerInformationServiceTest {
 
         List<SignerInformationEntity> signerInformationEntities5 = signerInformationService.getSignerInformation(
             "D", SignerInformationEntity.CertificateType.DSC,
-            nowMinusOneHour, 0, 10);
+            nowMinusOneHourFiveMinutes, 0, 10);
         Assertions.assertEquals(0, signerInformationEntities5.size());
     }
 
