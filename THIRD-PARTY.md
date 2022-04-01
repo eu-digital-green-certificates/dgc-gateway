@@ -18,7 +18,7 @@ ThirdParty Licenses
 | com.fasterxml:classmate:1.5.1 | Apache License, Version 2.0 |
 | com.fasterxml.jackson.core:jackson-annotations:2.13.2 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.core:jackson-core:2.13.2 | The Apache Software License, Version 2.0 |
-| com.fasterxml.jackson.core:jackson-databind:2.13.2.1 | The Apache Software License, Version 2.0 |
+| com.fasterxml.jackson.core:jackson-databind:2.13.2.2 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.2 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.2 | The Apache Software License, Version 2.0 |
@@ -115,36 +115,36 @@ ThirdParty Licenses
 | org.springdoc:springdoc-openapi-common:1.6.6 | The Apache License, Version 2.0 |
 | org.springdoc:springdoc-openapi-ui:1.6.6 | The Apache License, Version 2.0 |
 | org.springdoc:springdoc-openapi-webmvc-core:1.6.6 | The Apache License, Version 2.0 |
-| org.springframework:spring-aop:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-aspects:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-beans:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-context:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-core:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-expression:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-jcl:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-jdbc:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-orm:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-test:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-tx:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-web:5.3.17 | Apache License, Version 2.0 |
-| org.springframework:spring-webmvc:5.3.17 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-actuator:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-actuator-autoconfigure:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-autoconfigure:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-actuator:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-aop:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-data-jpa:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-jdbc:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-json:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-logging:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-test:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-tomcat:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-validation:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-starter-web:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-test:2.6.5 | Apache License, Version 2.0 |
-| org.springframework.boot:spring-boot-test-autoconfigure:2.6.5 | Apache License, Version 2.0 |
+| org.springframework:spring-aop:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-aspects:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-beans:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-context:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-core:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-expression:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-jcl:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-jdbc:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-orm:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-test:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-tx:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-web:5.3.18 | Apache License, Version 2.0 |
+| org.springframework:spring-webmvc:5.3.18 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-actuator:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-actuator-autoconfigure:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-autoconfigure:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-actuator:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-aop:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-data-jpa:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-jdbc:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-json:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-logging:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-test:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-tomcat:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-validation:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-starter-web:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-test:2.6.6 | Apache License, Version 2.0 |
+| org.springframework.boot:spring-boot-test-autoconfigure:2.6.6 | Apache License, Version 2.0 |
 | org.springframework.cloud:spring-cloud-commons:3.1.1 | Apache License, Version 2.0 |
 | org.springframework.cloud:spring-cloud-context:3.1.1 | Apache License, Version 2.0 |
 | org.springframework.cloud:spring-cloud-openfeign-core:3.1.1 | Apache License, Version 2.0 |
