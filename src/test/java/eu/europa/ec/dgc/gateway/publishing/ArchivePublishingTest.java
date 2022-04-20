@@ -274,10 +274,16 @@ public class ArchivePublishingTest {
     public void testSynchronizeDisabled() {
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName), any()))
-            .thenReturn(ResponseEntity.ok(null));
+                .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), any()))
-            .thenReturn(ResponseEntity.ok(null));
+                .thenReturn(ResponseEntity.ok(null));
+
+        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName)))
+                .thenReturn(ResponseEntity.ok(new byte[]{}));
+
+        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName)))
+                .thenReturn(ResponseEntity.ok(new byte[]{}));
 
         properties.getPublication().setSynchronizeEnabled(false);
 
