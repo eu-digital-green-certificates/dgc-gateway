@@ -33,8 +33,11 @@ import feign.FeignException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -91,6 +94,11 @@ public class PublishingService {
         byte[] zip = generateArchive();
         byte[] signature = calculateSignature(zip);
         uploadGatewayData(zip, signature);
+
+        if (properties.getPublication().getDownloadEnabled()) {
+            downloadFile(properties.getPublication().getArchiveFilename());
+            downloadFile(properties.getPublication().getSignatureFilename());
+        }
 
         log.info("Finished publishing of packed Gateway data");
     }
@@ -277,10 +285,52 @@ public class PublishingService {
         log.info("Upload and Synchronize successful");
     }
 
+    private void downloadFile(String filename) {
+        log.info("Downloading uploaded DGCG Publication File: {}", filename);
+
+        ResponseEntity<byte[]> downloadResponse;
+        try {
+            downloadResponse = assetManagerClient.downloadFile(getAuthHeader(),
+                    properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), filename);
+
+            if (downloadResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("Download of file {} was successful.", filename);
+            } else {
+                log.error("Failed to download file: {}", downloadResponse.getStatusCode());
+            }
+        } catch (FeignException.FeignServerException e) {
+            log.error("Failed to Download file: {}", e.status());
+            return;
+        }
+
+        File targetFile = Paths.get(properties.getPublication().getDownloadPath(), filename).toFile();
+
+        try {
+            Files.deleteIfExists(targetFile.toPath());
+        } catch (IOException e) {
+            log.error("Failed to delete existing file: {}, {}", targetFile.getAbsolutePath(), e.getMessage());
+            return;
+        }
+
+        if (downloadResponse.hasBody() && downloadResponse.getBody() != null) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream(targetFile)) {
+                fileOutputStream.write(downloadResponse.getBody());
+                log.info("Saved file {} to {} ({} Bytes)",
+                        filename, targetFile.getAbsolutePath(), downloadResponse.getBody().length);
+            } catch (IOException e) {
+                log.error("Failed to write downloaded file to disk: {}, {}",
+                        targetFile.getAbsolutePath(), e.getMessage());
+            }
+        } else {
+            log.error("Download Response does not contain any body");
+        }
+
+    }
+
     private String getAuthHeader() {
         String header = "Basic ";
         header += Base64.getEncoder().encodeToString((properties.getPublication().getUser() + ":"
-            + properties.getPublication().getPassword()).getBytes(StandardCharsets.UTF_8));
+                + properties.getPublication().getPassword()).getBytes(StandardCharsets.UTF_8));
         return header;
     }
 

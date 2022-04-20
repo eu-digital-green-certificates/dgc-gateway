@@ -20,11 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.publishing;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europa.ec.dgc.gateway.client.AssetManagerClient;
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
@@ -40,9 +35,11 @@ import eu.europa.ec.dgc.signing.SignedByteArrayMessageParser;
 import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.KeyPairGenerator;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -61,8 +58,13 @@ import org.bouncycastle.openssl.PEMParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -70,16 +72,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 
 @SpringBootTest(properties = {
-    "dgc.publication.enabled=true",
-    "dgc.publication.synchronizeEnabled=true",
-    "dgc.publication.user=user",
-    "dgc.publication.password=pass",
-    "dgc.publication.amngruid=uid",
-    "dgc.publication.path=path/a/b",
-    "dgc.publication.archiveFilename=db.zip",
-    "dgc.publication.signatureFilename=db.zip.sig.txt",
-    "dgc.publication.notifyEmails[0]=u1@c1.de",
-    "dgc.publication.notifyEmails[1]=u1@c2.de"
+        "dgc.publication.enabled=true",
+        "dgc.publication.synchronizeEnabled=true",
+        "dgc.publication.downloadEnabled=true",
+        "dgc.publication.user=user",
+        "dgc.publication.password=pass",
+        "dgc.publication.amngruid=uid",
+        "dgc.publication.path=path/a/b",
+        "dgc.publication.archiveFilename=db.zip",
+        "dgc.publication.signatureFilename=db.zip.sig.txt",
+        "dgc.publication.notifyEmails[0]=u1@c1.de",
+        "dgc.publication.notifyEmails[1]=u1@c2.de"
 })
 @Slf4j
 public class ArchivePublishingTest {
@@ -114,8 +117,11 @@ public class ArchivePublishingTest {
     @Autowired
     DgcConfigProperties properties;
 
+    @TempDir
+    File tempDir;
+
     private static final String expectedAuthHeader =
-        "Basic " + Base64.getEncoder().encodeToString("user:pass".getBytes(StandardCharsets.UTF_8));
+            "Basic " + Base64.getEncoder().encodeToString("user:pass".getBytes(StandardCharsets.UTF_8));
     private static final String expectedUid = "uid";
     private static final String expectedPath = "path/a/b";
     private static final String expectedArchiveName = "db.zip";
@@ -126,6 +132,8 @@ public class ArchivePublishingTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        properties.getPublication().setDownloadPath(tempDir.getAbsolutePath());
+
         trustedPartyRepository.deleteAll();
         signerInformationRepository.deleteAll();
 
@@ -157,21 +165,31 @@ public class ArchivePublishingTest {
         ArgumentCaptor<byte[]> uploadArchiveArgumentCaptor = ArgumentCaptor.forClass(byte[].class);
         ArgumentCaptor<byte[]> uploadSignatureArgumentCaptor = ArgumentCaptor.forClass(byte[].class);
         ArgumentCaptor<AssetManagerClient.SynchronizeFormData> synchronizeFormDataArgumentCaptor = ArgumentCaptor.forClass(AssetManagerClient.SynchronizeFormData.class);
+        byte[] dummyByteArrayArchive = new byte[]{0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf};
+        byte[] dummyByteArraySignature = new byte[]{0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa};
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName), uploadArchiveArgumentCaptor.capture()))
-            .thenReturn(ResponseEntity.ok(null));
+                .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), uploadSignatureArgumentCaptor.capture()))
-            .thenReturn(ResponseEntity.ok(null));
+                .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.synchronize(eq(expectedAuthHeader), eq("true"), synchronizeFormDataArgumentCaptor.capture()))
-            .thenReturn(ResponseEntity.ok(new AssetManagerSynchronizeResponseDto("OK", 200, "Message", expectedPath, "token")));
+                .thenReturn(ResponseEntity.ok(new AssetManagerSynchronizeResponseDto("OK", 200, "Message", expectedPath, "token")));
+
+        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName)))
+                .thenReturn(ResponseEntity.ok(dummyByteArrayArchive));
+
+        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName)))
+                .thenReturn(ResponseEntity.ok(dummyByteArraySignature));
 
         publishingService.publishGatewayData();
 
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName), any());
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), any());
         verify(assetManagerClientMock).synchronize(eq(expectedAuthHeader), eq("true"), any());
+        verify(assetManagerClientMock).downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName));
+        verify(assetManagerClientMock).downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName));
 
         Assertions.assertNotNull(uploadArchiveArgumentCaptor.getValue());
         Assertions.assertNotNull(uploadSignatureArgumentCaptor.getValue());
@@ -239,6 +257,17 @@ public class ArchivePublishingTest {
         Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
         Assertions.assertArrayEquals(dgcTestKeyStore.getPublicationSigner().getEncoded(), parser.getSigningCertificate().getEncoded());
         Assertions.assertTrue(parser.isSignatureVerified());
+
+        /*
+         * Check Downloaded files
+         */
+        byte[] downloadedArchiveFile = FileUtils.readFileToByteArray(
+                Paths.get(tempDir.getAbsolutePath(), properties.getPublication().getArchiveFilename()).toFile());
+        Assertions.assertArrayEquals(dummyByteArrayArchive, downloadedArchiveFile);
+
+        byte[] downloadedSignatureFile = FileUtils.readFileToByteArray(
+                Paths.get(tempDir.getAbsolutePath(), properties.getPublication().getSignatureFilename()).toFile());
+        Assertions.assertArrayEquals(dummyByteArraySignature, downloadedSignatureFile);
     }
 
     @Test

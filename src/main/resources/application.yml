@@ -42,6 +42,7 @@ dgc:
   publication:
     enbaled: false
     synchronizeEnabled: false
+    downloadEnabled: false
     keystore:
       keyStorePath: /ec/prod/app/san/dgcg/dgc-publication.jks
       keyStorePass: dgc-p4ssw0rd
