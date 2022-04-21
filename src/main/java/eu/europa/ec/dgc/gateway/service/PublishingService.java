@@ -95,7 +95,7 @@ public class PublishingService {
         byte[] signature = calculateSignature(zip);
         uploadGatewayData(zip, signature);
 
-        if (properties.getPublication().getDownloadEnabled()) {
+        if (Boolean.TRUE.equals(properties.getPublication().getDownloadEnabled())) {
             downloadFile(properties.getPublication().getArchiveFilename());
             downloadFile(properties.getPublication().getSignatureFilename());
         }

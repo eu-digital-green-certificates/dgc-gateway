@@ -177,10 +177,10 @@ public class ArchivePublishingTest {
         when(assetManagerClientMock.synchronize(eq(expectedAuthHeader), eq("true"), synchronizeFormDataArgumentCaptor.capture()))
                 .thenReturn(ResponseEntity.ok(new AssetManagerSynchronizeResponseDto("OK", 200, "Message", expectedPath, "token")));
 
-        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName)))
+        when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedArchiveName))
                 .thenReturn(ResponseEntity.ok(dummyByteArrayArchive));
 
-        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName)))
+        when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedSignatureName))
                 .thenReturn(ResponseEntity.ok(dummyByteArraySignature));
 
         publishingService.publishGatewayData();
@@ -188,8 +188,8 @@ public class ArchivePublishingTest {
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName), any());
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), any());
         verify(assetManagerClientMock).synchronize(eq(expectedAuthHeader), eq("true"), any());
-        verify(assetManagerClientMock).downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName));
-        verify(assetManagerClientMock).downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName));
+        verify(assetManagerClientMock).downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedArchiveName);
+        verify(assetManagerClientMock).downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedSignatureName);
 
         Assertions.assertNotNull(uploadArchiveArgumentCaptor.getValue());
         Assertions.assertNotNull(uploadSignatureArgumentCaptor.getValue());
@@ -279,10 +279,10 @@ public class ArchivePublishingTest {
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName), any()))
                 .thenReturn(ResponseEntity.ok(null));
 
-        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedArchiveName)))
+        when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedArchiveName))
                 .thenReturn(ResponseEntity.ok(new byte[]{}));
 
-        when(assetManagerClientMock.downloadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath), eq(expectedSignatureName)))
+        when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedSignatureName))
                 .thenReturn(ResponseEntity.ok(new byte[]{}));
 
         properties.getPublication().setSynchronizeEnabled(false);
