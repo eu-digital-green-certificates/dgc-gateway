@@ -43,4 +43,3 @@ build/
 !/tools/*.sh
 
 certs/*
-.DS_Store
