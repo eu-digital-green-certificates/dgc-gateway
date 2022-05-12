@@ -49,6 +49,8 @@ public class DgcConfigProperties {
         private KeyStoreWithAlias keystore = new KeyStoreWithAlias();
         private Boolean enabled;
         private Boolean synchronizeEnabled;
+        private Boolean downloadEnabled;
+        private String downloadPath;
         private String url;
         private String amngrUid;
         private String path;

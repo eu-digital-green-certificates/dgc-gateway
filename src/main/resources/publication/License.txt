@@ -1,37 +1,35 @@
 DATA LICENSE for the database of public keys of digital signer certificates, originally
-available from https://ec.europa.eu/assets/eu-dcc/dcc_database.zip
+available from https://ec.europa.eu/health/ehealth/covid-19_en
 
-1. This data license shall govern the use of the database of public keys of digital signer certificates, originally
-available from https://ec.europa.eu/assets/eu-dcc/dcc_database.zip. The use of the copyright and database right
-material provided in this database (the "Data") indicates that you accept the terms and conditions of this license.
-You may not amend this license under any circumstances.
+1. This DATA LICENSE shall govern the use of the database of public keys of digital signer certificates. 
+The use of the copyright and database right material provided in this database (the "Data") indicates that 
+you accept the terms and conditions of this license. You may not amend this license under any circumstances.
 
 2. Licensor of this database is the European Commission. The Licensor grants you a worldwide, royalty-free, perpetual,
-non-exclusive licence to use the Data subject to the conditions below.
+non-exclusive license to use the Data subject to the conditions below.
 
 3. This license grants the exercise of the following rights regarding the Data, subject to the observation of the
-conditions in sections 4:
+conditions in section 4:
 
 	a) to copy, publish, distribute and transmit the Data;
 	b) to incorporate the data in commercially and non-commercially available products and/or services.
 
 These rights are restricted to the Data itself and shall not be construed to extend beyond implicitly.
 
-4. Any exercise of the rights granted in section 3 shall be conditional upon the observance and fulfilment of the
+4. Any exercise of the rights granted in section 3 shall be conditional upon the observance and fulfillment of the
 following obligations:
 
 	a) to acknowledge the use of the database and attribute the copyright and database rights of the European
-	Commission in an appropriate manner and with an appropriate notice;
-	b) to acknowledge and to notify in an appropriate manner and with an appropriate notice that the use of the
-	database does not constitute endorsement of any products and/or services by the European commission;
-	c) to provide the text of this license in an appropriate manner and with an appropriate notice to any intended
+	Commission in an appropriate manner and with appropriate notice;
+	b) to acknowledge and notify in an appropriate manner and with an appropriate notice that the use of the
+	the database does not constitute endorsement of any products and/or services by the European Commission;
+	c) to provide the text of this license in an appropriate manner and with appropriate notice to any intended
 	recipient of the Data.
 
 You may use the following notices at your discretion:
 
-	"Contains data provided by the European Commission under the following license:
-	https://ec.europa.eu/assets/eu-dcc/dcc_database.zip/license.txt.
-	The European Commission	does not endorse any products and/or services by providing this data."
+	"Contains data provided by the European Commission under the DATA LICENSE. The European Commission
+	does not endorse any products and/or services by providing this data."
 
 5. Foremost, this license is governed by the law of the European Union and additionally by the law of the Member State
 of the European Union you or an intended recipient resides in. If you or any intended recipient do not reside in a
@@ -40,5 +38,8 @@ European Union.
 
 6. The European Commission shall not be liable in any capacity for any use of the Data by third parties. It shall only
 be liable for any deliberate and intentional damage caused by a deliberate and intentional default of the Data under any
-statutory law applicable according to section 5. Any further liability, representation, warranty or obligation of
+statutory law applicable according to section 5. Any further liability, representation, warranty, or obligation of
 the European Commission is explicitly excluded.
+
+7. This license does not constitute a legal basis pursuant to Article 6 of Regulation (EU) 2016/679 (GDPR) to process
+the personal data contained in an EU Digital COVID Certificate.
