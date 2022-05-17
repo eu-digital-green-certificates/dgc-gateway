@@ -8,8 +8,8 @@ Content:
 
     1. Intention
     2. Structure of archive
-    3. How to verify integrity of DCC
-    4. How to verify integrity of this archive
+    3. How to verify the integrity of DCC
+    4. How to verify the integrity of this archive
 
 1. Intention
     The content of this archive can be used to verify that a Digital Covid Certificate (DCC) was issued by an authorized
@@ -20,7 +20,7 @@ Content:
     This archive contains two different certificate types: Digital Signer Certificate (DSC) and Country Signing Certificate
     Authority (CSCA). The archive is structured by certificate type (DSC or CSCA), domain (currently just DCC) and the
     2-digit country code.
-    The certificates are encoded as PKCS#8 saved in pem files named by there certificate SHA-256 thumbprint.
+    The certificates are encoded as PKCS#8 saved in pem files named by their certificate SHA-256 thumbprint.
 
     CSCA
       ∟ DCC
@@ -31,16 +31,16 @@ Content:
         ∟ CC
           ∟ 6493815d2ecfdbab6507e541a5f53e68b03d057b45e16d39b35b91ee61f78ab0.pem
 
-3. How to verify integrity of DCC
+3. How to verify the integrity of DCC
     A. Extract Signature from DCC
     B. Get KID from DCC, Convert Base64 string to hex, search for DSC file starting with the resulting hex string
     C. Verify that DCC was signed by the DSC
     D. Verify that the matching DSC was issued by one of the CSCA
 
-4. How to verify integrity of this archive
+4. How to verify the integrity of this archive
     This archive and all of its contents are signed by a certificate of the European Commission.
-    The signature file will be seperatly distributed. You can find it on the same download page as this archive ([URL]).
-    The signature file contains a base64 encoded CMS-Message with detached payload (PKCS#7).
+    The signature file will be separately distributed. You can find it on the same download page as this archive ([URL]).
+    The signature file contains a base64 encoded CMS-Message with a detached payload (PKCS#7).
 
     There are two options to verify the integrity of the archive:
 
@@ -59,5 +59,4 @@ Content:
             openssl cms -verify -in dcc_database.zip.sig.der -inform DER -content dcc_database.zip -binary -CAfile eu_signer.pem
 
         The output of the verify command contains the whole binary data of the zip file.
-        At the end of the output you should find: "Verification successful"
-
+        At the end of the output, you should find: "Verification successful"
