@@ -81,7 +81,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             handlerExceptionResolver.resolveException(request, null, null, e);
-            return true;
+            return false;
         }
     }
 
