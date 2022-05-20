@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -63,6 +64,7 @@ public class RevocationBatchDto {
     public static class BatchEntryDto {
 
         @Schema(description = "Base64 encoded first 128 Bits of the hash of the Entry")
+        @Pattern(regexp = "^[A-Za-z0-9+/]{22}==$") // Pattern for Base64 String representing exactly 16 bytes
         @Length(min = 24, max = 24)
         private String hash;
 
