@@ -53,6 +53,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,6 +62,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -107,7 +110,7 @@ public class CertificateRevocationListIntegrationTest {
 
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer(
-            new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX").toFormatter()
+                new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX").toFormatter()
         ));
 
         objectMapper.registerModule(javaTimeModule);
@@ -134,41 +137,41 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
         revocationBatchDto.setKid("UNKNOWN_KID");
         revocationBatchDto.setEntries(List.of(
-            new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa"),
-            new RevocationBatchDto.BatchEntryDto("bbbbbbbbbbbbbbbbbbbbbbbb"),
-            new RevocationBatchDto.BatchEntryDto("cccccccccccccccccccccccc"),
-            new RevocationBatchDto.BatchEntryDto("dddddddddddddddddddddddd"),
-            new RevocationBatchDto.BatchEntryDto("eeeeeeeeeeeeeeeeeeeeeeee")
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe}))
         ));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         MvcResult mvcResult = mockMvc.perform(post("/revocation-list")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
         ).andReturn();
 
         Assertions.assertEquals(HttpStatus.CREATED.value(), mvcResult.getResponse().getStatus());
 
         Assertions.assertEquals(revocationBatchesInDb + 1, revocationBatchRepository.count());
         Optional<RevocationBatchEntity> createdRevocationBatch =
-            revocationBatchRepository.findAll().stream().findFirst();
+                revocationBatchRepository.findAll().stream().findFirst();
 
         Assertions.assertTrue(createdRevocationBatch.isPresent());
 
         Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
         Assertions.assertEquals(revocationBatchDto.getExpires().toEpochSecond(), createdRevocationBatch.get().getExpires().toEpochSecond());
         Assertions.assertTrue(
-            ZonedDateTime.now().toEpochSecond() - 2 < createdRevocationBatch.get().getChanged().toEpochSecond()
-                && ZonedDateTime.now().toEpochSecond() + 2 > createdRevocationBatch.get().getChanged().toEpochSecond());
+                ZonedDateTime.now().toEpochSecond() - 2 < createdRevocationBatch.get().getChanged().toEpochSecond()
+                        && ZonedDateTime.now().toEpochSecond() + 2 > createdRevocationBatch.get().getChanged().toEpochSecond());
         Assertions.assertEquals(countryCode, createdRevocationBatch.get().getCountry());
         Assertions.assertEquals(revocationBatchDto.getHashType().name(), createdRevocationBatch.get().getType().name());
         Assertions.assertEquals(revocationBatchDto.getKid(), createdRevocationBatch.get().getKid());
@@ -190,20 +193,20 @@ public class CertificateRevocationListIntegrationTest {
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload("randomBadString")
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload("randomBadString")
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
 
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
@@ -224,36 +227,41 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
         revocationBatchDto.setKid("KIDWHICHISWAYTOLONGTOPASS");
         revocationBatchDto.setEntries(List.of(
-            new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa"),
-            new RevocationBatchDto.BatchEntryDto("bbbbbbbbbbbbbbbbbbbbbbbb"),
-            new RevocationBatchDto.BatchEntryDto("cccccccccccccccccccccccc"),
-            new RevocationBatchDto.BatchEntryDto("dddddddddddddddddddddddd"),
-            new RevocationBatchDto.BatchEntryDto("eeeeeeeeeeeeeeeeeeeeeeee")
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe}))
         ));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest())
-            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG));
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
     }
 
-    @Test
-    void testUploadFailedInvalidJsonValuesInHashEntries() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "ccccccccccccccccccccccccA",
+            "__thisIsNoValidBase64___",
+            "CgoKCgoKCgoKCgoKCgoKCgo=" // this base64 string is too long (17 bytes)
+    })
+    void testUploadFailedInvalidJsonValuesInHashEntries(String invalidHash) throws Exception {
         long revocationBatchesInDb = revocationBatchRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
@@ -266,29 +274,28 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
         revocationBatchDto.setKid("UNKNOWN_KID");
         revocationBatchDto.setEntries(List.of(
-            new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa"),
-            new RevocationBatchDto.BatchEntryDto("bbbbbbbbbbbbbbbbbbbbbbbb"),
-            new RevocationBatchDto.BatchEntryDto("ccccccccccccccccccccccccA"),
-            new RevocationBatchDto.BatchEntryDto("dddddddddddddddddddddddd"),
-            new RevocationBatchDto.BatchEntryDto("eeeeeeeeeeeeeeeeeeeeeeee")
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb})),
+                new RevocationBatchDto.BatchEntryDto(invalidHash),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd}))
         ));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest())
-            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG));
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
@@ -308,29 +315,29 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
         revocationBatchDto.setKid("UNKNOWN_KID");
         revocationBatchDto.setEntries(List.of(
-            new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa"),
-            new RevocationBatchDto.BatchEntryDto("bbbbbbbbbbbbbbbbbbbbbbbb"),
-            new RevocationBatchDto.BatchEntryDto("cccccccccccccccccccccccc"),
-            new RevocationBatchDto.BatchEntryDto("dddddddddddddddddddddddd"),
-            new RevocationBatchDto.BatchEntryDto("eeeeeeeeeeeeeeeeeeeeeeee")
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd})),
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe}))
         ));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(post("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isForbidden())
-            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG));
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
@@ -359,20 +366,20 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(entity.getBatchId());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isNoContent());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isNoContent());
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
@@ -408,20 +415,20 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(entity.getBatchId());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(post("/revocation-list/delete")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isNoContent());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isNoContent());
 
         Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
         Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
@@ -452,20 +459,20 @@ public class CertificateRevocationListIntegrationTest {
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload("randomString")
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload("randomString")
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -492,20 +499,20 @@ public class CertificateRevocationListIntegrationTest {
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(new RevocationBatchDeleteRequestDto("ThisIsNotAnUUID")))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(new RevocationBatchDeleteRequestDto("ThisIsNotAnUUID")))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -532,20 +539,20 @@ public class CertificateRevocationListIntegrationTest {
         PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(new RevocationBatchDeleteRequestDto(UUID.randomUUID().toString())))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(new RevocationBatchDeleteRequestDto(UUID.randomUUID().toString())))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isNotFound());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isNotFound());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -574,20 +581,20 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(entity.getBatchId());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, "XX");
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), "C=XX")
-            )
-            .andExpect(status().isForbidden());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), "C=XX")
+                )
+                .andExpect(status().isForbidden());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -616,20 +623,20 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(entity.getBatchId());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isForbidden());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -658,20 +665,20 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(entity.getBatchId());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -700,20 +707,20 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(entity.getBatchId());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isGone());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isGone());
 
         Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
 
@@ -743,78 +750,78 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(0).getChanged().minusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.more").value(true))
-            .andExpect(jsonPath("$.batches.length()").value(1000))
-            .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(0, 1000)));
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(0).getChanged().minusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.more").value(true))
+                .andExpect(jsonPath("$.batches.length()").value(1000))
+                .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(0, 1000)));
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(1000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.more").value(true))
-            .andExpect(jsonPath("$.batches.length()").value(1000))
-            .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(1000, 2000)));
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(1000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.more").value(true))
+                .andExpect(jsonPath("$.batches.length()").value(1000))
+                .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(1000, 2000)));
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(2000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.more").value(true))
-            .andExpect(jsonPath("$.batches.length()").value(1000))
-            .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(2000, 3000)));
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(2000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.more").value(true))
+                .andExpect(jsonPath("$.batches.length()").value(1000))
+                .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(2000, 3000)));
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(3000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.more").value(true))
-            .andExpect(jsonPath("$.batches.length()").value(1000))
-            .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(3000, 4000)));
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(3000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.more").value(true))
+                .andExpect(jsonPath("$.batches.length()").value(1000))
+                .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(3000, 4000)));
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(4000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.more").value(true))
-            .andExpect(jsonPath("$.batches.length()").value(1000))
-            .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(4000, 5000)));
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(4000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.more").value(true))
+                .andExpect(jsonPath("$.batches.length()").value(1000))
+                .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(4000, 5000)));
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(5000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.more").value(false))
-            .andExpect(jsonPath("$.batches.length()").value(500))
-            .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(5000, 5500)));
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(5000).getChanged().minusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.more").value(false))
+                .andExpect(jsonPath("$.batches.length()").value(500))
+                .andDo(r -> evaluateDownloadedBatchList(r.getResponse(), entities.subList(5000, 5500)));
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(5499).getChanged().plusSeconds(1).toOffsetDateTime().toString())
-            )
-            .andExpect(status().isNoContent());
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, entities.get(5499).getChanged().plusSeconds(1).toOffsetDateTime().toString())
+                )
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -824,11 +831,11 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -838,12 +845,12 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, OffsetDateTime.now().plusSeconds(1).toString())
-            )
-            .andExpect(status().isBadRequest());
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, OffsetDateTime.now().plusSeconds(1).toString())
+                )
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -859,9 +866,9 @@ public class CertificateRevocationListIntegrationTest {
         batchDto.setEntries(List.of(new RevocationBatchDto.BatchEntryDto("abcd")));
 
         String signedBatch = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(batchDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(batchDto))
+                .buildAsString();
 
         RevocationBatchEntity entity = new RevocationBatchEntity();
         entity.setType(RevocationBatchEntity.RevocationHashType.SIGNATURE);
@@ -878,22 +885,22 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/" + entity.getBatchId())
-                .accept("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isOk())
-            .andDo(result -> {
-                SignedStringMessageParser parser = new SignedStringMessageParser(result.getResponse().getContentAsString());
+                        .accept("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    SignedStringMessageParser parser = new SignedStringMessageParser(result.getResponse().getContentAsString());
 
-                Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
-                Assertions.assertTrue(parser.isSignatureVerified());
-                Assertions.assertArrayEquals(signerCertificate.getEncoded(), parser.getSigningCertificate().getEncoded());
+                    Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
+                    Assertions.assertTrue(parser.isSignatureVerified());
+                    Assertions.assertArrayEquals(signerCertificate.getEncoded(), parser.getSigningCertificate().getEncoded());
 
-                RevocationBatchDto parsedBatch = objectMapper.readValue(parser.getPayload(), RevocationBatchDto.class);
+                    RevocationBatchDto parsedBatch = objectMapper.readValue(parser.getPayload(), RevocationBatchDto.class);
 
-                assertEquals(batchDto, parsedBatch);
-            });
+                    assertEquals(batchDto, parsedBatch);
+                });
     }
 
     @Test
@@ -902,11 +909,11 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/thisIsNotAnUUID")
-                .accept("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+                        .accept("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -927,11 +934,11 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/" + entity.getBatchId())
-                .accept("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isGone());
+                        .accept("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isGone());
     }
 
     @Test
@@ -941,16 +948,16 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(get("/revocation-list/" + UUID.randomUUID())
-                .accept("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isNotFound());
+                        .accept("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isNotFound());
     }
 
     private void evaluateDownloadedBatchList(MockHttpServletResponse mockResponse, List<RevocationBatchEntity> expectedBatches) throws UnsupportedEncodingException, JsonProcessingException {
         RevocationBatchListDto revocationBatchListDto =
-            objectMapper.readValue(mockResponse.getContentAsString(), RevocationBatchListDto.class);
+                objectMapper.readValue(mockResponse.getContentAsString(), RevocationBatchListDto.class);
 
         Assertions.assertEquals(expectedBatches.size(), revocationBatchListDto.getBatches().size());
 
@@ -994,12 +1001,12 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(get("/revocation-list")
-                .accept("application/json")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                .header(HttpHeaders.IF_MODIFIED_SINCE, OffsetDateTime.now().toString())
-            )
-            .andExpect(status().isForbidden());
+                        .accept("application/json")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                        .header(HttpHeaders.IF_MODIFIED_SINCE, OffsetDateTime.now().toString())
+                )
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -1010,28 +1017,28 @@ public class CertificateRevocationListIntegrationTest {
         RevocationBatchDeleteRequestDto deleteRequestDto = new RevocationBatchDeleteRequestDto(UUID.randomUUID().toString());
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(deleteRequestDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER);
 
         mockMvc.perform(delete("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isForbidden());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/revocation-list/delete")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isForbidden());
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -1044,24 +1051,25 @@ public class CertificateRevocationListIntegrationTest {
         revocationBatchDto.setExpires(ZonedDateTime.now().plusDays(7));
         revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
         revocationBatchDto.setKid("UNKNOWN_KID");
-        revocationBatchDto.setEntries(List.of(new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa")));
+        revocationBatchDto.setEntries(List.of(
+                new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(new byte[]{0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa}))));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
-            .buildAsString();
+                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+                .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+                .buildAsString();
 
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_LIST_READER, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER);
 
         mockMvc.perform(post("/revocation-list")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isForbidden())
-            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
+                        .content(payload)
+                        .contentType("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG));
     }
 
     @Test
@@ -1070,10 +1078,10 @@ public class CertificateRevocationListIntegrationTest {
         trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_DELETER, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
 
         mockMvc.perform(get("/revocation-list/" + UUID.randomUUID())
-                .accept("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isForbidden());
+                        .accept("application/cms")
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+                )
+                .andExpect(status().isForbidden());
     }
 }
