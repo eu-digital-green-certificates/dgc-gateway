@@ -4,5 +4,9 @@
     <notes>Bug only affects not used features of embedded tomcat.</notes>
     <cve>CVE-2022-23181</cve>
   </suppress>
+  <suppress>
+    <notes>False Positive</notes>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
 
 </suppressions>
