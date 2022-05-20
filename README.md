@@ -96,6 +96,9 @@ docker-compose build
 
 ### Start Local
 
+**Attention: This Repository contains simple passwords as placeholder. Please be aware that these passwords should not
+be used for production deployments of the gateway!**
+
 In order to start the gateway on your local computer you have to follow these steps:
 
 * Create TrustAnchor

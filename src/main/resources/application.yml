@@ -45,7 +45,7 @@ dgc:
     downloadEnabled: false
     keystore:
       keyStorePath: /ec/prod/app/san/dgcg/dgc-publication.jks
-      keyStorePass: dgc-p4ssw0rd
+      keyStorePass: dgc-p4ssw0rd # do not use this for production deployments
       certificateAlias: dgc_publication
     url: https://example.org/asset-manager
     amngr-uid: 00000000-0000-0000-0000-000000000000
