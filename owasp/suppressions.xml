@@ -8,5 +8,13 @@
     <notes>False Positive</notes>
     <cve>CVE-2016-1000027</cve>
   </suppress>
+  <suppress>
+    <notes>False Positive - Updated to newest version</notes>
+    <cve>CVE-2018-14335</cve>
+  </suppress>
+  <suppress>
+    <notes>False Positive</notes>
+    <cve>CVE-2020-5408</cve>
+  </suppress>
 
 </suppressions>
