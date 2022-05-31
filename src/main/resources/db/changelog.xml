@@ -18,4 +18,5 @@
     <include file="db/changelog/add-trusted-issuer-table.xml"/>
     <include file="db/changelog/alter-signer-information-for-deletion.xml"/>
     <include file="db/changelog/add-uuid-and-domain-for-trusted-issuer.xml"/>
+    <include file="db/changelog/increase-column-size-for-validation-rule-signature.xml"/>
 </databaseChangeLog>
