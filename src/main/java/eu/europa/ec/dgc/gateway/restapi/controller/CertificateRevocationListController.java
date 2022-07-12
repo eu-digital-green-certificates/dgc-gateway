@@ -34,6 +34,7 @@ import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRole;
 import eu.europa.ec.dgc.gateway.restapi.mapper.RevocationBatchMapper;
 import eu.europa.ec.dgc.gateway.service.RevocationListService;
+import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -75,7 +76,11 @@ public class CertificateRevocationListController {
     private final RevocationBatchMapper revocationBatchMapper;
 
     public static final String UUID_REGEX =
-        "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
+            "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
+
+    private static final String MDC_DOWNLOADER_COUNTRY = "downloaderCountry";
+    private static final String MDC_DOWNLOADED_COUNTRY = "downloadedCountry";
+    private static final String MDC_DOWNLOADED_BATCH_ID = "downloadedBatchId";
 
     /**
      * Endpoint to download Revocation Batch List.
@@ -83,9 +88,9 @@ public class CertificateRevocationListController {
     @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationListReader)
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
-        security = {
-            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+            security = {
+                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
         },
         tags = {"Revocation"},
         summary = "Download Batch List",
@@ -154,25 +159,33 @@ public class CertificateRevocationListController {
                 responseCode = "200",
                 description = "Response contains the batch.",
                 content = @Content(schema = @Schema(implementation = RevocationBatchDto.class)),
-                headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID")),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Batch does not exist."),
-            @ApiResponse(
-                responseCode = "410",
-                description = "Batch already deleted.")
+                    headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID")),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Batch does not exist."),
+                @ApiResponse(
+                        responseCode = "410",
+                        description = "Batch already deleted.")
         }
     )
     public ResponseEntity<String> downloadBatch(
-        @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId) {
+            @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId,
+            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountry) {
 
         try {
             RevocationBatchDownload download = revocationListService.getRevocationBatch(batchId);
 
+
+            DgcMdc.put(MDC_DOWNLOADED_COUNTRY, download.getCountry());
+            DgcMdc.put(MDC_DOWNLOADER_COUNTRY, downloaderCountry);
+            DgcMdc.put(MDC_DOWNLOADED_BATCH_ID, batchId);
+
+            log.info("Revocation Batch downloaded.");
+
             return ResponseEntity
-                .ok()
-                .header(HttpHeaders.ETAG, download.getBatchId())
-                .body(download.getSignedCms());
+                    .ok()
+                    .header(HttpHeaders.ETAG, download.getBatchId())
+                    .body(download.getSignedCms());
 
         } catch (RevocationListService.RevocationBatchServiceException e) {
             switch (e.getReason()) {

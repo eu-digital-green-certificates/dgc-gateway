@@ -232,15 +232,16 @@ public class RevocationListService {
 
         if (entity.isEmpty()) {
             throw new RevocationBatchServiceException(
-                RevocationBatchServiceException.Reason.NOT_FOUND, "Batch not found");
+                    RevocationBatchServiceException.Reason.NOT_FOUND, "Batch not found");
         }
 
         if (entity.get().getDeleted()) {
             throw new RevocationBatchServiceException(
-                RevocationBatchServiceException.Reason.GONE, "Batch already deleted.");
+                    RevocationBatchServiceException.Reason.GONE, "Batch already deleted.");
         }
 
-        return new RevocationBatchDownload(entity.get().getBatchId(), entity.get().getSignedBatch());
+        return new RevocationBatchDownload(
+                entity.get().getBatchId(), entity.get().getSignedBatch(), entity.get().getCountry());
     }
 
     /**
