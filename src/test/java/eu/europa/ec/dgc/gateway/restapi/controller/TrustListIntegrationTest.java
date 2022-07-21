@@ -215,16 +215,6 @@ class TrustListIntegrationTest {
         prepareTestCertsCreatedAtNowMinusOneHour();
         String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(get("/trustList?page=-1&pagesize=10")
-                        .accept(MediaType.APPLICATION_JSON_VALUE)
-                        .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(c -> assertTrustListLength(c, 17));
-
         mockMvc.perform(get("/trustList?page=0&pagesize=10")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .header(IF_MODIFIED_SINCE_HEADER, nowMinusOneHour)
