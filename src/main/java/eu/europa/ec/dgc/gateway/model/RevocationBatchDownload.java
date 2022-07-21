@@ -32,4 +32,6 @@ public class RevocationBatchDownload {
     private String batchId;
 
     private String signedCms;
+
+    private String country;
 }
