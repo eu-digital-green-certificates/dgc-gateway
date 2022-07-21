@@ -149,8 +149,8 @@ public class TrustListController {
     ) {
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
-            page = page == null ? 0 : page;
-            size = size == null ? 100 : size;
+            page = (page != null && page >= 0) ? page : 0;
+            size = (size != null && size >= 0) ? size : 100;
 
             trustList = trustListMapper.trustListToTrustListDto(
                     trustListService.getTrustList(ifModifiedSince, page, size));
@@ -243,8 +243,8 @@ public class TrustListController {
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
-            page = page == null ? 0 : page;
-            size = size == null ? 100 : size;
+            page = (page != null && page >= 0) ? page : 0;
+            size = (size != null && size >= 0) ? size : 100;
 
             trustList = trustListMapper.trustListToTrustListDto(
                     trustListService.getTrustList(mappedType, ifModifiedSince, page, size));
@@ -348,8 +348,8 @@ public class TrustListController {
 
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
-            page = page == null ? 0 : page;
-            size = size == null ? 100 : size;
+            page = (page != null && page >= 0) ? page : 0;
+            size = (size != null && size >= 0) ? size : 100;
 
             trustList = trustListMapper.trustListToTrustListDto(
                     trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, page, size));
