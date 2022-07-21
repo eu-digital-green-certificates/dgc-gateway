@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.client.JrcClient;
 import eu.europa.ec.dgc.gateway.entity.ValuesetEntity;
 import eu.europa.ec.dgc.gateway.model.JrcRatValueset;
-import eu.europa.ec.dgc.gateway.model.JrcRatValuesetResponse;
 import eu.europa.ec.dgc.gateway.model.RatValueset;
 import eu.europa.ec.dgc.gateway.model.Valueset;
 import eu.europa.ec.dgc.gateway.repository.ValuesetRepository;
@@ -142,11 +141,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(List.of(history1, history2));
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -184,11 +179,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(List.of(history1, history2));
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -228,11 +219,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(List.of(history1, history2));
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -273,11 +260,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(List.of(history1, history2));
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -305,11 +288,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(Collections.emptyList());
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -336,11 +315,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(null);
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -394,11 +369,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(List.of(history1, history2));
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
@@ -442,11 +413,7 @@ class RatValuesetUpdateServiceTest {
         jrcValueset.setManufacturer(manufacturer);
         jrcValueset.setHscListHistory(List.of(history1, history2, history3));
 
-        JrcRatValuesetResponse jrcResponse = new JrcRatValuesetResponse();
-        jrcResponse.setExtractedOn(ZonedDateTime.now());
-        jrcResponse.setDeviceList(List.of(jrcValueset));
-
-        when(jrcClientMock.downloadRatValues()).thenReturn(jrcResponse);
+        when(jrcClientMock.downloadRatValues()).thenReturn(List.of(jrcValueset));
 
         ratValuesetUpdateService.update();
 
