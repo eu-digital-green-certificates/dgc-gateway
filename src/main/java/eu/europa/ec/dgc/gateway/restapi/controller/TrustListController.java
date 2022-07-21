@@ -149,8 +149,11 @@ public class TrustListController {
     ) {
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
+            page = page == null ? 0 : page;
+            size = size == null ? 100 : size;
+
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(ifModifiedSince, page, size));
+                    trustListService.getTrustList(ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(ifModifiedSince, null, null));
@@ -240,8 +243,11 @@ public class TrustListController {
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
+            page = page == null ? 0 : page;
+            size = size == null ? 100 : size;
+
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, ifModifiedSince, page, size));
+                    trustListService.getTrustList(mappedType, ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(mappedType, ifModifiedSince, null, null));
@@ -342,8 +348,11 @@ public class TrustListController {
 
         List<TrustListDto> trustList;
         if (isPaginationRequired(page,size)) {
+            page = page == null ? 0 : page;
+            size = size == null ? 100 : size;
+
             trustList = trustListMapper.trustListToTrustListDto(
-                trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, page, size));
+                    trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, null, null));
@@ -409,6 +418,6 @@ public class TrustListController {
     }
 
     private boolean isPaginationRequired(Integer page, Integer size) {
-        return page != null && size != null && page >= 0 && size > 0;
+        return (page != null && page >= 0) || (size != null && size >= 0);
     }
 }
