@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ec.dgc.gateway.client.JrcClient;
 import eu.europa.ec.dgc.gateway.model.JrcRatValueset;
-import eu.europa.ec.dgc.gateway.model.JrcRatValuesetResponse;
 import eu.europa.ec.dgc.gateway.model.RatValueset;
 import eu.europa.ec.dgc.gateway.model.Valueset;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
@@ -35,6 +34,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -87,7 +87,7 @@ public class RatValuesetUpdateService {
             }
         }
 
-        JrcRatValuesetResponse jrcResponse;
+        List<JrcRatValueset> jrcResponse;
         try {
             jrcResponse = jrcClient.downloadRatValues();
         } catch (FeignException e) {
@@ -95,7 +95,7 @@ public class RatValuesetUpdateService {
             return;
         }
 
-        for (JrcRatValueset device : jrcResponse.getDeviceList()) {
+        for (JrcRatValueset device : jrcResponse) {
             JrcRatValueset.HscListHistory latestHistoryEntryNotInFuture = null;
             JrcRatValueset.HscListHistory latestHistoryEntry = null;
             long now = ZonedDateTime.now().toEpochSecond();
@@ -103,9 +103,9 @@ public class RatValuesetUpdateService {
             if (device.getHscListHistory() != null) {
 
                 latestHistoryEntryNotInFuture = device.getHscListHistory().stream()
-                    .sorted(Comparator
-                        .comparing((JrcRatValueset.HscListHistory x) -> x.getListDate().toEpochSecond())
-                        .reversed())
+                        .sorted(Comparator
+                                .comparing((JrcRatValueset.HscListHistory x) -> x.getListDate().toEpochSecond())
+                                .reversed())
                     .dropWhile(x -> x.getListDate().toEpochSecond() > now)
                     .findFirst()
                     .orElse(null);

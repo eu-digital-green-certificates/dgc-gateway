@@ -20,7 +20,8 @@
 
 package eu.europa.ec.dgc.gateway.client;
 
-import eu.europa.ec.dgc.gateway.model.JrcRatValuesetResponse;
+import eu.europa.ec.dgc.gateway.model.JrcRatValueset;
+import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,5 +39,5 @@ public interface JrcClient {
      */
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE
     )
-    JrcRatValuesetResponse downloadRatValues();
+    List<JrcRatValueset> downloadRatValues();
 }
