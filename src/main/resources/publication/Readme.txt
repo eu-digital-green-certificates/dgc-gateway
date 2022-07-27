@@ -39,24 +39,29 @@ Content:
 
 4. How to verify the integrity of this archive
     This archive and all of its contents are signed by a certificate of the European Commission.
-    The signature file will be separately distributed. You can find it on the same download page as this archive ([URL]).
+    The certificate can be downloaded via the following link: https://ec.europa.eu/assets/eu-dcc/eu_signer.pem.txt
+    The signature file will be separately distributed. You can find it here: https://ec.europa.eu/assets/eu-dcc/dcc_trustlist.zip.sig.txt
     The signature file contains a base64 encoded CMS-Message with a detached payload (PKCS#7).
 
     There are two options to verify the integrity of the archive:
 
-    A: DGC-CLI (recommended, needs DGC-CLI to be installed)
+    A: DGC-CLI (recommended, needs DGC-CLI (min 0.9) to be installed)
         - Install DGC-CLI: https://github.com/eu-digital-green-certificates/dgc-cli#installation
         - Verify integrity
-            dgc signing validate-file -i dcc_database.zip.sig.txt -p dcc_database.zip
+            dgc signing validate-file -i dcc_trustlist.zip.sig.txt -p dcc_trustlist.zip -c eu_signer.pem.txt
 
-        The command will output only the verification result and the subject and thumbprint of the signer certificate.
-        The thumbprint should be checked against the published signer certificate.
+        The command will output the CMS verification result and the subject and thumbprint of the signer certificate.
+        Also it will be checked that the CMS was signed with the correct certificate.
+        Both "Result: Valid" and "Matches Given Certificate: yes" should be found in the output.
 
     B: OpenSSL (Needs OpenSSL CLI to be installed)
         - Convert signature file from base64 encoded to plain DER file
-            openssl base64 -a -A -d -in dcc_database.zip.sig.txt -out dcc_database.zip.sig.der
-        - Verify integrity
-            openssl cms -verify -in dcc_database.zip.sig.der -inform DER -content dcc_database.zip -binary -CAfile eu_signer.pem
+            openssl base64 -a -A -d -in dcc_trustlist.zip.sig.txt -out dcc_trustlist.zip.sig.der
+        - Verify integrity (on UNIX Systems)
+            openssl cms -verify -in dcc_trustlist.zip.sig.der -inform DER -content dcc_trustlist.zip -binary -CAfile eu_signer.pem.txt -out /dev/null
+        - Verify integrity (on Windows Systems)
+            openssl cms -verify -in dcc_trustlist.zip.sig.der -inform DER -content dcc_trustlist.zip -binary -CAfile eu_signer.pem.txt -out tmp
 
-        The output of the verify command contains the whole binary data of the zip file.
-        At the end of the output, you should find: "Verification successful"
+            The output of the verify command will be written to a dummy file "tmp" which can be deleted immediately.
+
+        The output should contain "Verification successful" if archive integrity is good.
