@@ -60,8 +60,6 @@ Content:
         - Verify integrity (on UNIX Systems)
             openssl cms -verify -in dcc_trustlist.zip.sig.der -inform DER -content dcc_trustlist.zip -binary -CAfile eu_signer.pem.txt -out /dev/null
         - Verify integrity (on Windows Systems)
-            openssl cms -verify -in dcc_trustlist.zip.sig.der -inform DER -content dcc_trustlist.zip -binary -CAfile eu_signer.pem.txt -out tmp
-
-            The output of the verify command will be written to a dummy file "tmp" which can be deleted immediately.
+            openssl cms -verify -in dcc_trustlist.zip.sig.der -inform DER -content dcc_trustlist.zip -binary -CAfile eu_signer.pem.txt -out NUL
 
         The output should contain "Verification successful" if archive integrity is good.
