@@ -29,8 +29,24 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         
-#    - name: Autobuild
-#      uses: github/codeql-action/autobuild@v2
+    - name: Setup Java 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: 11
+        distribution: adopt
+        
+    - name: Build
+      run: >-
+          mvn clean package
+          --batch-mode
+          --file ./pom.xml
+          --settings ./settings.xml
+          --define app.packages.username="${APP_PACKAGES_USERNAME}"
+          --define app.packages.password="${APP_PACKAGES_PASSWORD}"
+          -DskipTests=true;
+      env:
+        APP_PACKAGES_USERNAME: ${{ github.actor }}
+        APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}          
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
