@@ -336,7 +336,7 @@ public class PublishingService {
 
     private byte[] getVersionFileContent() {
         String fileContent =
-            "DGCG Data Export"
+            "DCCG Data Export"
                 + LINE_SEPERATOR + LINE_SEPERATOR
                 + "Export Timestamp: "
                 + ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
