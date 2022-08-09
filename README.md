@@ -9,6 +9,9 @@
   <a href="https://sonarcloud.io/dashboard?id=eu-digital-green-certificates_dgc-gateway" title="Quality Gate Status">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=eu-digital-green-certificates_dgc-gateway&metric=alert_status">
   </a>
+  <a href="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/codeql.yml" title="CodeQL">
+  <img src="https://github.com/eu-digital-green-certificates/dgc-gateway/actions/workflows/codeql.yml/badge.svg">
+  </a>
   <a href="/../../commits/" title="Last Commit">
     <img src="https://img.shields.io/github/last-commit/eu-digital-green-certificates/dgc-gateway?style=flat">
   </a>
@@ -29,6 +32,7 @@
   <a href="#contributors">Contributors</a> •
   <a href="#licensing">Licensing</a>
 </p>
+
 
 ## About
 
