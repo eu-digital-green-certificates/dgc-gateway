@@ -18,25 +18,21 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.client;
+package eu.europa.ec.dgc.gateway.model;
 
-import eu.europa.ec.dgc.gateway.model.JrcRatValuesetResponse;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.ZonedDateTime;
+import java.util.List;
+import lombok.Data;
 
-@FeignClient(
-    name = "jrcClient",
-    url = "${dgc.jrc.url}",
-    configuration = JrcClientConfig.class)
-public interface JrcClient {
+@Data
+public class JrcRatValuesetResponse {
 
-    /**
-     * This method gets a the RAT values from JRC API.
-     *
-     * @return List of RAT values.
-     */
-    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    JrcRatValuesetResponse downloadRatValues();
+    @JsonProperty("extracted_on")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z")
+    ZonedDateTime extractedOn;
+
+    @JsonProperty("deviceList")
+    List<JrcRatValueset> deviceList;
 }
