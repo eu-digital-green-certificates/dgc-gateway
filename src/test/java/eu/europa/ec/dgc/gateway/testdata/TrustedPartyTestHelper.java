@@ -69,8 +69,8 @@ public class TrustedPartyTestHelper {
     private final DgcTestKeyStore testKeyStore;
 
     public X509Certificate getTestCert(String testCertId, TrustedPartyEntity.CertificateType type,
-                                   String countryCode,ZonedDateTime createdAt) throws Exception {
-       return createAndInsertCert(testCertId, type, countryCode,createdAt);
+                                       String countryCode, ZonedDateTime createdAt) throws Exception {
+        return createAndInsertCert(testCertId, type, countryCode, createdAt);
     }
 
     public String getHash(TrustedPartyEntity.CertificateType type, String countryCode) throws Exception {
@@ -115,7 +115,7 @@ public class TrustedPartyTestHelper {
         if (trustedPartyRepository.getFirstByThumbprintAndCertificateType(
             hashMap.get(type).get(countryCode), type
         ).isEmpty()) {
-            insertCert(type, countryCode, null,  certificateMap.get(type).get(countryCode));
+            insertCert(type, countryCode, null, certificateMap.get(type).get(countryCode));
         }
     }
 
@@ -143,7 +143,7 @@ public class TrustedPartyTestHelper {
     }
 
     private X509Certificate insertCert(TrustedPartyEntity.CertificateType type, String countryCode,
-                                ZonedDateTime createdAt, X509Certificate authCertificate) throws Exception {
+                                       ZonedDateTime createdAt, X509Certificate authCertificate) throws Exception {
 
         String certRawData = Base64.getEncoder().encodeToString(authCertificate.getEncoded());
         String certHash = certificateUtils.getCertThumbprint(authCertificate);
@@ -155,7 +155,9 @@ public class TrustedPartyTestHelper {
             .buildAsString(true);
 
         TrustedPartyEntity trustedPartyEntity = new TrustedPartyEntity();
-        if(createdAt != null) trustedPartyEntity.setCreatedAt(createdAt);
+        if (createdAt != null) {
+            trustedPartyEntity.setCreatedAt(createdAt);
+        }
         trustedPartyEntity.setCertificateType(type);
         trustedPartyEntity.setCountry(countryCode);
         trustedPartyEntity.setSignature(signature);
@@ -168,8 +170,9 @@ public class TrustedPartyTestHelper {
 
     public String signString(final String hashdata) throws Exception {
         return new SignedStringMessageBuilder()
-                .withPayload(hashdata)
-                .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()), testKeyStore.getTrustAnchorPrivateKey())
-                .buildAsString();
+            .withPayload(hashdata)
+            .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()),
+                testKeyStore.getTrustAnchorPrivateKey())
+            .buildAsString();
     }
 }

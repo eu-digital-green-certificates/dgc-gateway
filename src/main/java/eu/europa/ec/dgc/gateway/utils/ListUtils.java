@@ -25,7 +25,7 @@ import java.util.List;
 
 public class ListUtils {
 
-    private ListUtils(){
+    private ListUtils() {
     }
 
     /**
@@ -41,7 +41,7 @@ public class ListUtils {
         if (page < 0) {
             throw new IllegalArgumentException("Page index must not be less than zero!");
         }
-        if (size <= 0)  {
+        if (size <= 0) {
             throw new IllegalArgumentException("Page size must not be less than one!");
         }
 

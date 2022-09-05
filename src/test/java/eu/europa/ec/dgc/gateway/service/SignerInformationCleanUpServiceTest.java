@@ -24,18 +24,17 @@ import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.utils.CertificateUtils;
+import java.security.KeyPairGenerator;
+import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
+import java.util.Base64;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.security.KeyPairGenerator;
-import java.security.cert.X509Certificate;
-import java.time.ZonedDateTime;
-import java.util.Base64;
-import java.util.List;
 
 @SpringBootTest(properties = "dgc.signer-information.delete-threshold=14")
 @Slf4j
@@ -61,22 +60,28 @@ class SignerInformationCleanUpServiceTest {
     void testCleanup() throws Exception {
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
-        X509Certificate x509Certificate1 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest1");
-        X509Certificate x509Certificate2 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest2");
-        X509Certificate x509Certificate3 = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest3");
+        X509Certificate x509Certificate1 =
+          CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest1");
+        X509Certificate x509Certificate2 =
+          CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest2");
+        X509Certificate x509Certificate3 =
+          CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), "DE", "DETest3");
 
         SignerInformationEntity deleted3DaysAgo = createSignerInformationInDB("DE", null,
-                certificateUtils.getCertThumbprint(x509Certificate2), Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
-                ZonedDateTime.now().minusDays(30), ZonedDateTime.now().minusDays(3));
+          certificateUtils.getCertThumbprint(x509Certificate2),
+          Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
+          ZonedDateTime.now().minusDays(30), ZonedDateTime.now().minusDays(3));
 
         SignerInformationEntity deleted3WeeksAgo = createSignerInformationInDB("DE", null,
-                certificateUtils.getCertThumbprint(x509Certificate3), Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
-                ZonedDateTime.now().minusDays(40), ZonedDateTime.now().minusDays(21));
+          certificateUtils.getCertThumbprint(x509Certificate3),
+          Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
+          ZonedDateTime.now().minusDays(40), ZonedDateTime.now().minusDays(21));
 
 
         SignerInformationEntity notDeleted = createSignerInformationInDB("DE", "sig3",
-                certificateUtils.getCertThumbprint(x509Certificate1), Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
-                ZonedDateTime.now().minusDays(40), null);
+          certificateUtils.getCertThumbprint(x509Certificate1),
+          Base64.getEncoder().encodeToString(x509Certificate1.getEncoded()),
+          ZonedDateTime.now().minusDays(40), null);
 
         underTest.cleanup();
 
@@ -88,18 +93,19 @@ class SignerInformationCleanUpServiceTest {
     }
 
 
-
     private SignerInformationEntity createSignerInformationInDB(String countryCode, String signature,
-                                             String thumbprint, String encoded, ZonedDateTime createdAt, ZonedDateTime deletedAt) throws Exception {
+                                                                String thumbprint, String encoded,
+                                                                ZonedDateTime createdAt, ZonedDateTime deletedAt)
+      throws Exception {
         return signerInformationRepository.save(new SignerInformationEntity(
-                null,
-                createdAt,
-                deletedAt,
-                countryCode,
-                thumbprint,
-                encoded,
-                signature,
-                SignerInformationEntity.CertificateType.DSC
+          null,
+          createdAt,
+          deletedAt,
+          countryCode,
+          thumbprint,
+          encoded,
+          signature,
+          SignerInformationEntity.CertificateType.DSC
         ));
     }
 }

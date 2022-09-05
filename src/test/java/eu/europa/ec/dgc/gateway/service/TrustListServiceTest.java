@@ -186,21 +186,25 @@ class TrustListServiceTest {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
         signerInformationTestHelper.createSignerInformationInDB("DE", "sig3",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
-            "DE", "DETest"), nowMinusOneHour);
+                "DE", "DETest"), nowMinusOneHour);
         signerInformationTestHelper.createSignerInformationInDB("EU", "sig4",
             CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(),
-            "EU", "EUTest"), nowMinusOneHour);
+                "EU", "EUTest"), nowMinusOneHour);
 
         trustedPartyTestHelper.getTestCert("test1", TrustedPartyEntity.CertificateType.UPLOAD, "DE", nowMinusOneHour);
         trustedPartyTestHelper.getTestCert("test2", TrustedPartyEntity.CertificateType.CSCA, "DE", nowMinusOneHour);
-        trustedPartyTestHelper.getTestCert("test3", TrustedPartyEntity.CertificateType.AUTHENTICATION, "DE", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test3", TrustedPartyEntity.CertificateType.AUTHENTICATION, "DE",
+            nowMinusOneHour);
         trustedPartyTestHelper.getTestCert("test4", TrustedPartyEntity.CertificateType.UPLOAD, "EU", nowMinusOneHour);
         trustedPartyTestHelper.getTestCert("test5", TrustedPartyEntity.CertificateType.CSCA, "EU", nowMinusOneHour);
-        trustedPartyTestHelper.getTestCert("test6", TrustedPartyEntity.CertificateType.AUTHENTICATION, "EU", nowMinusOneHour);
+        trustedPartyTestHelper.getTestCert("test6", TrustedPartyEntity.CertificateType.AUTHENTICATION, "EU",
+            nowMinusOneHour);
     }
 
 
-    private void assertTrustListItem(List<TrustList> trustList, X509Certificate certificate, String country, TrustListType trustListType, String signature) throws CertificateEncodingException {
+    private void assertTrustListItem(List<TrustList> trustList, X509Certificate certificate, String country,
+                                     TrustListType trustListType, String signature)
+        throws CertificateEncodingException {
         Optional<TrustList> trustListOptional = trustList
             .stream()
             .filter(tl -> tl.getKid().equals(certificateUtils.getCertKid(certificate)))
@@ -214,7 +218,8 @@ class TrustListServiceTest {
         Assertions.assertEquals(country, trustListItem.getCountry());
         Assertions.assertEquals(trustListType, trustListItem.getCertificateType());
         Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()),
+            trustListItem.getRawData());
 
         if (signature != null) {
             Assertions.assertEquals(signature, trustListItem.getSignature());

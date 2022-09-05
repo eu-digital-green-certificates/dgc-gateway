@@ -37,12 +37,12 @@ public class CmsUtils {
     public static SignedStringDto getSignedString(final String cms) {
         SignedStringMessageParser messageParser = new SignedStringMessageParser(cms);
         return SignedStringDto.builder()
-                .payloadString(messageParser.getPayload())
-                .signerCertificate(messageParser.getSigningCertificate())
-                .rawMessage(cms)
-                .signature(messageParser.getSignature())
-                .verified(messageParser.isSignatureVerified())
-                .build();
+            .payloadString(messageParser.getPayload())
+            .signerCertificate(messageParser.getSigningCertificate())
+            .rawMessage(cms)
+            .signature(messageParser.getSignature())
+            .verified(messageParser.isSignatureVerified())
+            .build();
     }
 
     /**
@@ -51,11 +51,11 @@ public class CmsUtils {
     public static SignedCertificateDto getSignerCertificate(final String cms) {
         SignedCertificateMessageParser certificateParser = new SignedCertificateMessageParser(cms);
         return SignedCertificateDto.builder()
-                .payloadCertificate(certificateParser.getPayload())
-                .signerCertificate(certificateParser.getSigningCertificate())
-                .rawMessage(cms)
-                .signature(certificateParser.getSignature())
-                .verified(certificateParser.isSignatureVerified())
-                .build();
+            .payloadCertificate(certificateParser.getPayload())
+            .signerCertificate(certificateParser.getSigningCertificate())
+            .rawMessage(cms)
+            .signature(certificateParser.getSignature())
+            .verified(certificateParser.isSignatureVerified())
+            .build();
     }
 }

@@ -156,8 +156,10 @@ class RatValuesetUpdateServiceTest {
         Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
         Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
         Assertions.assertFalse(updatedValueset.getValue().get(RAT1_ID).getActive());
-        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
-        Assertions.assertEquals(history2.getListDate().toEpochSecond(), updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()),
+            updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertEquals(history2.getListDate().toEpochSecond(),
+            updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
     }
 
     @Test
@@ -198,8 +200,10 @@ class RatValuesetUpdateServiceTest {
         Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
         Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
         Assertions.assertTrue(updatedValueset.getValue().get(RAT1_ID).getActive());
-        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
-        Assertions.assertEquals(history2.getListDate().toEpochSecond(), updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()),
+            updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertEquals(history2.getListDate().toEpochSecond(),
+            updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
     }
 
     @Test
@@ -242,8 +246,10 @@ class RatValuesetUpdateServiceTest {
         Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
         Assertions.assertEquals(1, updatedValueset.getValue().size(), "Valueset List size has been changed");
         Assertions.assertTrue(updatedValueset.getValue().get(RAT1_ID).getActive());
-        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
-        Assertions.assertEquals(history2.getListDate().toEpochSecond(), updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()),
+            updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertEquals(history2.getListDate().toEpochSecond(),
+            updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
     }
 
     @Test
@@ -287,8 +293,10 @@ class RatValuesetUpdateServiceTest {
         Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not set.");
         Assertions.assertEquals(1, updatedValueset.getValue().size());
         Assertions.assertTrue(updatedValueset.getValue().get(RAT1_ID).getActive());
-        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
-        Assertions.assertEquals(history2.getListDate().toEpochSecond(), updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()),
+            updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertEquals(history2.getListDate().toEpochSecond(),
+            updatedValueset.getValue().get(RAT1_ID).getVersion().toEpochSecond());
     }
 
     @Test
@@ -364,7 +372,8 @@ class RatValuesetUpdateServiceTest {
         String updatedValuesetJson = valuesetService.getValueSetById(RAT_VALUESET_ID).orElseThrow();
         Valueset<String, RatValueset> updatedValueset = objectMapper.readValue(updatedValuesetJson, typeReference);
 
-        Assertions.assertEquals(LocalDate.now().minus(1, ChronoUnit.DAYS), updatedValueset.getDate(), "Valueset Date has been updated.");
+        Assertions.assertEquals(LocalDate.now().minus(1, ChronoUnit.DAYS), updatedValueset.getDate(),
+            "Valueset Date has been updated.");
         Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
         assertEquals(rat1, updatedValueset.getValue().get(RAT1_ID));
         assertEquals(rat2, updatedValueset.getValue().get(RAT2_ID));
@@ -408,7 +417,8 @@ class RatValuesetUpdateServiceTest {
         Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
         Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
         Assertions.assertNull(updatedValueset.getValue().get(RAT1_ID).getActive());
-        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()),
+            updatedValueset.getValue().get(RAT1_ID).getDisplay());
         Assertions.assertNull(updatedValueset.getValue().get(RAT1_ID).getVersion());
         assertEquals(history1.getListDate(), updatedValueset.getValue().get(RAT1_ID).getValidUntil());
     }
@@ -456,7 +466,8 @@ class RatValuesetUpdateServiceTest {
         Assertions.assertEquals(LocalDate.now(), updatedValueset.getDate(), "Valueset Date was not updated.");
         Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
         Assertions.assertEquals(history2.getInCommonList(), updatedValueset.getValue().get(RAT1_ID).getActive());
-        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()), updatedValueset.getValue().get(RAT1_ID).getDisplay());
+        Assertions.assertEquals(String.format("%s, %s", manufacturer.getName(), jrcValueset.getCommercialName()),
+            updatedValueset.getValue().get(RAT1_ID).getDisplay());
         assertEquals(history2.getListDate(), updatedValueset.getValue().get(RAT1_ID).getVersion());
         assertEquals(history3.getListDate(), updatedValueset.getValue().get(RAT1_ID).getValidUntil());
     }
