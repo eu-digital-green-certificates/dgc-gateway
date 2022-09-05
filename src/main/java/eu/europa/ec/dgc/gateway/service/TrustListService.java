@@ -105,8 +105,8 @@ public class TrustListService {
      * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param ifModifiedSince since timestamp for filtering TrustList.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of {@link TrustList} ordered by KID
      */
     public List<TrustList> getTrustList(ZonedDateTime ifModifiedSince,
@@ -135,10 +135,10 @@ public class TrustListService {
      * Finds a list of TrustList filtered by type.
      * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param type the type to filter for.
+     * @param type            the type to filter for.
      * @param ifModifiedSince since timestamp for filtering TrustList.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of {@link TrustList} ordered by KID
      */
     public List<TrustList> getTrustList(TrustListType type,
@@ -157,11 +157,11 @@ public class TrustListService {
         } else {
             if (type == TrustListType.DSC) {
                 trustListsByType = mergeAndConvert(Collections.emptyList(),
-                        signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC,
-                            ifModifiedSince, null, null));
+                    signerInformationService.getSignerInformation(SignerInformationEntity.CertificateType.DSC,
+                        ifModifiedSince, null, null));
             } else {
                 trustListsByType = mergeAndConvert(trustedPartyService.getCertificates(map(type),
-                    ifModifiedSince, null, null),
+                        ifModifiedSince, null, null),
                     Collections.emptyList());
             }
         }
@@ -173,14 +173,14 @@ public class TrustListService {
     }
 
     /**
-     *  Finds a list of TrustList filtered by country and type.
-     *  Optional the list can be filtered by a timestamp and paginated.
+     * Finds a list of TrustList filtered by country and type.
+     * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param type        the type to filter for.
-     * @param countryCode the 2-Digit country code to filter for.
+     * @param type            the type to filter for.
+     * @param countryCode     the 2-Digit country code to filter for.
      * @param ifModifiedSince since timestamp for filtering TrustList.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of {@link TrustList} ordered by KID
      */
     public List<TrustList> getTrustList(TrustListType type, String countryCode,
@@ -223,9 +223,9 @@ public class TrustListService {
         List<SignerInformationEntity> signerInformationList) {
 
         return Stream.concat(
-            trustedPartyList.stream().map(this::convert),
-            signerInformationList.stream().map(this::convert)
-        )
+                trustedPartyList.stream().map(this::convert),
+                signerInformationList.stream().map(this::convert)
+            )
             .sorted(Comparator.comparing(TrustList::getKid))
             .collect(Collectors.toList());
     }

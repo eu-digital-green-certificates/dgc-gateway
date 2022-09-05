@@ -108,8 +108,8 @@ public class TrustedPartyService {
      * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param ifModifiedSince since timestamp for filtering Certificate.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of certificates.
      */
     public List<TrustedPartyEntity> getCertificates(ZonedDateTime ifModifiedSince,
@@ -141,10 +141,10 @@ public class TrustedPartyService {
      * Finds a list of Certificates by type.
      * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param type type to filter for.
+     * @param type            type to filter for.
      * @param ifModifiedSince since timestamp for filtering Certificate.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of certificates.
      */
     public List<TrustedPartyEntity> getCertificates(TrustedPartyEntity.CertificateType type,
@@ -162,7 +162,7 @@ public class TrustedPartyService {
         } else {
             trustedPartyEntityByTypeList =
                 trustedPartyRepository.getByCertificateTypeIsSince(
-                    type, ifModifiedSince)
+                        type, ifModifiedSince)
                     .stream()
                     .filter(this::validateCertificateIntegrity)
                     .collect(Collectors.toList());
@@ -178,11 +178,11 @@ public class TrustedPartyService {
      * Finds a list of Certificates by country and type.
      * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param country country of certificate.
-     * @param type type to filter for.
+     * @param country         country of certificate.
+     * @param type            type to filter for.
      * @param ifModifiedSince since timestamp for filtering Certificate.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of certificates.
      */
     public List<TrustedPartyEntity> getCertificates(String country,

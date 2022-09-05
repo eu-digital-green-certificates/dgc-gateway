@@ -33,7 +33,6 @@
   <a href="#licensing">Licensing</a>
 </p>
 
-
 ## About
 
 This repository contains the source code of the EU Digital COVID Certificate Gateway (DGCG).
@@ -43,17 +42,23 @@ backend-to-backend integration is facilitated, and countries can onboard increme
 retain flexibility and can control data processing of their users.
 
 ## Development
-Please be aware that the provided configuration files contain passwords that do not conform to any reasonable password policies, hence under no circumstances should be applied to productive or even broader test environments.
-Passwords used in productive scenarios should be provided only at runtime and stored in safe place, with restricted and logged access.  
+
+Please be aware that the provided configuration files contain passwords that do not conform to any reasonable password
+policies, hence under no circumstances should be applied to productive or even broader test environments.
+Passwords used in productive scenarios should be provided only at runtime and stored in safe place, with restricted and
+logged access.
+
 ### Prerequisites
 
 - OpenJDK 11 (with installed ```keytool``` CLI)
 - Maven
-- Authenticate to [Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
+- Authenticate
+  to [Github Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
 
 #### Authenticating to GitHub Packages
 
-As some of the required libraries (and/or versions are pinned/available only from GitHub Packages) You need to authenticate
+As some of the required libraries (and/or versions are pinned/available only from GitHub Packages) You need to
+authenticate
 to [GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
 The following steps need to be followed
 
@@ -127,8 +132,10 @@ afterwards the PublicKey has to be exported in a Java KeyStore.
 keytool -importcert -alias dgcg_trust_anchor -file cert_ta.pem -keystore ta.jks -storepass dgcg-p4ssw0rd
 ```
 
-Put the created ta.jks file in the "certs" directory of dgc-gateway. If you are using the Docker image then this folder must
-be in the root directory of your local workspace (on the same level as this readme file). Create directory it does not already exist.
+Put the created ta.jks file in the "certs" directory of dgc-gateway. If you are using the Docker image then this folder
+must
+be in the root directory of your local workspace (on the same level as this readme file). Create directory it does not
+already exist.
 
 #### Create Database
 
@@ -148,8 +155,9 @@ docker-compose up --build
 
 `ERROR: for dgc-gateway_dgc-gateway_1  Cannot create container for service dgc-gateway`
 
-This error occurs in Docker-for-Windows if Docker does not have access to the gateway folder. In Docker-for-Windows, 
-go to `Settings > Resources > File Sharing` and add the root directory of the repository, then restart Docker-for-Windows.
+This error occurs in Docker-for-Windows if Docker does not have access to the gateway folder. In Docker-for-Windows,
+go to `Settings > Resources > File Sharing` and add the root directory of the repository, then restart
+Docker-for-Windows.
 
 #### Insert Trusted Parties
 
@@ -172,11 +180,13 @@ dgc ta sign -c cert_ta.pem -k key_ta.pem -i cert_csca.pem
 dgc ta sign -c cert_ta.pem -k key_ta.pem -i cert_upload.pem
 ```
 
-Afterwards you can create a new entry in the `trusted_parties` table and fill all of the fields with the data produced by the above commands.
+Afterwards you can create a new entry in the `trusted_parties` table and fill all of the fields with the data produced
+by the above commands.
 
 ##### Inserting Trusted Parties into the Database
 
-Log on to the mysql container (using the docker commands or opening a shell with the docker UI) and open mysql cli like this:
+Log on to the mysql container (using the docker commands or opening a shell with the docker UI) and open mysql cli like
+this:
 
 ```
 mysql --user=root --password=admin dgc
@@ -250,7 +260,7 @@ curl -X GET http://localhost:8080/trustList -H "accept: application/json" -H "X-
 ```
 
 * Replace the example SHA with that of your own test certificate in the `X-SSL-Client-SHA256` header
-* Replace the example country with your own country in the `X-SSL-Client-DN` header (i.e. US, CN, ZA) 
+* Replace the example country with your own country in the `X-SSL-Client-DN` header (i.e. US, CN, ZA)
 
 That command will return something looking like this (but with large base64 strings)
 
@@ -305,7 +315,8 @@ Property, e.g. C=EU)
 
 #### Coverting the certificate/private key into PKCS12
 
-Windows users may wish to convert their certificate/private keys into a PKCS12 package so that it can be imported into the 
+Windows users may wish to convert their certificate/private keys into a PKCS12 package so that it can be imported into
+the
 machine's certificate store. Thankfully that is pretty simple using openssl.
 
 For example to convert the test authentication certificate created earlier:
@@ -338,18 +349,23 @@ The following channels are available for discussions, feedback, and support requ
 
 | Type                     | Channel                                                |
 | ------------------------ | ------------------------------------------------------ |
-| **Gateway issues**    | <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat"></a>  |
-| **Other requests**    | <a href="mailto:opensource@telekom.de" title="Email DGC Team"><img src="https://img.shields.io/badge/email-DGC%20team-green?logo=mail.ru&style=flat-square&logoColor=white"></a>   |
+| **Gateway
+issues**    | <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/eu-digital-green-certificates/dgc-gateway?style=flat"></a>  |
+| **Other
+requests**    | <a href="mailto:opensource@telekom.de" title="Email DGC Team"><img src="https://img.shields.io/badge/email-DGC%20team-green?logo=mail.ru&style=flat-square&logoColor=white"></a>   |
 
-## How to contribute  
+## How to contribute
 
-Contribution and feedback is encouraged and always welcome. For more information about how to contribute, the project structure, 
-as well as additional contribution information, see our [Contribution Guidelines](./CONTRIBUTING.md). By participating in this 
+Contribution and feedback is encouraged and always welcome. For more information about how to contribute, the project
+structure,
+as well as additional contribution information, see our [Contribution Guidelines](./CONTRIBUTING.md). By participating
+in this
 project, you agree to abide by its [Code of Conduct](./CODE_OF_CONDUCT.md) at all times.
 
-## Contributors  
+## Contributors
 
-Our commitment to open source means that we are enabling -in fact encouraging- all interested parties to contribute and become part of its developer community.
+Our commitment to open source means that we are enabling -in fact encouraging- all interested parties to contribute and
+become part of its developer community.
 
 ## Licensing
 
@@ -360,6 +376,8 @@ the License.
 
 You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" 
-BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the [LICENSE](./LICENSE) for the specific 
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "
+AS IS"
+BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the [LICENSE](./LICENSE) for the
+specific
 language governing permissions and limitations under the License.

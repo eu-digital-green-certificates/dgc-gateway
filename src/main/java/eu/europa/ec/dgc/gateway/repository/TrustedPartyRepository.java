@@ -36,7 +36,7 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
     String SELECT_BY_TYPE_AND_COUNTRY_SINCE =
         "SELECT t FROM TrustedPartyEntity t"
             + " WHERE t.certificateType = :certType AND t.country = :country AND t.createdAt >= :since";
-    
+
     List<TrustedPartyEntity> getByCountryAndCertificateType(String country, TrustedPartyEntity.CertificateType type);
 
     List<TrustedPartyEntity> getByCertificateType(TrustedPartyEntity.CertificateType type);
@@ -55,13 +55,13 @@ public interface TrustedPartyRepository extends JpaRepository<TrustedPartyEntity
 
     @Query(SELECT_BY_TYPE_SINCE)
     List<TrustedPartyEntity> getByCertificateTypeIsSince(
-        @Param("certType")TrustedPartyEntity.CertificateType type,
-        @Param("since")ZonedDateTime since);
+      @Param("certType") TrustedPartyEntity.CertificateType type,
+      @Param("since") ZonedDateTime since);
 
     @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
     List<TrustedPartyEntity> getByCountryAndCertificateTypeIsSince(
-        @Param("country")String countryCode,
-        @Param("certType")TrustedPartyEntity.CertificateType type,
-        @Param("since")ZonedDateTime since);
+      @Param("country") String countryCode,
+      @Param("certType") TrustedPartyEntity.CertificateType type,
+      @Param("since") ZonedDateTime since);
 
 }

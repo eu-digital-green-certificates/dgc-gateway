@@ -291,7 +291,7 @@ public class PublishingService {
         ResponseEntity<byte[]> downloadResponse;
         try {
             downloadResponse = assetManagerClient.downloadFile(getAuthHeader(),
-                    properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), filename);
+                properties.getPublication().getAmngrUid(), properties.getPublication().getPath(), filename);
 
             if (downloadResponse.getStatusCode().is2xxSuccessful()) {
                 log.info("Download of file {} was successful.", filename);
@@ -316,10 +316,10 @@ public class PublishingService {
             try (FileOutputStream fileOutputStream = new FileOutputStream(targetFile)) {
                 fileOutputStream.write(downloadResponse.getBody());
                 log.info("Saved file {} to {} ({} Bytes)",
-                        filename, targetFile.getAbsolutePath(), downloadResponse.getBody().length);
+                    filename, targetFile.getAbsolutePath(), downloadResponse.getBody().length);
             } catch (IOException e) {
                 log.error("Failed to write downloaded file to disk: {}, {}",
-                        targetFile.getAbsolutePath(), e.getMessage());
+                    targetFile.getAbsolutePath(), e.getMessage());
             }
         } else {
             log.error("Download Response does not contain any body");
@@ -330,7 +330,7 @@ public class PublishingService {
     private String getAuthHeader() {
         String header = "Basic ";
         header += Base64.getEncoder().encodeToString((properties.getPublication().getUser() + ":"
-                + properties.getPublication().getPassword()).getBytes(StandardCharsets.UTF_8));
+            + properties.getPublication().getPassword()).getBytes(StandardCharsets.UTF_8));
         return header;
     }
 
