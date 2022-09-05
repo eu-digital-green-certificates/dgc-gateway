@@ -100,12 +100,12 @@ public class SignerInformationService {
      * Optional the list can be filtered by a timestamp and paginated.
      *
      * @param ifModifiedSince since timestamp for filtering SignerInformation.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return list of SignerInformation
      */
-    public List<SignerInformationEntity> getSignerInformation(ZonedDateTime  ifModifiedSince,
-                                                               Integer page, Integer size) {
+    public List<SignerInformationEntity> getSignerInformation(ZonedDateTime ifModifiedSince,
+                                                              Integer page, Integer size) {
         if (ifModifiedSince != null && page != null && size != null) {
             return signerInformationRepository.getIsSince(ifModifiedSince, PageRequest.of(page, size));
         } else if (ifModifiedSince != null) {
@@ -118,13 +118,13 @@ public class SignerInformationService {
     }
 
     /**
-     *  Finds a list of SignerInformation filtered by type.
-     *  Optional the list can be filtered by a timestamp and paginated.
+     * Finds a list of SignerInformation filtered by type.
+     * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param type type to filter for
+     * @param type            type to filter for
      * @param ifModifiedSince since timestamp for filtering SignerInformation.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation(SignerInformationEntity.CertificateType type,
@@ -147,11 +147,11 @@ public class SignerInformationService {
      * Finds a list of SignerInformation filtered by type and country.
      * Optional the list can be filtered by a timestamp and paginated.
      *
-     * @param countryCode 2-digit country Code to filter for.
-     * @param type        type to filter for
+     * @param countryCode     2-digit country Code to filter for.
+     * @param type            type to filter for
      * @param ifModifiedSince since timestamp for filtering SignerInformation.
-     * @param page zero-based page index, must NOT be negative.
-     * @param size number of items in a page to be returned, must be greater than 0.
+     * @param page            zero-based page index, must NOT be negative.
+     * @param size            number of items in a page to be returned, must be greater than 0.
      * @return List of SignerInformation
      */
     public List<SignerInformationEntity> getSignerInformation(
@@ -436,7 +436,7 @@ public class SignerInformationService {
     }
 
     private SignerInformationEntity contentCheckExists(X509CertificateHolder uploadedCertificate)
-            throws SignerCertCheckException {
+        throws SignerCertCheckException {
 
         String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         Optional<SignerInformationEntity> signerInformationEntity =
@@ -444,7 +444,7 @@ public class SignerInformationService {
 
         return signerInformationEntity.orElseThrow(
             () -> new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
-                    "Uploaded certificate does not exists"));
+                "Uploaded certificate does not exists"));
     }
 
     private boolean certificateSignedByCa(X509CertificateHolder certificate, TrustedPartyEntity caCertificateEntity) {

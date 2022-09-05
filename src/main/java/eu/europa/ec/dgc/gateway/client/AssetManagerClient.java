@@ -53,18 +53,18 @@ public interface AssetManagerClient {
                                     @RequestBody byte[] file);
 
     @PostMapping(
-            value = "/ocs/v2.php/apps/files/api/v2/synchronize",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
+        value = "/ocs/v2.php/apps/files/api/v2/synchronize",
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
     )
     ResponseEntity<AssetManagerSynchronizeResponseDto> synchronize(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
-            @RequestHeader("OCS-APIRequest") String ocsApiRequest,
-            @RequestBody SynchronizeFormData formData);
+        @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+        @RequestHeader("OCS-APIRequest") String ocsApiRequest,
+        @RequestBody SynchronizeFormData formData);
 
     @GetMapping(
-            value = "/remote.php/dav/files/{uid}/{path}/{filename}",
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+        value = "/remote.php/dav/files/{uid}/{path}/{filename}",
+        produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     ResponseEntity<byte[]> downloadFile(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
                                         @PathVariable("uid") String uid,
                                         @PathVariable("path") String path,

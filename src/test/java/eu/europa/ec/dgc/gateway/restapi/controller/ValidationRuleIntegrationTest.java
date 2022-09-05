@@ -132,37 +132,43 @@ class ValidationRuleIntegrationTest {
         long validationRulesInDb = validationRuleRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isCreated());
+          )
+          .andExpect(status().isCreated());
 
         Assertions.assertEquals(validationRulesInDb + 1, validationRuleRepository.count());
         Optional<ValidationRuleEntity> createdValidationRule =
-            validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
+          validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
 
         Assertions.assertTrue(createdValidationRule.isPresent());
 
         Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
-        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(), createdValidationRule.get().getValidFrom().toEpochSecond());
-        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(), createdValidationRule.get().getValidTo().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(),
+          createdValidationRule.get().getValidFrom().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(),
+          createdValidationRule.get().getValidTo().toEpochSecond());
         Assertions.assertEquals(validationRule.getCountry(), createdValidationRule.get().getCountry());
-        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT), createdValidationRule.get().getValidationRuleType().toString());
+        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT),
+          createdValidationRule.get().getValidationRuleType().toString());
 
         SignedStringMessageParser parser = new SignedStringMessageParser(createdValidationRule.get().getCms());
         ValidationRule parsedValidationRule = objectMapper.readValue(parser.getPayload(), ValidationRule.class);
@@ -175,8 +181,10 @@ class ValidationRuleIntegrationTest {
         long validationRulesInDb = validationRuleRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setRegion(null);
@@ -184,31 +192,35 @@ class ValidationRuleIntegrationTest {
         json = json.replace("\"Region\":null,", "");
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(json)
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(json)
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isCreated());
+          )
+          .andExpect(status().isCreated());
 
         Assertions.assertEquals(validationRulesInDb + 1, validationRuleRepository.count());
         Optional<ValidationRuleEntity> createdValidationRule =
-            validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
+          validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
 
         Assertions.assertTrue(createdValidationRule.isPresent());
 
         Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
-        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(), createdValidationRule.get().getValidFrom().toEpochSecond());
-        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(), createdValidationRule.get().getValidTo().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(),
+          createdValidationRule.get().getValidFrom().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(),
+          createdValidationRule.get().getValidTo().toEpochSecond());
         Assertions.assertEquals(validationRule.getCountry(), createdValidationRule.get().getCountry());
-        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT), createdValidationRule.get().getValidationRuleType().toString());
+        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT),
+          createdValidationRule.get().getValidationRuleType().toString());
 
         SignedStringMessageParser parser = new SignedStringMessageParser(createdValidationRule.get().getCms());
         ValidationRule parsedValidationRule = objectMapper.readValue(parser.getPayload(), ValidationRule.class);
@@ -220,25 +232,30 @@ class ValidationRuleIntegrationTest {
     void testInputOnlyContainsJson() throws Exception {
         long validationRulesInDb = validationRuleRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule) + "\n" + objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(
+            objectMapper.writeValueAsString(validationRule) + "\n" +
+              objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
-                .content(payload)
-                .contentType("application/cms")
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
-            .andExpect(status().isBadRequest());
+            .content(payload)
+            .contentType("application/cms")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest());
 
         payload = new SignedStringMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
@@ -260,9 +277,12 @@ class ValidationRuleIntegrationTest {
 
     @Test
     void testJsonSchemaValidation() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         Map<String, ValidationRule> invalidValidationRules = new HashMap<>();
 
@@ -323,7 +343,7 @@ class ValidationRuleIntegrationTest {
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-            )
+              )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("0x200"));
         }
@@ -331,25 +351,28 @@ class ValidationRuleIntegrationTest {
 
     @Test
     void testValidationCountry() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setIdentifier("GR-DE-0001");
         validationRule.setCountry("DE");
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value("0x210"));
 
@@ -365,39 +388,42 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value("0x210"));
     }
 
     @Test
     void testValidationVersion() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
-
-        mockMvc.perform(post("/rules")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isCreated());
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
+          .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/rules")
+            .content(payload)
+            .contentType("application/cms")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x220"));
 
@@ -413,7 +439,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x220"));
     }
@@ -423,45 +449,50 @@ class ValidationRuleIntegrationTest {
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(
-                certificateUtils.convertCertificate(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, "EU")),
-                trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, "EU"))
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(
+            certificateUtils.convertCertificate(
+              trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, "EU")),
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, "EU"))
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("0x230"));
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code").value("0x230"));
     }
 
     @Test
     void testValidationTimestamps() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setValidFrom(ZonedDateTime.now().plus(1, ChronoUnit.DAYS));
         validationRule.setValidTo(ZonedDateTime.now().minus(1, ChronoUnit.DAYS));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x240"));
 
@@ -477,7 +508,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isCreated());
 
         validationRule.setVersion("1.0.1");
@@ -493,7 +524,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x240"));
 
@@ -509,16 +540,19 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x240"));
     }
 
     @Test
     void testValidationTimestamps2() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setIdentifier("IR-EU-0001");
@@ -526,16 +560,16 @@ class ValidationRuleIntegrationTest {
         validationRule.setValidFrom(ZonedDateTime.now().plus(2, ChronoUnit.SECONDS));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isCreated());
 
         validationRule = getDummyValidationRule();
@@ -551,26 +585,29 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x240"));
     }
 
     @Test
     void testValidationTimestamps3() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setValidFrom(ZonedDateTime.now().plus(3, ChronoUnit.DAYS));
         validationRule.setValidTo(ZonedDateTime.now()
-            .plus(6, ChronoUnit.DAYS)
-            .minus(1, ChronoUnit.SECONDS));
+          .plus(6, ChronoUnit.DAYS)
+          .minus(1, ChronoUnit.SECONDS));
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
             .buildAsString();
 
         mockMvc.perform(post("/rules")
@@ -578,32 +615,35 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x240"));
     }
 
     @Test
     void testValidationRuleId() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setIdentifier("GR-EU-0001");
         validationRule.setType("Invalidation");
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x250"));
 
@@ -620,7 +660,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x250"));
 
@@ -637,7 +677,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isCreated());
 
         validationRule.setIdentifier("GR-EU-0001");
@@ -653,31 +693,34 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isCreated());
     }
 
     @Test
     void testValidationRuleInvalidIdPrefix() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
         validationRule.setIdentifier("TR-EU-0001");
         validationRule.setCertificateType("Vaccination");
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x250"));
 
@@ -694,7 +737,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x250"));
 
@@ -711,7 +754,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x250"));
 
@@ -728,7 +771,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("0x250"));
     }
@@ -737,25 +780,28 @@ class ValidationRuleIntegrationTest {
     void testDelete() throws Exception {
         long validationRulesInDb = validationRuleRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isCreated());
+          )
+          .andExpect(status().isCreated());
 
         validationRule.setVersion("1.0.1");
 
@@ -769,7 +815,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isCreated());
 
         Assertions.assertEquals(validationRulesInDb + 2, validationRuleRepository.count());
@@ -784,7 +830,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isNoContent());
 
         Assertions.assertEquals(validationRulesInDb, validationRuleRepository.count());
@@ -792,107 +838,122 @@ class ValidationRuleIntegrationTest {
 
     @Test
     void testDeleteFailNotFound() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString("IR-EU-0001"))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString("IR-EU-0001"))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(delete("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isNotFound());
+          )
+          .andExpect(status().isNotFound());
     }
 
     @Test
     void testDeleteFailInvalidUploadCertificate() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString("IR-EU-0001"))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString("IR-EU-0001"))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(delete("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("0x230"));
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code").value("0x230"));
     }
 
     @Test
     void testDeleteFailInvalidIdString() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString("XXXX-TESST-!!!!!"))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString("XXXX-TESST-!!!!!"))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(delete("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("0x250"));
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code").value("0x250"));
     }
 
     @Test
     void testDeleteFailInvalidCountryCode() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString("IR-DE-0001"))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString("IR-DE-0001"))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(delete("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value("0x210"));
+          )
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.code").value("0x210"));
     }
 
     @Test
     void testDownloadReturnAll() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule1 = getDummyValidationRule();
         validationRule1.setValidFrom(ZonedDateTime.now().minus(1, ChronoUnit.DAYS));
 
         String payload1 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule1))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule1))
+          .buildAsString();
 
         ValidationRuleEntity vr1 = new ValidationRuleEntity();
         vr1.setRuleId(validationRule1.getIdentifier());
-        vr1.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
+        vr1.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
         vr1.setValidTo(validationRule1.getValidTo());
         vr1.setValidFrom(validationRule1.getValidFrom());
         vr1.setCountry(validationRule1.getCountry());
@@ -906,13 +967,14 @@ class ValidationRuleIntegrationTest {
         validationRule2.setVersion("1.0.1");
 
         String payload2 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule2))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule2))
+          .buildAsString();
 
         ValidationRuleEntity vr2 = new ValidationRuleEntity();
         vr2.setRuleId(validationRule2.getIdentifier());
-        vr2.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
+        vr2.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
         vr2.setValidTo(validationRule2.getValidTo());
         vr2.setValidFrom(validationRule2.getValidFrom());
         vr2.setCountry(validationRule2.getCountry());
@@ -925,13 +987,14 @@ class ValidationRuleIntegrationTest {
         validationRule3.setIdentifier("GR-EU-0002");
 
         String payload3 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule3))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule3))
+          .buildAsString();
 
         ValidationRuleEntity vr3 = new ValidationRuleEntity();
         vr3.setRuleId(validationRule3.getIdentifier());
-        vr3.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule3.getType().toUpperCase(Locale.ROOT)));
+        vr3.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule3.getType().toUpperCase(Locale.ROOT)));
         vr3.setValidTo(validationRule3.getValidTo());
         vr3.setValidFrom(validationRule3.getValidFrom());
         vr3.setCountry(validationRule3.getCountry());
@@ -941,17 +1004,18 @@ class ValidationRuleIntegrationTest {
         validationRuleRepository.save(vr3);
 
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/rules/EU")
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(2))
-            .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr2.getVersion()))
-            .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr2.getCms()))
+          )
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(2))
+          .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr2.getVersion()))
+          .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr2.getCms()))
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validTo").value(vr2.getValidTo().format(formatter)))
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validFrom").value(vr2.getValidFrom().format(formatter)))
             .andExpect(jsonPath("$.['GR-EU-0001'][1].version").value(vr1.getVersion()))
@@ -967,20 +1031,23 @@ class ValidationRuleIntegrationTest {
 
     @Test
     void testDownloadReturnOnlyValid() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule1 = getDummyValidationRule();
         validationRule1.setValidFrom(ZonedDateTime.now().minus(4, ChronoUnit.DAYS));
 
         String payload1 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule1))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule1))
+          .buildAsString();
 
         ValidationRuleEntity vr1 = new ValidationRuleEntity();
         vr1.setRuleId(validationRule1.getIdentifier());
-        vr1.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
+        vr1.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
         vr1.setValidTo(validationRule1.getValidTo());
         vr1.setValidFrom(validationRule1.getValidFrom());
         vr1.setCountry(validationRule1.getCountry());
@@ -994,13 +1061,14 @@ class ValidationRuleIntegrationTest {
         validationRule2.setVersion("1.0.1");
 
         String payload2 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule2))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule2))
+          .buildAsString();
 
         ValidationRuleEntity vr2 = new ValidationRuleEntity();
         vr2.setRuleId(validationRule2.getIdentifier());
-        vr2.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
+        vr2.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
         vr2.setValidTo(validationRule2.getValidTo());
         vr2.setValidFrom(validationRule2.getValidFrom());
         vr2.setCountry(validationRule2.getCountry());
@@ -1009,37 +1077,41 @@ class ValidationRuleIntegrationTest {
 
         validationRuleRepository.save(vr2);
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/rules/EU")
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(1))
-            .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr2.getVersion()))
-            .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr2.getCms()))
+          )
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(1))
+          .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr2.getVersion()))
+          .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr2.getCms()))
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validTo").value(vr2.getValidTo().format(formatter)))
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validFrom").value(vr2.getValidFrom().format(formatter)));
     }
 
     @Test
     void testDownloadDbContainsOnlyRulesValidInFutureShouldReturnAll() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule1 = getDummyValidationRule();
         validationRule1.setValidFrom(ZonedDateTime.now().plus(1, ChronoUnit.DAYS));
 
         String payload1 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule1))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule1))
+          .buildAsString();
 
         ValidationRuleEntity vr1 = new ValidationRuleEntity();
         vr1.setRuleId(validationRule1.getIdentifier());
-        vr1.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
+        vr1.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule1.getType().toUpperCase(Locale.ROOT)));
         vr1.setValidTo(validationRule1.getValidTo());
         vr1.setValidFrom(validationRule1.getValidFrom());
         vr1.setCountry(validationRule1.getCountry());
@@ -1053,13 +1125,14 @@ class ValidationRuleIntegrationTest {
         validationRule2.setVersion("1.0.1");
 
         String payload2 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule2))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule2))
+          .buildAsString();
 
         ValidationRuleEntity vr2 = new ValidationRuleEntity();
         vr2.setRuleId(validationRule2.getIdentifier());
-        vr2.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
+        vr2.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule2.getType().toUpperCase(Locale.ROOT)));
         vr2.setValidTo(validationRule2.getValidTo());
         vr2.setValidFrom(validationRule2.getValidFrom());
         vr2.setCountry(validationRule2.getCountry());
@@ -1073,13 +1146,14 @@ class ValidationRuleIntegrationTest {
         validationRule3.setVersion("1.1.0");
 
         String payload3 = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule3))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule3))
+          .buildAsString();
 
         ValidationRuleEntity vr3 = new ValidationRuleEntity();
         vr3.setRuleId(validationRule3.getIdentifier());
-        vr3.setValidationRuleType(ValidationRuleEntity.ValidationRuleType.valueOf(validationRule3.getType().toUpperCase(Locale.ROOT)));
+        vr3.setValidationRuleType(
+          ValidationRuleEntity.ValidationRuleType.valueOf(validationRule3.getType().toUpperCase(Locale.ROOT)));
         vr3.setValidTo(validationRule3.getValidTo());
         vr3.setValidFrom(validationRule3.getValidFrom());
         vr3.setCountry(validationRule3.getCountry());
@@ -1089,17 +1163,18 @@ class ValidationRuleIntegrationTest {
         validationRuleRepository.save(vr3);
 
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/rules/EU")
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(3))
-            .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr3.getVersion()))
-            .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr3.getCms()))
+          )
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.['GR-EU-0001'].length()").value(3))
+          .andExpect(jsonPath("$.['GR-EU-0001'][0].version").value(vr3.getVersion()))
+          .andExpect(jsonPath("$.['GR-EU-0001'][0].cms").value(vr3.getCms()))
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validTo").value(vr3.getValidTo().format(formatter)))
             .andExpect(jsonPath("$.['GR-EU-0001'][0].validFrom").value(vr3.getValidFrom().format(formatter)))
             .andExpect(jsonPath("$.['GR-EU-0001'][1].version").value(vr2.getVersion()))
@@ -1117,25 +1192,28 @@ class ValidationRuleIntegrationTest {
     void testDeleteAliasEndpoint() throws Exception {
         long validationRulesInDb = validationRuleRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isCreated());
+          )
+          .andExpect(status().isCreated());
 
         validationRule.setVersion("1.0.1");
 
@@ -1149,7 +1227,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isCreated());
 
         Assertions.assertEquals(validationRulesInDb + 2, validationRuleRepository.count());
@@ -1164,7 +1242,7 @@ class ValidationRuleIntegrationTest {
             .contentType("application/cms")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isNoContent());
 
         Assertions.assertEquals(validationRulesInDb, validationRuleRepository.count());
@@ -1175,37 +1253,43 @@ class ValidationRuleIntegrationTest {
         long validationRulesInDb = validationRuleRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-            .withPayload(objectMapper.writeValueAsString(validationRule))
-            .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/rules")
             .content(payload)
             .contentType("application/cms-text")
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isCreated());
+          )
+          .andExpect(status().isCreated());
 
         Assertions.assertEquals(validationRulesInDb + 1, validationRuleRepository.count());
         Optional<ValidationRuleEntity> createdValidationRule =
-            validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
+          validationRuleRepository.getByRuleIdAndVersion(validationRule.getIdentifier(), validationRule.getVersion());
 
         Assertions.assertTrue(createdValidationRule.isPresent());
 
         Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
-        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(), createdValidationRule.get().getValidFrom().toEpochSecond());
-        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(), createdValidationRule.get().getValidTo().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidFrom().toEpochSecond(),
+          createdValidationRule.get().getValidFrom().toEpochSecond());
+        Assertions.assertEquals(validationRule.getValidTo().toEpochSecond(),
+          createdValidationRule.get().getValidTo().toEpochSecond());
         Assertions.assertEquals(validationRule.getCountry(), createdValidationRule.get().getCountry());
-        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT), createdValidationRule.get().getValidationRuleType().toString());
+        Assertions.assertEquals(validationRule.getType().toUpperCase(Locale.ROOT),
+          createdValidationRule.get().getValidationRuleType().toString());
 
         SignedStringMessageParser parser = new SignedStringMessageParser(createdValidationRule.get().getCms());
         ValidationRule parsedValidationRule = objectMapper.readValue(parser.getPayload(), ValidationRule.class);

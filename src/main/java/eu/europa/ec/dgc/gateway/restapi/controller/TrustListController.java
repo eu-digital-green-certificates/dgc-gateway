@@ -148,12 +148,12 @@ public class TrustListController {
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountryCode
     ) {
         List<TrustListDto> trustList;
-        if (isPaginationRequired(page,size)) {
+        if (isPaginationRequired(page, size)) {
             page = (page != null && page >= 0) ? page : 0;
             size = (size != null && size >= 0) ? size : 100;
 
             trustList = trustListMapper.trustListToTrustListDto(
-                    trustListService.getTrustList(ifModifiedSince, page, size));
+                trustListService.getTrustList(ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(ifModifiedSince, null, null));
@@ -242,12 +242,12 @@ public class TrustListController {
 
         TrustListType mappedType = trustListMapper.certificateTypeDtoToTrustListType(type);
         List<TrustListDto> trustList;
-        if (isPaginationRequired(page,size)) {
+        if (isPaginationRequired(page, size)) {
             page = (page != null && page >= 0) ? page : 0;
             size = (size != null && size >= 0) ? size : 100;
 
             trustList = trustListMapper.trustListToTrustListDto(
-                    trustListService.getTrustList(mappedType, ifModifiedSince, page, size));
+                trustListService.getTrustList(mappedType, ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(mappedType, ifModifiedSince, null, null));
@@ -347,12 +347,12 @@ public class TrustListController {
         countryCode = countryCode.toUpperCase(Locale.ROOT);
 
         List<TrustListDto> trustList;
-        if (isPaginationRequired(page,size)) {
+        if (isPaginationRequired(page, size)) {
             page = (page != null && page >= 0) ? page : 0;
             size = (size != null && size >= 0) ? size : 100;
 
             trustList = trustListMapper.trustListToTrustListDto(
-                    trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, page, size));
+                trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, page, size));
         } else {
             trustList = trustListMapper.trustListToTrustListDto(
                 trustListService.getTrustList(mappedType, countryCode, ifModifiedSince, null, null));
@@ -373,47 +373,46 @@ public class TrustListController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "/issuers", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-            },
-            summary = "Returns the list of trusted issuers filtered by criterias.",
-            tags = {"Trust List"},
-            parameters = {
-                    @Parameter(
-                            in = ParameterIn.QUERY,
-                            name = "country",
-                            description = "Two-Digit Country Code",
-                            examples = {@ExampleObject("EU"), @ExampleObject("DE")}
-                    )
-            },
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Returns the list of trusted issuers.",
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    array = @ArraySchema(schema = @Schema(implementation = TrustedIssuerDto.class)))),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Unauthorized. No Access to the system."
-                                    + "(Client Certificate not present or whitelisted)",
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = ProblemReportDto.class)
-                            ))
-            })
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        summary = "Returns the list of trusted issuers filtered by criterias.",
+        tags = {"Trust List"},
+        parameters = {
+            @Parameter(
+                in = ParameterIn.QUERY,
+                name = "country",
+                description = "Two-Digit Country Code",
+                examples = {@ExampleObject("EU"), @ExampleObject("DE")})
+        },
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Returns the list of trusted issuers.",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    array = @ArraySchema(schema = @Schema(implementation = TrustedIssuerDto.class)))),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized. No Access to the system."
+                    + "(Client Certificate not present or whitelisted)",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemReportDto.class)
+                ))
+        })
     public ResponseEntity<List<TrustedIssuerDto>> getTrustedIssuersByCountry(
-            @RequestParam(value = "country", required = false) List<@Size(min = 2, max = 2) String> searchCountry
+        @RequestParam(value = "country", required = false) List<@Size(min = 2, max = 2) String> searchCountry
     ) {
         if (CollectionUtils.isNotEmpty(searchCountry)) {
             log.debug("Downloading TrustedIssuers TrustList. Parameters country: {}", searchCountry);
             return ResponseEntity.ok(trustedIssuerMapper.trustedIssuerEntityToTrustedIssuerDto(
-                    trustedIssuerService.getAllIssuers(searchCountry)));
+                trustedIssuerService.getAllIssuers(searchCountry)));
         } else {
             log.debug("Downloading all TrustedIssuers TrustList.");
             return ResponseEntity.ok(trustedIssuerMapper.trustedIssuerEntityToTrustedIssuerDto(
-                    trustedIssuerService.getAllIssuers()));
+                trustedIssuerService.getAllIssuers()));
         }
     }
 

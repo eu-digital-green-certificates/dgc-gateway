@@ -21,19 +21,18 @@
 package eu.europa.ec.dgc.gateway.service;
 
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+
 import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedIssuerRepository;
 import eu.europa.ec.dgc.gateway.testdata.TrustedIssuerTestHelper;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 
 @SpringBootTest
 class TrustedIssuerServiceTest {
@@ -55,9 +54,9 @@ class TrustedIssuerServiceTest {
         trustedIssuerRepository.deleteAll();
 
         trustedIssuerRepository.saveAll(List.of(
-                trustedIssuerTestHelper.createTrustedIssuer("EU"),
-                trustedIssuerTestHelper.createTrustedIssuer("DE"),
-                trustedIssuerTestHelper.createTrustedIssuer("AT")
+            trustedIssuerTestHelper.createTrustedIssuer("EU"),
+            trustedIssuerTestHelper.createTrustedIssuer("DE"),
+            trustedIssuerTestHelper.createTrustedIssuer("AT")
         ));
     }
 

@@ -86,7 +86,8 @@ class AuditServiceTest {
 
         Assertions.assertEquals(countryCode, auditEvent.getCountry());
         Assertions.assertEquals(dummySignature, auditEvent.getAuthenticationSha256Fingerprint());
-        Assertions.assertEquals(trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.UPLOAD, countryCode), auditEvent.getUploaderSha256Fingerprint());
+        Assertions.assertEquals(trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.UPLOAD, countryCode),
+            auditEvent.getUploaderSha256Fingerprint());
         Assertions.assertEquals(exampleEvent, auditEvent.getEvent());
         Assertions.assertEquals(exampleEventDescription, auditEvent.getDescription());
     }

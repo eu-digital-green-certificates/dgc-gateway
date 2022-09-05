@@ -76,7 +76,7 @@ public class CertificateRevocationListController {
     private final RevocationBatchMapper revocationBatchMapper;
 
     public static final String UUID_REGEX =
-            "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
+      "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
 
     private static final String MDC_DOWNLOADER_COUNTRY = "downloaderCountry";
     private static final String MDC_DOWNLOADED_COUNTRY = "downloadedCountry";
@@ -88,19 +88,19 @@ public class CertificateRevocationListController {
     @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationListReader)
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-        },
-        tags = {"Revocation"},
-        summary = "Download Batch List",
-        description = "Returning a list of batches with a small wrapper providing metadata."
-            + " The batches are sorted by date in ascending (chronological) order.",
-        parameters = {
-            @Parameter(
-                in = ParameterIn.HEADER,
-                name = HttpHeaders.IF_MODIFIED_SINCE,
-                description = "This header contains the last downloaded date to get just the latest results. "
+      security = {
+        @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+        @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+      },
+      tags = {"Revocation"},
+      summary = "Download Batch List",
+      description = "Returning a list of batches with a small wrapper providing metadata."
+        + " The batches are sorted by date in ascending (chronological) order.",
+      parameters = {
+        @Parameter(
+          in = ParameterIn.HEADER,
+          name = HttpHeaders.IF_MODIFIED_SINCE,
+          description = "This header contains the last downloaded date to get just the latest results. "
                     + "On the initial call the header should be the set to ‘2021-06-01T00:00:00Z’",
                 required = true)
         },
@@ -155,22 +155,22 @@ public class CertificateRevocationListController {
                 required = true)
         },
         responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "Response contains the batch.",
-                content = @Content(schema = @Schema(implementation = RevocationBatchDto.class)),
-                    headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID")),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Batch does not exist."),
-                @ApiResponse(
-                        responseCode = "410",
-                        description = "Batch already deleted.")
+          @ApiResponse(
+            responseCode = "200",
+            description = "Response contains the batch.",
+            content = @Content(schema = @Schema(implementation = RevocationBatchDto.class)),
+            headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID")),
+          @ApiResponse(
+            responseCode = "404",
+            description = "Batch does not exist."),
+          @ApiResponse(
+            responseCode = "410",
+            description = "Batch already deleted.")
         }
     )
     public ResponseEntity<String> downloadBatch(
-            @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId,
-            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountry) {
+      @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId,
+      @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountry) {
 
         try {
             RevocationBatchDownload download = revocationListService.getRevocationBatch(batchId);
@@ -183,9 +183,9 @@ public class CertificateRevocationListController {
             log.info("Revocation Batch downloaded.");
 
             return ResponseEntity
-                    .ok()
-                    .header(HttpHeaders.ETAG, download.getBatchId())
-                    .body(download.getSignedCms());
+              .ok()
+              .header(HttpHeaders.ETAG, download.getBatchId())
+              .body(download.getSignedCms());
 
         } catch (RevocationListService.RevocationBatchServiceException e) {
             switch (e.getReason()) {

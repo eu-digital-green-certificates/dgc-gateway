@@ -62,8 +62,8 @@ public class CertificateMigrationController {
     public static final String SENT_VALUES_FORMAT = "{%s} country:{%s}";
     public static final String X_004 = "0x004";
     public static final String DEFAULT_ERROR_MESSAGE = "Possible reasons: Wrong Format,"
-            + " no CMS, not the correct signing alg missing attributes, invalid signature, "
-            + "certificate not signed by known CA";
+        + " no CMS, not the correct signing alg missing attributes, invalid signature, "
+        + "certificate not signed by known CA";
 
     private final SignerInformationService signerInformationService;
 
@@ -81,24 +81,23 @@ public class CertificateMigrationController {
     @GetMapping
     @Operation(
         security = {
-                @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
         },
         summary = "Get all cms packages for a country identified by certificate.",
         tags = {"CMS Migration"},
         responses = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "Download successful.",
-                        content = @Content(
-                                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                schema = @Schema(implementation = CmsPackageDto.class)
-                        )
-                )
+            @ApiResponse(
+                responseCode = "200",
+                description = "Download successful.",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = CmsPackageDto.class)
+                ))
         }
     )
     public ResponseEntity<List<CmsPackageDto>> getCmsPackages(
-            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode
     ) {
 
         log.info("Getting cms packages for {}", countryCode);
@@ -119,51 +118,50 @@ public class CertificateMigrationController {
 
     /**
      * Update a CMS Package.
-     *
      */
     @CertificateAuthenticationRequired
     @PostMapping
     @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-            },
-            tags = {"CMS Migration"},
-            summary = "Update an existing CMS Package",
-            description = "Endpoint to update an existing CMS pacakage.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = CmsPackageDto.class))
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "204",
-                            description = "Update applied."),
-                    @ApiResponse(
-                            responseCode = "409",
-                            description = "CMS Package does not exist."),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Invalid CMS input.")
-            }
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        tags = {"CMS Migration"},
+        summary = "Update an existing CMS Package",
+        description = "Endpoint to update an existing CMS pacakage.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(schema = @Schema(implementation = CmsPackageDto.class))
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "204",
+                description = "Update applied."),
+            @ApiResponse(
+                responseCode = "409",
+                description = "CMS Package does not exist."),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Invalid CMS input.")
+        }
     )
     public ResponseEntity<Void> updateCmsPackage(
-            @RequestBody CmsPackageDto cmsPackageDto,
-            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
-            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
+        @RequestBody CmsPackageDto cmsPackageDto,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String authThumbprint
     ) {
 
         if (CmsPackageDto.CmsPackageTypeDto.DSC == cmsPackageDto.getType()) {
             SignedCertificateDto signedCertificateDto = getSignerCertificate(cmsPackageDto.getCms());
             if (!signedCertificateDto.isVerified()) {
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
-                        "Submitted package needs to be signed by a valid upload certificate");
+                    "Submitted package needs to be signed by a valid upload certificate");
             }
 
             try {
                 signerInformationService.updateSignerCertificate(cmsPackageDto.getEntityId(),
-                        signedCertificateDto.getPayloadCertificate(), signedCertificateDto.getSignerCertificate(),
-                        signedCertificateDto.getSignature(), countryCode);
+                    signedCertificateDto.getPayloadCertificate(), signedCertificateDto.getSignerCertificate(),
+                    signedCertificateDto.getSignature(), countryCode);
             } catch (SignerInformationService.SignerCertCheckException e) {
                 handleSignerCertException(cmsPackageDto, countryCode, e);
             }
@@ -172,17 +170,17 @@ public class CertificateMigrationController {
 
             if (!signedStringDto.isVerified()) {
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
-                        "Submitted package needs to be signed by a valid upload certificate");
+                    "Submitted package needs to be signed by a valid upload certificate");
             }
             try {
                 if (CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST == cmsPackageDto.getType()) {
                     revocationListService.updateRevocationBatchCertificate(cmsPackageDto.getEntityId(),
-                            signedStringDto.getPayloadString(), signedStringDto.getSignerCertificate(),
-                            signedStringDto.getRawMessage(), countryCode);
+                        signedStringDto.getPayloadString(), signedStringDto.getSignerCertificate(),
+                        signedStringDto.getRawMessage(), countryCode);
                 } else if (CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE == cmsPackageDto.getType()) {
                     validationRuleService.updateValidationRuleCertificate(cmsPackageDto.getEntityId(),
-                            signedStringDto.getPayloadString(), signedStringDto.getSignerCertificate(),
-                            signedStringDto.getRawMessage(), countryCode);
+                        signedStringDto.getPayloadString(), signedStringDto.getSignerCertificate(),
+                        signedStringDto.getRawMessage(), countryCode);
                 }
             } catch (RevocationListService.RevocationBatchServiceException e) {
                 handleRevocationBatchException(cmsPackageDto, countryCode, e);
@@ -207,14 +205,14 @@ public class CertificateMigrationController {
         switch (e.getReason()) {
             case EXIST_CHECK_FAILED:
                 throw new DgcgResponseException(HttpStatus.CONFLICT, "0x010",
-                        "Certificate to be updated does not exist.",
-                        sentValues, e.getMessage());
+                    "Certificate to be updated does not exist.",
+                    sentValues, e.getMessage());
             case UPLOAD_FAILED:
                 throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "0x011", "Upload of new Signer Certificate failed", sentValues, e.getMessage());
+                    "0x011", "Upload of new Signer Certificate failed", sentValues, e.getMessage());
             default:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, X_004, DEFAULT_ERROR_MESSAGE, sentValues,
-                        e.getMessage());
+                    e.getMessage());
         }
     }
 
@@ -225,17 +223,17 @@ public class CertificateMigrationController {
         switch (e.getReason()) {
             case NOT_FOUND:
                 throw new DgcgResponseException(HttpStatus.CONFLICT, "0x020",
-                        "RevocationBatch to be updated does not exist.",
-                        sentValues, e.getMessage());
+                    "RevocationBatch to be updated does not exist.",
+                    sentValues, e.getMessage());
             case INVALID_COUNTRY:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST,
-                        "0x021", "Invalid country", sentValues, e.getMessage());
+                    "0x021", "Invalid country", sentValues, e.getMessage());
             case INVALID_JSON_VALUES:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST,
-                        "0x022", "Json Payload invalid", sentValues, e.getMessage());
+                    "0x022", "Json Payload invalid", sentValues, e.getMessage());
             default:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, X_004, DEFAULT_ERROR_MESSAGE, sentValues,
-                        e.getMessage());
+                    e.getMessage());
         }
     }
 
@@ -246,17 +244,17 @@ public class CertificateMigrationController {
         switch (e.getReason()) {
             case NOT_FOUND:
                 throw new DgcgResponseException(HttpStatus.CONFLICT, "0x030",
-                        "ValidationRule to be updated does not exist.",
-                        sentValues, e.getMessage());
+                    "ValidationRule to be updated does not exist.",
+                    sentValues, e.getMessage());
             case INVALID_COUNTRY:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST,
-                        "0x031", "Invalid country", sentValues, e.getMessage());
+                    "0x031", "Invalid country", sentValues, e.getMessage());
             case INVALID_JSON:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x032", "Json Payload invalid", sentValues,
-                        e.getMessage());
+                    e.getMessage());
             default:
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, X_004, DEFAULT_ERROR_MESSAGE, sentValues,
-                        e.getMessage());
+                    e.getMessage());
         }
     }
 }

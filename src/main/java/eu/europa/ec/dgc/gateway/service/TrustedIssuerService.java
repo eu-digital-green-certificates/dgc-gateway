@@ -70,9 +70,9 @@ public class TrustedIssuerService {
      */
     public List<TrustedIssuerEntity> getAllIssuers() {
         return trustedIssuerRepository.findAll()
-                .stream()
-                .filter(this::validateTrustedIssuerIntegrity)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(this::validateTrustedIssuerIntegrity)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -82,9 +82,9 @@ public class TrustedIssuerService {
      */
     public List<TrustedIssuerEntity> getAllIssuers(final List<String> countryCodes) {
         return trustedIssuerRepository.getAllByCountryIn(countryCodes)
-                .stream()
-                .filter(this::validateTrustedIssuerIntegrity)
-                .collect(Collectors.toList());
+            .stream()
+            .filter(this::validateTrustedIssuerIntegrity)
+            .collect(Collectors.toList());
     }
 
     private boolean validateTrustedIssuerIntegrity(TrustedIssuerEntity trustedIssuerEntity) {
@@ -99,7 +99,7 @@ public class TrustedIssuerService {
         X509CertificateHolder trustAnchor = null;
         try {
             trustAnchor = certificateUtils.convertCertificate((X509Certificate) trustAnchorKeyStore.getCertificate(
-                    dgcConfigProperties.getTrustAnchor().getCertificateAlias()));
+                dgcConfigProperties.getTrustAnchor().getCertificateAlias()));
         } catch (KeyStoreException | CertificateEncodingException | IOException e) {
             log.error("Could not load DGCG-TrustAnchor from KeyStore.", e);
             return false;
@@ -107,8 +107,8 @@ public class TrustedIssuerService {
 
         // verify signature
         SignedStringMessageParser parser = new SignedStringMessageParser(
-                trustedIssuerEntity.getSignature(),
-                Base64.getEncoder().encodeToString(getHashData(trustedIssuerEntity).getBytes(StandardCharsets.UTF_8)));
+            trustedIssuerEntity.getSignature(),
+            Base64.getEncoder().encodeToString(getHashData(trustedIssuerEntity).getBytes(StandardCharsets.UTF_8)));
 
         if (parser.getParserState() != SignedMessageParser.ParserState.SUCCESS) {
             DgcMdc.put(MDC_PROP_PARSER_STATE, parser.getParserState().name());
@@ -131,8 +131,8 @@ public class TrustedIssuerService {
 
     private String getHashData(TrustedIssuerEntity entity) {
         return entity.getCountry() + HASH_SEPARATOR
-                + entity.getName() + HASH_SEPARATOR
-                + entity.getUrl() + HASH_SEPARATOR
-                + entity.getUrlType().name() + HASH_SEPARATOR;
+            + entity.getName() + HASH_SEPARATOR
+            + entity.getUrl() + HASH_SEPARATOR
+            + entity.getUrlType().name() + HASH_SEPARATOR;
     }
 }

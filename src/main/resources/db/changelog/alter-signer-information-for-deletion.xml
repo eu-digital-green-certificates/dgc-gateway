@@ -9,7 +9,7 @@
         <addColumn tableName="signer_information">
             <column name="deleted_at" type="DATETIME"/>
         </addColumn>
-        <dropNotNullConstraint tableName="signer_information" columnName="signature" columnDataType="VARCHAR(6000)" />
+        <dropNotNullConstraint tableName="signer_information" columnName="signature" columnDataType="VARCHAR(6000)"/>
     </changeSet>
 
 </databaseChangeLog>
