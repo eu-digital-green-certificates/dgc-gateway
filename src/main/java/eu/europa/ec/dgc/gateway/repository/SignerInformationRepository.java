@@ -77,13 +77,13 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
 
     @Query(SELECT_BY_TYPE_SINCE)
     List<SignerInformationEntity> getByCertificateTypeIsSince(
-      @Param("certType") SignerInformationEntity.CertificateType type,
-      @Param("since") ZonedDateTime since);
+        @Param("certType") SignerInformationEntity.CertificateType type,
+        @Param("since") ZonedDateTime since);
 
     @Query(SELECT_BY_TYPE_SINCE)
     List<SignerInformationEntity> getByCertificateTypeIsSince(
-      @Param("certType") SignerInformationEntity.CertificateType type,
-      @Param("since") ZonedDateTime since, Pageable pageable);
+        @Param("certType") SignerInformationEntity.CertificateType type,
+        @Param("since") ZonedDateTime since, Pageable pageable);
 
     @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
     List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(

@@ -47,14 +47,14 @@ public class IpLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest httpServletRequest,
-            HttpServletResponse httpServletResponse,
-            FilterChain filterChain
+        HttpServletRequest httpServletRequest,
+        HttpServletResponse httpServletResponse,
+        FilterChain filterChain
     ) throws ServletException, IOException {
         logger.debug("Checking request for X-Forwarded-For headers");
 
         String headerForwardedFor =
-                httpServletRequest.getHeader(HTTP_HEADER_FORWARDED_FOR);
+            httpServletRequest.getHeader(HTTP_HEADER_FORWARDED_FOR);
 
         if (headerForwardedFor == null) {
             log.error("No source IP in request");
