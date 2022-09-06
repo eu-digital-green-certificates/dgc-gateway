@@ -41,11 +41,6 @@ public class IpLoggingFilter extends OncePerRequestFilter {
     public static final String HTTP_HEADER_FORWARDED_FOR = "X-Forwarded-For";
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return false;
-    }
-
-    @Override
     protected void doFilterInternal(
         HttpServletRequest httpServletRequest,
         HttpServletResponse httpServletResponse,
