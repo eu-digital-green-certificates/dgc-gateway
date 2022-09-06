@@ -232,16 +232,16 @@ public class RevocationListService {
 
         if (entity.isEmpty()) {
             throw new RevocationBatchServiceException(
-                    RevocationBatchServiceException.Reason.NOT_FOUND, "Batch not found");
+                RevocationBatchServiceException.Reason.NOT_FOUND, "Batch not found");
         }
 
         if (entity.get().getDeleted()) {
             throw new RevocationBatchServiceException(
-                    RevocationBatchServiceException.Reason.GONE, "Batch already deleted.");
+                RevocationBatchServiceException.Reason.GONE, "Batch already deleted.");
         }
 
         return new RevocationBatchDownload(
-                entity.get().getBatchId(), entity.get().getSignedBatch(), entity.get().getCountry());
+            entity.get().getBatchId(), entity.get().getSignedBatch(), entity.get().getCountry());
     }
 
     /**
@@ -253,10 +253,10 @@ public class RevocationListService {
     public List<CmsPackageDto> getCmsPackage(String country) {
         List<RevocationBatchEntity> revocationBatchEntities = revocationBatchRepository.getAllByCountry(country);
         return revocationBatchEntities.stream()
-                .filter(it -> !it.getDeleted())
-                .map(it -> new CmsPackageDto(it.getSignedBatch(), it.getId(),
-                        CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST))
-                .collect(Collectors.toList());
+            .filter(it -> !it.getDeleted())
+            .map(it -> new CmsPackageDto(it.getSignedBatch(), it.getId(),
+                CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST))
+            .collect(Collectors.toList());
     }
 
     /**
@@ -270,11 +270,11 @@ public class RevocationListService {
      *                                         with detailed information why the validation has failed.
      */
     public RevocationBatchEntity updateRevocationBatchCertificate(
-            Long id,
-            String payloadRevocationBatch,
-            X509CertificateHolder signerCertificate,
-            String cms,
-            String authenticatedCountryCode
+        Long id,
+        String payloadRevocationBatch,
+        X509CertificateHolder signerCertificate,
+        String cms,
+        String authenticatedCountryCode
     ) throws RevocationBatchServiceException {
 
         final RevocationBatchEntity revocationBatchEntity = revocationBatchRepository.findById(id).orElseThrow(
@@ -291,11 +291,11 @@ public class RevocationListService {
         log.info("Updating cms of Revocation Batch Entity with id {}", revocationBatchEntity.getBatchId());
 
         auditService.addAuditEvent(
-                authenticatedCountryCode,
-                signerCertificate,
-                authenticatedCountryCode,
-                "UPDATED",
-                String.format("Updated Revocation Batch (%s)", revocationBatchEntity.getBatchId())
+            authenticatedCountryCode,
+            signerCertificate,
+            authenticatedCountryCode,
+            "UPDATED",
+            String.format("Updated Revocation Batch (%s)", revocationBatchEntity.getBatchId())
         );
 
         RevocationBatchEntity updatedEntity = revocationBatchRepository.save(revocationBatchEntity);
@@ -311,11 +311,11 @@ public class RevocationListService {
     }
 
     private void contentCheckUploaderCountry(String batchCountryCode, String countryCode)
-            throws RevocationBatchServiceException {
+        throws RevocationBatchServiceException {
         if (!batchCountryCode.equals(countryCode)) {
             throw new RevocationBatchServiceException(
-                    RevocationBatchServiceException.Reason.INVALID_COUNTRY,
-                    "Country does not match your authentication.");
+                RevocationBatchServiceException.Reason.INVALID_COUNTRY,
+                "Country does not match your authentication.");
         }
     }
 
@@ -392,12 +392,12 @@ public class RevocationListService {
     }
 
     private void contentCheckMigrateCms(String payload, String entityCms)
-            throws RevocationBatchServiceException {
+        throws RevocationBatchServiceException {
         SignedStringDto signedStringDto = getSignedString(entityCms);
         if (!payload.equals(signedStringDto.getPayloadString())) {
             throw new RevocationBatchServiceException(
-                    RevocationBatchServiceException.Reason.INVALID_JSON_VALUES,
-                    "New cms payload does not match present payload."
+                RevocationBatchServiceException.Reason.INVALID_JSON_VALUES,
+                "New cms payload does not match present payload."
             );
         }
     }

@@ -69,21 +69,19 @@ public class ValuesetController {
             @ApiResponse(
                 responseCode = "200",
                 description = "List of valueset ids",
-                content = @Content(array = @ArraySchema(schema = @Schema(implementation = String.class)))
-            ),
+                content = @Content(array = @ArraySchema(schema = @Schema(implementation = String.class)))),
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ProblemReportDto.class)
-                ))
+                    schema = @Schema(implementation = ProblemReportDto.class)))
         }
     )
     public ResponseEntity<List<String>> getValuesetIds() {
         return ResponseEntity.ok(valuesetService.getValuesetIds());
     }
-    
+
     /**
      * Controller to get a specific valueset.
      */
@@ -101,22 +99,19 @@ public class ValuesetController {
             @ApiResponse(
                 responseCode = "200",
                 description = "Valueset JSON Object",
-                content = @Content(schema = @Schema(implementation = String.class))
-            ),
+                content = @Content(schema = @Schema(implementation = String.class))),
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ProblemReportDto.class)
-                )),
+                    schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "404",
                 description = "Valueset not found",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ProblemReportDto.class)
-                ))
+                    schema = @Schema(implementation = ProblemReportDto.class)))
         }
     )
     public ResponseEntity<String> getValueset(@PathVariable("id") String id) {

@@ -1,4 +1,4 @@
-apiVersion : apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "ddccservices-56e3"
@@ -16,4 +16,4 @@ spec:
         - name: "ddccservices-56e3"
           image: "ddccsrv.azurecr.io/ddccservices"
           ports:
-          - containerPort: 8080
+            - containerPort: 8080

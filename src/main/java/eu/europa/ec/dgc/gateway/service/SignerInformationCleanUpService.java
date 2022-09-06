@@ -47,7 +47,7 @@ public class SignerInformationCleanUpService {
         log.info("Starting SignerInformation Cleanup Job.");
 
         int affectedRowsDeleted = signerInformationRepository.deleteDeletedSignerInformationOlderThan(
-                ZonedDateTime.now().minusDays(configProperties.getSignerInformation().getDeleteThreshold())
+            ZonedDateTime.now().minusDays(configProperties.getSignerInformation().getDeleteThreshold())
         );
         log.info("Deleted {} SignerInformation.", affectedRowsDeleted);
 

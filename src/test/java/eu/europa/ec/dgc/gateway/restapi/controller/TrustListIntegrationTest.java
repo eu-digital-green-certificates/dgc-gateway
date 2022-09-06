@@ -63,9 +63,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class TrustListIntegrationTest {
 
     @Autowired
@@ -107,7 +109,8 @@ class TrustListIntegrationTest {
     private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now(gmt).minusHours(1);
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu,
-            certUploadDe2, certUploadEu2, certCscaDe2, certCscaEu2, certAuthDe2, certAuthEu2, certDscDe2, certDscEu2, certDscEuDeleted;
+            certUploadDe2, certUploadEu2, certCscaDe2, certCscaEu2, certAuthDe2, certAuthEu2, certDscDe2, certDscEu2,
+            certDscEuDeleted;
 
     @BeforeEach
     void testData() throws Exception {
@@ -139,7 +142,8 @@ class TrustListIntegrationTest {
     @Test
     void testTrustListDownloadNoFilterIsSince() throws Exception {
         prepareTestCertsCreatedAtNowMinusOneHour();
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -182,7 +186,8 @@ class TrustListIntegrationTest {
     @Test
     void testTrustListDownloadNoFilterPageable() throws Exception {
         prepareTestCertsCreatedAtNowMinusOneHour();
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList?page=0&pagesize=100")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -213,7 +218,8 @@ class TrustListIntegrationTest {
     @Test
     void testTrustListDownloadNoFilterIsSincePageable() throws Exception {
         prepareTestCertsCreatedAtNowMinusOneHour();
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList?page=0&pagesize=10")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -259,7 +265,8 @@ class TrustListIntegrationTest {
     @Test
     void testTrustListDownloadNoFilterByTypeAndCountryIsSincePageable() throws Exception {
         prepareTestCertsCreatedAtNowMinusOneHour();
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -309,7 +316,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadNoFilter() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -331,7 +339,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByType() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -380,7 +389,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByTypeCaseInsensitive() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/aUtHeNtiCaTiOn")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -429,7 +439,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByTypeAndCountry() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/DE")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -514,7 +525,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByTypeAndCountryLowercase() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/de")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -599,7 +611,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadEmptyList() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         signerInformationRepository.deleteAll();
 
@@ -615,7 +628,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustedIssuerNoFilter() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get("/trustList/issuers")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -628,7 +642,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustedIssuerByCountry() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get("/trustList/issuers?country=DE")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -641,7 +656,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustedIssuerByMultipleCountries() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get("/trustList/issuers?country=DE,EU")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -654,7 +670,8 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustedIssuerEmpty() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get("/trustList/issuers?country=XX")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -672,7 +689,8 @@ class TrustListIntegrationTest {
             "/trustList/issuers?country=DE,XXX"
     })
     void testBadRequests(String url) throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         mockMvc.perform(get(url)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -684,7 +702,8 @@ class TrustListIntegrationTest {
     @Test
     void testTrustListDownloadPageableDefaultFallback() throws Exception {
         prepareTestCertsCreatedAtNowMinusOneHour();
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+                trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList?pagesize=5")
                         .accept(MediaType.APPLICATION_JSON_VALUE)
@@ -740,25 +759,43 @@ class TrustListIntegrationTest {
                 "EU", "EUTestDeleted");
         signerInformationTestHelper.createSignerInformationInDB("DE", "sig3", certDscDe2, nowMinusOneHour);
         signerInformationTestHelper.createSignerInformationInDB("EU", "sig4", certDscEu2, nowMinusOneHour);
-        signerInformationTestHelper.createSignerInformationInDB("EU", "sig5_deleted", certDscEuDeleted, now.minusHours(2), nowMinusOneHour);
+        signerInformationTestHelper.createSignerInformationInDB("EU", "sig5_deleted", certDscEuDeleted,
+                now.minusHours(2), nowMinusOneHour);
 
-        certUploadDe2 = trustedPartyTestHelper.getTestCert("test1", TrustedPartyEntity.CertificateType.UPLOAD, "DE", nowMinusOneHour);
-        certCscaDe2 = trustedPartyTestHelper.getTestCert("test2", TrustedPartyEntity.CertificateType.CSCA, "DE", nowMinusOneHour);
-        certAuthDe2 = trustedPartyTestHelper.getTestCert("test3", TrustedPartyEntity.CertificateType.AUTHENTICATION, "DE", nowMinusOneHour);
-        certUploadEu2 = trustedPartyTestHelper.getTestCert("test4", TrustedPartyEntity.CertificateType.UPLOAD, "EU", nowMinusOneHour);
-        certCscaEu2 = trustedPartyTestHelper.getTestCert("test5", TrustedPartyEntity.CertificateType.CSCA, "EU", nowMinusOneHour);
-        certAuthEu2 = trustedPartyTestHelper.getTestCert("test6", TrustedPartyEntity.CertificateType.AUTHENTICATION, "EU", nowMinusOneHour);
+        certUploadDe2 =
+                trustedPartyTestHelper.getTestCert("test1", TrustedPartyEntity.CertificateType.UPLOAD, "DE",
+                        nowMinusOneHour);
+        certCscaDe2 =
+                trustedPartyTestHelper.getTestCert("test2", TrustedPartyEntity.CertificateType.CSCA, "DE",
+                        nowMinusOneHour);
+        certAuthDe2 =
+                trustedPartyTestHelper.getTestCert("test3", TrustedPartyEntity.CertificateType.AUTHENTICATION, "DE",
+                        nowMinusOneHour);
+        certUploadEu2 =
+                trustedPartyTestHelper.getTestCert("test4", TrustedPartyEntity.CertificateType.UPLOAD, "EU",
+                        nowMinusOneHour);
+        certCscaEu2 =
+                trustedPartyTestHelper.getTestCert("test5", TrustedPartyEntity.CertificateType.CSCA, "EU",
+                        nowMinusOneHour);
+        certAuthEu2 =
+                trustedPartyTestHelper.getTestCert("test6", TrustedPartyEntity.CertificateType.AUTHENTICATION, "EU",
+                        nowMinusOneHour);
     }
 
-    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature) throws UnsupportedEncodingException, CertificateEncodingException, JsonProcessingException {
+    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country,
+                                     CertificateTypeDto certificateTypeDto, String signature)
+            throws UnsupportedEncodingException, CertificateEncodingException, JsonProcessingException {
         assertTrustListItem(result, certificate, country, certificateTypeDto, signature, false);
     }
 
-    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature, boolean deleted) throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
+    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country,
+                                     CertificateTypeDto certificateTypeDto, String signature, boolean deleted)
+            throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule());
-        List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-        });
+        List<TrustListDto> trustList =
+                objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
 
         Optional<TrustListDto> trustListOptional = trustList
                 .stream()
@@ -776,18 +813,21 @@ class TrustListIntegrationTest {
         if (deleted) {
             Assertions.assertNull(trustListItem.getRawData());
         } else {
-            Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+            Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()),
+                    trustListItem.getRawData());
         }
         if (signature != null) {
             Assertions.assertEquals(signature, trustListItem.getSignature());
         }
     }
 
-    private void assertTrustListLength(MvcResult result, int expectedLength) throws UnsupportedEncodingException, JsonProcessingException {
+    private void assertTrustListLength(MvcResult result, int expectedLength)
+            throws UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule());
-        List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-        });
+        List<TrustListDto> trustList =
+                objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
         Assertions.assertEquals(expectedLength, trustList.size());
     }
 }

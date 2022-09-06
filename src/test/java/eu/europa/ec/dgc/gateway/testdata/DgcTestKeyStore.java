@@ -98,17 +98,20 @@ public class DgcTestKeyStore {
     @Bean
     @Primary
     @Qualifier("publication")
-    public KeyStore testPublicationKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public KeyStore testPublicationKeyStore()
+            throws IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         KeyStoreSpi keyStoreSpiMock = mock(KeyStoreSpi.class);
         KeyStore keyStoreMock = new KeyStore(keyStoreSpiMock, null, "test") {
         };
         keyStoreMock.load(null);
 
         doAnswer((x) -> publicationSigner)
-            .when(keyStoreSpiMock).engineGetCertificate(configProperties.getPublication().getKeystore().getCertificateAlias());
+                .when(keyStoreSpiMock)
+                .engineGetCertificate(configProperties.getPublication().getKeystore().getCertificateAlias());
 
         doAnswer((x) -> publicationSignerPrivateKey)
-            .when(keyStoreSpiMock).engineGetKey(eq(configProperties.getPublication().getKeystore().getCertificateAlias()), any());
+                .when(keyStoreSpiMock)
+                .engineGetKey(eq(configProperties.getPublication().getKeystore().getCertificateAlias()), any());
 
         return keyStoreMock;
     }

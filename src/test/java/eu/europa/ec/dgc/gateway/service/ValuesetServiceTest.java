@@ -77,8 +77,10 @@ class ValuesetServiceTest {
         valuesetRepository.save(valuesetEntity1);
         valuesetRepository.save(valuesetEntity2);
 
-        Assertions.assertEquals(valuesetEntity1.getJson(), valuesetService.getValueSetById(valuesetEntity1.getId()).orElseThrow());
-        Assertions.assertEquals(valuesetEntity2.getJson(), valuesetService.getValueSetById(valuesetEntity2.getId()).orElseThrow());
+        Assertions.assertEquals(valuesetEntity1.getJson(),
+            valuesetService.getValueSetById(valuesetEntity1.getId()).orElseThrow());
+        Assertions.assertEquals(valuesetEntity2.getJson(),
+            valuesetService.getValueSetById(valuesetEntity2.getId()).orElseThrow());
     }
 
 
