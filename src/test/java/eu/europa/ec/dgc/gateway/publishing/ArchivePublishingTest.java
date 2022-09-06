@@ -73,17 +73,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 
 @SpringBootTest(properties = {
-        "dgc.publication.enabled=true",
-        "dgc.publication.synchronizeEnabled=true",
-        "dgc.publication.downloadEnabled=true",
-        "dgc.publication.user=user",
-        "dgc.publication.password=pass",
-        "dgc.publication.amngruid=uid",
-        "dgc.publication.path=path/a/b",
-        "dgc.publication.archiveFilename=db.zip",
-        "dgc.publication.signatureFilename=db.zip.sig.txt",
-        "dgc.publication.notifyEmails[0]=u1@c1.de",
-        "dgc.publication.notifyEmails[1]=u1@c2.de"
+    "dgc.publication.enabled=true",
+    "dgc.publication.synchronizeEnabled=true",
+    "dgc.publication.downloadEnabled=true",
+    "dgc.publication.user=user",
+    "dgc.publication.password=pass",
+    "dgc.publication.amngruid=uid",
+    "dgc.publication.path=path/a/b",
+    "dgc.publication.archiveFilename=db.zip",
+    "dgc.publication.signatureFilename=db.zip.sig.txt",
+    "dgc.publication.notifyEmails[0]=u1@c1.de",
+    "dgc.publication.notifyEmails[1]=u1@c2.de"
 })
 @Slf4j
 public class ArchivePublishingTest {
@@ -122,7 +122,7 @@ public class ArchivePublishingTest {
     File tempDir;
 
     private static final String expectedAuthHeader =
-            "Basic " + Base64.getEncoder().encodeToString("user:pass".getBytes(StandardCharsets.UTF_8));
+        "Basic " + Base64.getEncoder().encodeToString("user:pass".getBytes(StandardCharsets.UTF_8));
     private static final String expectedUid = "uid";
     private static final String expectedPath = "path/a/b";
     private static final String expectedArchiveName = "db.zip";
@@ -166,40 +166,40 @@ public class ArchivePublishingTest {
         ArgumentCaptor<byte[]> uploadArchiveArgumentCaptor = ArgumentCaptor.forClass(byte[].class);
         ArgumentCaptor<byte[]> uploadSignatureArgumentCaptor = ArgumentCaptor.forClass(byte[].class);
         ArgumentCaptor<AssetManagerClient.SynchronizeFormData> synchronizeFormDataArgumentCaptor =
-                ArgumentCaptor.forClass(AssetManagerClient.SynchronizeFormData.class);
+            ArgumentCaptor.forClass(AssetManagerClient.SynchronizeFormData.class);
         byte[] dummyByteArrayArchive = new byte[] {0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf};
         byte[] dummyByteArraySignature = new byte[] {0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa};
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedArchiveName), uploadArchiveArgumentCaptor.capture()))
-                .thenReturn(ResponseEntity.ok(null));
+            eq(expectedArchiveName), uploadArchiveArgumentCaptor.capture()))
+            .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedSignatureName), uploadSignatureArgumentCaptor.capture()))
-                .thenReturn(ResponseEntity.ok(null));
+            eq(expectedSignatureName), uploadSignatureArgumentCaptor.capture()))
+            .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.synchronize(eq(expectedAuthHeader), eq("true"),
-                synchronizeFormDataArgumentCaptor.capture()))
-                .thenReturn(
-                        ResponseEntity.ok(
-                                new AssetManagerSynchronizeResponseDto("OK", 200, "Message", expectedPath, "token")));
+            synchronizeFormDataArgumentCaptor.capture()))
+            .thenReturn(
+                ResponseEntity.ok(
+                    new AssetManagerSynchronizeResponseDto("OK", 200, "Message", expectedPath, "token")));
 
         when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedArchiveName))
-                .thenReturn(ResponseEntity.ok(dummyByteArrayArchive));
+            .thenReturn(ResponseEntity.ok(dummyByteArrayArchive));
 
         when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedSignatureName))
-                .thenReturn(ResponseEntity.ok(dummyByteArraySignature));
+            .thenReturn(ResponseEntity.ok(dummyByteArraySignature));
 
         publishingService.publishGatewayData();
 
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedArchiveName), any());
+            eq(expectedArchiveName), any());
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedSignatureName), any());
+            eq(expectedSignatureName), any());
         verify(assetManagerClientMock).synchronize(eq(expectedAuthHeader), eq("true"), any());
         verify(assetManagerClientMock).downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedArchiveName);
         verify(assetManagerClientMock).downloadFile(expectedAuthHeader, expectedUid, expectedPath,
-                expectedSignatureName);
+            expectedSignatureName);
 
         Assertions.assertNotNull(uploadArchiveArgumentCaptor.getValue());
         Assertions.assertNotNull(uploadSignatureArgumentCaptor.getValue());
@@ -207,9 +207,9 @@ public class ArchivePublishingTest {
 
         Assertions.assertEquals(expectedPath, synchronizeFormDataArgumentCaptor.getValue().getPath());
         Assertions.assertArrayEquals(new String[] {expectedArchiveName, expectedSignatureName},
-                synchronizeFormDataArgumentCaptor.getValue().getNodeList().split(","));
+            synchronizeFormDataArgumentCaptor.getValue().getNodeList().split(","));
         Assertions.assertArrayEquals(new String[] {"u1@c1.de", "u1@c2.de"},
-                synchronizeFormDataArgumentCaptor.getValue().getNotifyEmails().split(","));
+            synchronizeFormDataArgumentCaptor.getValue().getNotifyEmails().split(","));
 
 
         Map<String, byte[]> archiveContent = readZipFile(uploadArchiveArgumentCaptor.getValue());
@@ -220,13 +220,13 @@ public class ArchivePublishingTest {
          */
         Assertions.assertTrue(archiveContent.containsKey("Readme.txt"));
         Assertions.assertArrayEquals(
-                FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:publication/Readme.txt")),
-                archiveContent.get("Readme.txt"));
+            FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:publication/Readme.txt")),
+            archiveContent.get("Readme.txt"));
 
         Assertions.assertTrue(archiveContent.containsKey("License.txt"));
         Assertions.assertArrayEquals(
-                FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:publication/License.txt")),
-                archiveContent.get("License.txt"));
+            FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:publication/License.txt")),
+            archiveContent.get("License.txt"));
 
         /*
          * Check for Version file
@@ -234,67 +234,67 @@ public class ArchivePublishingTest {
         Assertions.assertTrue(archiveContent.containsKey("Version.txt"));
         String versionFileContent = new String(archiveContent.get("Version.txt"), StandardCharsets.UTF_8);
         ZonedDateTime parsedTimestamp =
-                ZonedDateTime.parse(versionFileContent.substring(versionFileContent.indexOf(":") + 2).trim(),
-                        DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            ZonedDateTime.parse(versionFileContent.substring(versionFileContent.indexOf(":") + 2).trim(),
+                DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         Assertions.assertTrue(ZonedDateTime.now().until(parsedTimestamp, ChronoUnit.SECONDS) < 10);
 
         /*
          * Check for CSCA
          */
         Assertions.assertTrue(
-                (archiveContent.containsKey("CSCA/DCC/C1/" + certificateUtils.getCertThumbprint(csca1) + ".pem")));
+            (archiveContent.containsKey("CSCA/DCC/C1/" + certificateUtils.getCertThumbprint(csca1) + ".pem")));
         checkPemFile(csca1, archiveContent.get("CSCA/DCC/C1/" + certificateUtils.getCertThumbprint(csca1) + ".pem"));
 
         Assertions.assertTrue(
-                (archiveContent.containsKey("CSCA/DCC/C2/" + certificateUtils.getCertThumbprint(csca2) + ".pem")));
+            (archiveContent.containsKey("CSCA/DCC/C2/" + certificateUtils.getCertThumbprint(csca2) + ".pem")));
         checkPemFile(csca2, archiveContent.get("CSCA/DCC/C2/" + certificateUtils.getCertThumbprint(csca2) + ".pem"));
 
         Assertions.assertTrue(
-                (archiveContent.containsKey("CSCA/DCC/C3/" + certificateUtils.getCertThumbprint(csca3) + ".pem")));
+            (archiveContent.containsKey("CSCA/DCC/C3/" + certificateUtils.getCertThumbprint(csca3) + ".pem")));
         checkPemFile(csca3, archiveContent.get("CSCA/DCC/C3/" + certificateUtils.getCertThumbprint(csca3) + ".pem"));
 
         Assertions.assertTrue(
-                (archiveContent.containsKey("CSCA/DCC/C4/" + certificateUtils.getCertThumbprint(csca4) + ".pem")));
+            (archiveContent.containsKey("CSCA/DCC/C4/" + certificateUtils.getCertThumbprint(csca4) + ".pem")));
         checkPemFile(csca4, archiveContent.get("CSCA/DCC/C4/" + certificateUtils.getCertThumbprint(csca4) + ".pem"));
 
         /*
          * Check for DSC
          */
         Assertions.assertTrue(
-                (archiveContent.containsKey("DSC/DCC/C1/" + certificateUtils.getCertThumbprint(dsc1) + ".pem")));
+            (archiveContent.containsKey("DSC/DCC/C1/" + certificateUtils.getCertThumbprint(dsc1) + ".pem")));
         checkPemFile(dsc1, archiveContent.get("DSC/DCC/C1/" + certificateUtils.getCertThumbprint(dsc1) + ".pem"));
 
         Assertions.assertTrue(
-                (archiveContent.containsKey("DSC/DCC/C2/" + certificateUtils.getCertThumbprint(dsc2) + ".pem")));
+            (archiveContent.containsKey("DSC/DCC/C2/" + certificateUtils.getCertThumbprint(dsc2) + ".pem")));
         checkPemFile(dsc2, archiveContent.get("DSC/DCC/C2/" + certificateUtils.getCertThumbprint(dsc2) + ".pem"));
 
         Assertions.assertTrue(
-                (archiveContent.containsKey("DSC/DCC/C3/" + certificateUtils.getCertThumbprint(dsc3) + ".pem")));
+            (archiveContent.containsKey("DSC/DCC/C3/" + certificateUtils.getCertThumbprint(dsc3) + ".pem")));
         checkPemFile(dsc3, archiveContent.get("DSC/DCC/C3/" + certificateUtils.getCertThumbprint(dsc3) + ".pem"));
 
         Assertions.assertTrue(
-                (archiveContent.containsKey("DSC/DCC/C4/" + certificateUtils.getCertThumbprint(dsc4) + ".pem")));
+            (archiveContent.containsKey("DSC/DCC/C4/" + certificateUtils.getCertThumbprint(dsc4) + ".pem")));
         checkPemFile(dsc4, archiveContent.get("DSC/DCC/C4/" + certificateUtils.getCertThumbprint(dsc4) + ".pem"));
 
         /*
          * Check Signature
          */
         SignedByteArrayMessageParser parser = new SignedByteArrayMessageParser(uploadSignatureArgumentCaptor.getValue(),
-                Base64.getEncoder().encode(uploadArchiveArgumentCaptor.getValue()));
+            Base64.getEncoder().encode(uploadArchiveArgumentCaptor.getValue()));
         Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
         Assertions.assertArrayEquals(dgcTestKeyStore.getPublicationSigner().getEncoded(),
-                parser.getSigningCertificate().getEncoded());
+            parser.getSigningCertificate().getEncoded());
         Assertions.assertTrue(parser.isSignatureVerified());
 
         /*
          * Check Downloaded files
          */
         byte[] downloadedArchiveFile = FileUtils.readFileToByteArray(
-                Paths.get(tempDir.getAbsolutePath(), properties.getPublication().getArchiveFilename()).toFile());
+            Paths.get(tempDir.getAbsolutePath(), properties.getPublication().getArchiveFilename()).toFile());
         Assertions.assertArrayEquals(dummyByteArrayArchive, downloadedArchiveFile);
 
         byte[] downloadedSignatureFile = FileUtils.readFileToByteArray(
-                Paths.get(tempDir.getAbsolutePath(), properties.getPublication().getSignatureFilename()).toFile());
+            Paths.get(tempDir.getAbsolutePath(), properties.getPublication().getSignatureFilename()).toFile());
         Assertions.assertArrayEquals(dummyByteArraySignature, downloadedSignatureFile);
     }
 
@@ -302,18 +302,18 @@ public class ArchivePublishingTest {
     public void testSynchronizeDisabled() {
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedArchiveName), any()))
-                .thenReturn(ResponseEntity.ok(null));
+            eq(expectedArchiveName), any()))
+            .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedSignatureName), any()))
-                .thenReturn(ResponseEntity.ok(null));
+            eq(expectedSignatureName), any()))
+            .thenReturn(ResponseEntity.ok(null));
 
         when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedArchiveName))
-                .thenReturn(ResponseEntity.ok(new byte[] {}));
+            .thenReturn(ResponseEntity.ok(new byte[] {}));
 
         when(assetManagerClientMock.downloadFile(expectedAuthHeader, expectedUid, expectedPath, expectedSignatureName))
-                .thenReturn(ResponseEntity.ok(new byte[] {}));
+            .thenReturn(ResponseEntity.ok(new byte[] {}));
 
         properties.getPublication().setSynchronizeEnabled(false);
 
@@ -322,18 +322,18 @@ public class ArchivePublishingTest {
         properties.getPublication().setSynchronizeEnabled(true);
 
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedArchiveName), any());
+            eq(expectedArchiveName), any());
         verify(assetManagerClientMock).uploadFile(eq(expectedAuthHeader), eq(expectedUid), eq(expectedPath),
-                eq(expectedSignatureName), any());
+            eq(expectedSignatureName), any());
         verify(assetManagerClientMock, Mockito.never()).synchronize(eq(expectedAuthHeader), eq("true"), any());
     }
 
     private void checkPemFile(X509Certificate expected, byte[] pemFile)
-            throws IOException, CertificateEncodingException {
+        throws IOException, CertificateEncodingException {
         try (
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(pemFile);
-                InputStreamReader inputStreamReader = new InputStreamReader(byteArrayInputStream);
-                PEMParser pemParser = new PEMParser(inputStreamReader)
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(pemFile);
+            InputStreamReader inputStreamReader = new InputStreamReader(byteArrayInputStream);
+            PEMParser pemParser = new PEMParser(inputStreamReader)
         ) {
             Object object = pemParser.readObject();
             Assertions.assertTrue(object instanceof X509CertificateHolder);

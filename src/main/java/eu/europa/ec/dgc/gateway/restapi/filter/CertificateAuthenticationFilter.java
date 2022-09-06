@@ -42,6 +42,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.DecoderException;
 import org.bouncycastle.util.encoders.Hex;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -58,6 +59,7 @@ public class CertificateAuthenticationFilter extends OncePerRequestFilter {
     public static final String REQUEST_PROP_COUNTRY = "reqPropCountry";
     public static final String REQUEST_PROP_THUMBPRINT = "reqPropCertThumbprint";
 
+    @Qualifier("requestMappingHandlerMapping")
     private final RequestMappingHandlerMapping requestMap;
 
     private final DgcConfigProperties properties;
