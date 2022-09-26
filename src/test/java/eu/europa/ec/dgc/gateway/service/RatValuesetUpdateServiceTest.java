@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -365,6 +366,24 @@ class RatValuesetUpdateServiceTest {
     void testRatValuesetUpdateShouldNotUpdateWhenRequestFails() throws JsonProcessingException {
 
         doThrow(new FeignException.Unauthorized("", dummyRequest, null, null))
+            .when(jrcClientMock).downloadRatValues();
+
+        ratValuesetUpdateService.update();
+
+        String updatedValuesetJson = valuesetService.getValueSetById(RAT_VALUESET_ID).orElseThrow();
+        Valueset<String, RatValueset> updatedValueset = objectMapper.readValue(updatedValuesetJson, typeReference);
+
+        Assertions.assertEquals(LocalDate.now().minus(1, ChronoUnit.DAYS), updatedValueset.getDate(),
+            "Valueset Date has been updated.");
+        Assertions.assertEquals(2, updatedValueset.getValue().size(), "Valueset List size has been changed");
+        assertEquals(rat1, updatedValueset.getValue().get(RAT1_ID));
+        assertEquals(rat2, updatedValueset.getValue().get(RAT2_ID));
+    }
+
+    @Test
+    void testRatValuesetUpdateShouldNotUpdateWhenJsonIsInvalid() throws JsonProcessingException {
+
+        doThrow(new ConstraintViolationException("Invalid JSON", Collections.emptySet()))
             .when(jrcClientMock).downloadRatValues();
 
         ratValuesetUpdateService.update();
