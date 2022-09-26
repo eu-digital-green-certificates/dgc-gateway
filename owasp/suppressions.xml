@@ -19,7 +19,10 @@
     <suppress>
         <notes>Only affecting example code shipped with tomcat.</notes>
         <cve>CVE-2022-34305</cve>
-
+    </suppress>
+    <suppress>
+        <notes>Bug is fixed with SnameYAML 1.32, but CVE Matcher is invalid</notes>
+        <cve>CVE-2022-38752</cve>
     </suppress>
 
 </suppressions>
