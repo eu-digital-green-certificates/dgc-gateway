@@ -21,14 +21,17 @@
 package eu.europa.ec.dgc.gateway.client;
 
 import eu.europa.ec.dgc.gateway.model.JrcRatValuesetResponse;
+import javax.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient(
     name = "jrcClient",
     url = "${dgc.jrc.url}",
     configuration = JrcClientConfig.class)
+@Validated
 public interface JrcClient {
 
     /**
@@ -36,7 +39,7 @@ public interface JrcClient {
      *
      * @return List of RAT values.
      */
-    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Valid
     JrcRatValuesetResponse downloadRatValues();
 }

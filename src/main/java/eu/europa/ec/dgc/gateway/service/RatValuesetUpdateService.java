@@ -37,6 +37,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
+import javax.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -92,6 +93,9 @@ public class RatValuesetUpdateService {
             jrcResponse = jrcClient.downloadRatValues();
         } catch (FeignException e) {
             log.error("Failed to download RatValueset from JRC", e);
+            return;
+        } catch (ConstraintViolationException e) {
+            log.error("Failed to parse RatValueset from JRC", e);
             return;
         }
 
