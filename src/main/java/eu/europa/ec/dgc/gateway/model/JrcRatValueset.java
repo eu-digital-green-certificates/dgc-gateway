@@ -24,24 +24,30 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.ZonedDateTime;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class JrcRatValueset {
 
     @JsonProperty("id_device")
+    @NotNull
     String idDevice;
 
     @JsonProperty("commercial_name")
+    @NotNull
     String commercialName;
 
     @JsonProperty("manufacturer")
+    @NotNull
     Manufacturer manufacturer;
 
     @JsonProperty("hsc_common_list")
+    @NotNull
     Boolean hscCommonList;
 
     @JsonProperty("hsc_mutual_recognition")
+    @NotNull
     Boolean hscMutualRecognition;
 
     @JsonProperty("last_updated")
@@ -56,12 +62,15 @@ public class JrcRatValueset {
 
         @JsonProperty("list_date")
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z")
+        @NotNull
         ZonedDateTime listDate;
 
         @JsonProperty("in_common_list")
+        @NotNull
         Boolean inCommonList;
 
         @JsonProperty("in_mutual_recognition")
+        @NotNull
         Boolean inMutualRecognition;
     }
 
@@ -69,15 +78,19 @@ public class JrcRatValueset {
     public static class Manufacturer {
 
         @JsonProperty("id_manufacturer")
+        @NotNull
         String id;
 
         @JsonProperty("name")
+        @NotNull
         String name;
 
         @JsonProperty("country")
+        @NotNull
         String country;
 
         @JsonProperty("website")
+        @NotNull
         String website;
     }
 }
