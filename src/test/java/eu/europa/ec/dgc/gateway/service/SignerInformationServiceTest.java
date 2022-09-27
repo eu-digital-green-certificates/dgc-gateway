@@ -33,6 +33,7 @@ import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -68,9 +69,9 @@ class SignerInformationServiceTest {
     private static final String countryCode = "EU";
     private static final String dummySignature = "randomStringAsSignatureWhichIsNotValidatedInServiceLevel";
 
-    private static final ZonedDateTime now = ZonedDateTime.now();
-    private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now().minusMinutes(1);
-    private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now().minusHours(1);
+    private final static ZonedDateTime now = ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    private final static ZonedDateTime nowMinusOneMinute = now.minusMinutes(1);
+    private final static ZonedDateTime nowMinusOneHour = now.minusHours(1);
 
     @BeforeEach
     void setUp() {
