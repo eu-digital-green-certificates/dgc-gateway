@@ -18,7 +18,7 @@ ThirdParty Licenses
 | com.fasterxml:classmate:1.5.1 | Apache License, Version 2.0 |
 | com.fasterxml.jackson.core:jackson-annotations:2.13.4 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.core:jackson-core:2.13.4 | The Apache Software License, Version 2.0 |
-| com.fasterxml.jackson.core:jackson-databind:2.13.4 | The Apache Software License, Version 2.0 |
+| com.fasterxml.jackson.core:jackson-databind:2.14.0-rc2 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.4 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4 | The Apache Software License, Version 2.0 |
@@ -31,7 +31,7 @@ ThirdParty Licenses
 | com.opencsv:opencsv:5.6 | Apache 2 |
 | com.sun.activation:jakarta.activation:1.2.2 | EDL 1.0 |
 | com.sun.istack:istack-commons-runtime:3.0.12 | Eclipse Distribution License - v 1.0 |
-| com.upokecenter:cbor:4.5.1 | CC0-1.0 |
+| com.upokecenter:cbor:4.5.2 | CC0-1.0 |
 | com.vaadin.external.google:android-json:0.0.20131108.vaadin1 | Apache License 2.0 |
 | com.vdurmont:semver4j:3.1.0 | The MIT License |
 | com.zaxxer:HikariCP:4.0.3 | The Apache Software License, Version 2.0 |
@@ -71,7 +71,7 @@ ThirdParty Licenses
 | net.minidev:json-smart:2.4.8 | The Apache Software License, Version 2.0 |
 | org.apache.commons:commons-collections4:4.4 | Apache License, Version 2.0 |
 | org.apache.commons:commons-lang3:3.12.0 | Apache License, Version 2.0 |
-| org.apache.commons:commons-text:1.9 | Apache License, Version 2.0 |
+| org.apache.commons:commons-text:1.10.0 | Apache License, Version 2.0 |
 | org.apache.httpcomponents:httpclient:4.5.13 | Apache License, Version 2.0 |
 | org.apache.httpcomponents:httpcore:4.4.15 | Apache License, Version 2.0 |
 | org.apache.logging.log4j:log4j-api:2.17.2 | Apache License, Version 2.0 |
@@ -102,7 +102,7 @@ ThirdParty Licenses
 | org.junit.platform:junit-platform-commons:1.8.2 | Eclipse Public License v2.0 |
 | org.junit.platform:junit-platform-engine:1.8.2 | Eclipse Public License v2.0 |
 | org.latencyutils:LatencyUtils:2.0.3 | Public Domain, per Creative Commons CC0 |
-| org.liquibase:liquibase-core:4.16.1 | Apache License, Version 2.0 |
+| org.liquibase:liquibase-core:4.17.0 | Apache License, Version 2.0 |
 | org.mapstruct:mapstruct:1.5.2.Final | The Apache Software License, Version 2.0 |
 | org.mockito:mockito-core:4.5.1 | The MIT License |
 | org.mockito:mockito-junit-jupiter:4.5.1 | The MIT License |
@@ -160,4 +160,4 @@ ThirdParty Licenses
 | org.webjars:swagger-ui:4.14.0 | Apache 2.0 |
 | org.webjars:webjars-locator-core:0.50 | MIT |
 | org.xmlunit:xmlunit-core:2.9.0 | The Apache Software License, Version 2.0 |
-| org.yaml:snakeyaml:1.32 | Apache License, Version 2.0 |
+| org.yaml:snakeyaml:1.33 | Apache License, Version 2.0 |
