@@ -55,7 +55,7 @@
         <shedlock.version>4.42.0</shedlock.version>
         <spring.cloud.version>2021.0.4</spring.cloud.version>
         <h2.version>2.1.214</h2.version>
-        <dgc.lib.version>1.3.1</dgc.lib.version>
+        <dgc.lib.version>1.3.2</dgc.lib.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.4.2</plugin.maven-assembly.version>
         <plugin.checkstyle.version>3.2.0</plugin.checkstyle.version>
@@ -177,7 +177,7 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.32</version>
+            <version>1.33</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
