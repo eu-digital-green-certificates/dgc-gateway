@@ -21,6 +21,7 @@
 package eu.europa.ec.dgc.gateway.service;
 
 import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedIssuerRepository;
@@ -42,7 +43,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -65,6 +65,19 @@ public class TrustedIssuerService {
     private final DgcConfigProperties dgcConfigProperties;
 
     private final CertificateUtils certificateUtils;
+
+    /**
+     * Deletes all TrustedIssuers assigned to given source gateway.
+     *
+     * @param gatewayId GatewayID of source gateway
+     */
+    public void deleteBySourceGateway(String gatewayId) {
+        log.info("Deleting TrustedIssuer by GatewayId {}", gatewayId);
+
+        Long deleteCount = trustedIssuerRepository.deleteBySourceGatewayGatewayId(gatewayId);
+
+        log.info("Deleted {} TrustedIssuer with GatewayId {}", deleteCount, gatewayId);
+    }
 
     /**
      * Method to query the db for all trusted issuers.
@@ -175,6 +188,45 @@ public class TrustedIssuerService {
             return false;
         }
     }
+
+    /**
+     * Add a new federated TrustedIssuer.
+     */
+    public TrustedIssuerEntity addFederatedTrustedIssuer(String country,
+                                                         String url,
+                                                         String name,
+                                                         TrustedIssuerEntity.UrlType urlType,
+                                                         String thumbprint,
+                                                         String sslPublicKey,
+                                                         String keyStorageType,
+                                                         String signature,
+                                                         String domain,
+                                                         String uuid,
+                                                         Integer version,
+                                                         FederationGatewayEntity sourceGateway) {
+        TrustedIssuerEntity trustedIssuerEntity = new TrustedIssuerEntity();
+        trustedIssuerEntity.setCountry(country);
+        trustedIssuerEntity.setName(name);
+        trustedIssuerEntity.setUrlType(urlType);
+        trustedIssuerEntity.setUrl(url);
+        trustedIssuerEntity.setThumbprint(thumbprint);
+        trustedIssuerEntity.setSslPublicKey(sslPublicKey);
+        trustedIssuerEntity.setKeyStorageType(keyStorageType);
+        trustedIssuerEntity.setSignature(signature);
+        trustedIssuerEntity.setVersion(version == null ? 1 : version);
+        trustedIssuerEntity.setSourceGateway(sourceGateway);
+        trustedIssuerEntity.setDomain(domain == null ? "DCC" : domain);
+        if (uuid != null) {
+            trustedIssuerEntity.setUuid(uuid);
+        }
+
+        log.info("Saving Federated Trusted Issuer Entity with uuid {}", trustedIssuerEntity.getUuid());
+
+        trustedIssuerEntity = trustedIssuerRepository.save(trustedIssuerEntity);
+
+        return trustedIssuerEntity;
+    }
+
 
     private String getHashData(TrustedIssuerEntity entity) {
         return entity.getUuid() + HASH_SEPARATOR

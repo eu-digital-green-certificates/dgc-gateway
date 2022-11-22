@@ -32,12 +32,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "trusted_reference")
 public class TrustedReferenceEntity extends FederatedEntity {
@@ -52,6 +56,12 @@ public class TrustedReferenceEntity extends FederatedEntity {
      */
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
+
+    /**
+     * URL with the document of the Trusted Reference.
+     */
+    @Column(name = "url", nullable = false, length = 100)
+    private String url;
 
     /**
      * ISO 3166 Alpha-2 Country Code

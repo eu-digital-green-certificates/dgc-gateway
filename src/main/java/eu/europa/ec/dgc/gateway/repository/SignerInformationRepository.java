@@ -21,29 +21,14 @@
 package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SignerInformationRepository extends JpaRepository<SignerInformationEntity, Long> {
-
-    String SELECT_SINCE =
-        "SELECT s FROM SignerInformationEntity s WHERE s.createdAt >= :since OR s.deletedAt >= :since";
-    String SELECT_BY_TYPE_SINCE =
-        "SELECT s FROM SignerInformationEntity s WHERE s.certificateType = :certType AND (s.createdAt >= :since "
-            + " OR s.deletedAt >= :since)";
-    String SELECT_BY_TYPE_AND_COUNTRY_SINCE =
-        "SELECT s FROM SignerInformationEntity s"
-            + " WHERE s.certificateType = :certType AND s.country = :country AND (s.createdAt >= :since"
-            + " OR s.deletedAt >= :since)";
 
     List<SignerInformationEntity> getAllBySourceGatewayIsNull();
 
@@ -77,16 +62,6 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     Optional<SignerInformationEntity> getFirstByThumbprintStartsWithAndThumbprintIsNot(
         String thumbprintStart, String thumbprint);
 
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM SignerInformationEntity s WHERE s.deletedAt < :threshold")
-    int deleteDeletedSignerInformationOlderThan(@Param("threshold") ZonedDateTime threshold);
-
-    List<SignerInformationEntity> getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType type,
-                                                                         Pageable pageable);
-
-    List<SignerInformationEntity> getByCertificateTypeAndDeletedAtIsNull(SignerInformationEntity.CertificateType type);
-
     Optional<SignerInformationEntity> getFirstByKid(String kid);
 
     @Transactional
@@ -98,48 +73,7 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
     List<SignerInformationEntity> getByCertificateTypeAndCountryAndSourceGatewayIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);
 
-    List<SignerInformationEntity> getBySourceGatewayGatewayId(String gatewayId);
-
     @Transactional
     Long deleteBySourceGatewayGatewayId(String gatewayId);
-
-    List<SignerInformationEntity> getByCertificateTypeAndCountryAndDeletedAtIsNull(
-        SignerInformationEntity.CertificateType type, String countryCode,
-        Pageable pageable);
-
-    List<SignerInformationEntity> getByCertificateTypeAndCountryAndDeletedAtIsNull(
-        SignerInformationEntity.CertificateType type, String countryCode);
-
-    @Query(SELECT_SINCE)
-    List<SignerInformationEntity> getIsSince(@Param("since") ZonedDateTime since);
-
-    @Query(SELECT_SINCE)
-    List<SignerInformationEntity> getIsSince(@Param("since") ZonedDateTime since, Pageable pageable);
-
-    List<SignerInformationEntity> getByDeletedAtIsNull();
-
-    List<SignerInformationEntity> getByDeletedAtIsNull(Pageable pageable);
-
-    @Query(SELECT_BY_TYPE_SINCE)
-    List<SignerInformationEntity> getByCertificateTypeIsSince(
-        @Param("certType") SignerInformationEntity.CertificateType type,
-        @Param("since") ZonedDateTime since);
-
-    @Query(SELECT_BY_TYPE_SINCE)
-    List<SignerInformationEntity> getByCertificateTypeIsSince(
-        @Param("certType") SignerInformationEntity.CertificateType type,
-        @Param("since") ZonedDateTime since, Pageable pageable);
-
-    @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
-    List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(
-        @Param("certType") SignerInformationEntity.CertificateType type,
-        @Param("country") String countryCode,
-        @Param("since") ZonedDateTime since);
-
-    @Query(SELECT_BY_TYPE_AND_COUNTRY_SINCE)
-    List<SignerInformationEntity> getByCertificateTypeAndCountryIsSince(
-        @Param("certType") SignerInformationEntity.CertificateType type,
-        @Param("country") String countryCode,
-        @Param("since") ZonedDateTime since, Pageable pageable);
 
 }

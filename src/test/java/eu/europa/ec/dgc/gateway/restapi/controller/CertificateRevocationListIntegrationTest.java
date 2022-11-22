@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.restapi.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -179,8 +181,6 @@ public class CertificateRevocationListIntegrationTest {
         Assertions.assertEquals(countryCode, createdRevocationBatch.get().getCountry());
         Assertions.assertEquals(revocationBatchDto.getHashType().name(), createdRevocationBatch.get().getType().name());
         Assertions.assertEquals(revocationBatchDto.getKid(), createdRevocationBatch.get().getKid());
-        Assertions.assertEquals(createdRevocationBatch.get().getBatchId(),
-            mvcResult.getResponse().getHeader(HttpHeaders.ETAG));
         Assertions.assertEquals(36, createdRevocationBatch.get().getBatchId().length());
 
         SignedStringMessageParser parser = new SignedStringMessageParser(createdRevocationBatch.get().getSignedBatch());

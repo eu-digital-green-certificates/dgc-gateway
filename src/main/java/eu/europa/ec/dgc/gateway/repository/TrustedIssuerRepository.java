@@ -22,6 +22,7 @@ package eu.europa.ec.dgc.gateway.repository;
 
 import eu.europa.ec.dgc.gateway.entity.TrustedIssuerEntity;
 import java.util.List;
+import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,4 +52,7 @@ public interface TrustedIssuerRepository extends JpaRepository<TrustedIssuerEnti
         @Param("ignoreCountry") boolean ignoreCountry,
         @Param("domain") List<String> domain,
         @Param("ignoreDomain") boolean ignoreDomain);
+
+    @Transactional
+    Long deleteBySourceGatewayGatewayId(String gatewayId);
 }

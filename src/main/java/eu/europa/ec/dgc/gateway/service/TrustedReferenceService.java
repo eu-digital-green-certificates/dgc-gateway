@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedReferenceEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedReferenceRepository;
@@ -33,6 +34,7 @@ import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +59,19 @@ public class TrustedReferenceService {
 
     private static final String MDC_PROP_UPLOAD_CERT_THUMBPRINT = "uploadCertThumbprint";
 
+
+    /**
+     * Deletes all TrustedReferences assigned to given source gateway.
+     *
+     * @param gatewayId GatewayID of source gateway
+     */
+    public void deleteBySourceGateway(String gatewayId) {
+        log.info("Deleting TrustedReferences by GatewayId {}", gatewayId);
+
+        Long deleteCount = trustedReferenceRepository.deleteBySourceGatewayGatewayId(gatewayId);
+
+        log.info("Deleted {} TrustedReferences with GatewayId {}", deleteCount, gatewayId);
+    }
 
     /**
      * Method to query the db for all trusted references.
@@ -127,6 +142,48 @@ public class TrustedReferenceService {
     }
 
     /**
+     * Add a new federated TrustedReference.
+     */
+    public TrustedReferenceEntity addFederatedTrustedReference(String country,
+                                                               TrustedReferenceEntity.ReferenceType referenceType,
+                                                               String url,
+                                                               String service,
+                                                               String name,
+                                                               TrustedReferenceEntity.SignatureType signatureType,
+                                                               String thumbprint,
+                                                               String sslPublicKey,
+                                                               String referenceVersion,
+                                                               String contentType,
+                                                               String domain,
+                                                               String uuid,
+                                                               FederationGatewayEntity sourceGateway) {
+        TrustedReferenceEntity trustedReferenceEntity = new TrustedReferenceEntity();
+        trustedReferenceEntity.setUrl(url);
+        trustedReferenceEntity.setCountry(country);
+        trustedReferenceEntity.setType(referenceType);
+        trustedReferenceEntity.setService(service);
+        trustedReferenceEntity.setName(name);
+        trustedReferenceEntity.setSignatureType(signatureType);
+        trustedReferenceEntity.setThumbprint(thumbprint);
+        trustedReferenceEntity.setSslPublicKey(sslPublicKey);
+        trustedReferenceEntity.setReferenceVersion(referenceVersion);
+        trustedReferenceEntity.setContentType(contentType);
+        trustedReferenceEntity.setSourceGateway(sourceGateway);
+        trustedReferenceEntity.setDomain(domain == null ? "DCC" : domain);
+        if (uuid != null) {
+            trustedReferenceEntity.setUuid(uuid);
+        }
+
+        log.info("Saving Federated Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
+
+        trustedReferenceEntity = trustedReferenceRepository.save(trustedReferenceEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+
+        return trustedReferenceEntity;
+    }
+
+    /**
      * Add a new TrustedReference.
      */
     public TrustedReferenceEntity addTrustedReference(
@@ -138,10 +195,12 @@ public class TrustedReferenceService {
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         TrustedReferenceDto parsedTrustedEntity =
             contentCheckValidJson(uploadedTrustedReference, TrustedReferenceDto.class);
+        contentCheckUploaderCountry(parsedTrustedEntity, authenticatedCountryCode);
         contentCheckValidValues(parsedTrustedEntity);
 
         TrustedReferenceEntity trustedReferenceEntity = getOrCreateTrustedReferenceEntity(parsedTrustedEntity);
 
+        trustedReferenceEntity.setUrl(parsedTrustedEntity.getUrl());
         trustedReferenceEntity.setCountry(parsedTrustedEntity.getCountry());
         trustedReferenceEntity.setType(
             TrustedReferenceEntity.ReferenceType.valueOf(parsedTrustedEntity.getType().name()));
@@ -153,6 +212,11 @@ public class TrustedReferenceService {
         trustedReferenceEntity.setSslPublicKey(parsedTrustedEntity.getSslPublicKey());
         trustedReferenceEntity.setReferenceVersion(parsedTrustedEntity.getReferenceVersion());
         trustedReferenceEntity.setContentType(parsedTrustedEntity.getContentType());
+        trustedReferenceEntity.setDomain(
+            parsedTrustedEntity.getDomain() == null ? "DCC" : parsedTrustedEntity.getDomain());
+        if (parsedTrustedEntity.getUuid() == null) {
+            trustedReferenceEntity.setUuid(UUID.randomUUID().toString());
+        }
 
         log.info("Saving Trusted Reference Entity with uuid {}", trustedReferenceEntity.getUuid());
 
@@ -181,6 +245,11 @@ public class TrustedReferenceService {
             () -> new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.NOT_FOUND,
                 "Trusted Reference does not exist.")
         );
+
+        if (!trustedReferenceEntity.getCountry().equals(authenticatedCountryCode)) {
+            throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_COUNTRY,
+                "It is not allowed to delete trusted references of other countries.");
+        }
 
         log.info("Deleting Trusted Reference with uuid {} and id {}from DB", uuid, trustedReferenceEntity.getId());
         int deleted = trustedReferenceRepository.deleteByUuid(uuid);
@@ -268,6 +337,14 @@ public class TrustedReferenceService {
         }
 
         DgcMdc.put(MDC_PROP_UPLOAD_CERT_THUMBPRINT, signerCertThumbprint);
+    }
+
+    private void contentCheckUploaderCountry(TrustedReferenceDto parsedTrustedReference, String countryCode)
+            throws TrustedReferenceServiceException {
+        if (!parsedTrustedReference.getCountry().equals(countryCode)) {
+            throw new TrustedReferenceServiceException(TrustedReferenceServiceException.Reason.INVALID_COUNTRY,
+                    "Country does not match your authentication.");
+        }
     }
 
     public static class TrustedReferenceServiceException extends Exception {

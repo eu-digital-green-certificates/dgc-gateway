@@ -42,7 +42,7 @@ public abstract class FederatedEntity {
     private FederationGatewayEntity sourceGateway;
 
     @Column(name = "domain", columnDefinition = "varchar(10) DEFAULT 'DCC'")
-    String domain;
+    String domain = "DCC";
 
     @Column(name = "version", columnDefinition = "int default 1", nullable = false)
     private Integer version = 1;

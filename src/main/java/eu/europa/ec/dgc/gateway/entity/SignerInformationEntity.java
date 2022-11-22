@@ -56,9 +56,6 @@ public class SignerInformationEntity extends FederatedEntity {
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
-    @Column(name = "deleted_at")
-    private ZonedDateTime deletedAt;
-
     /**
      * ISO 3166 Alpha-2 Country Code
      * (plus code "EU" for administrative European Union entries).

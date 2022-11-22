@@ -26,7 +26,6 @@ import eu.europa.ec.dgc.gateway.model.TrustList;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.model.TrustedCertificateTrustList;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;

@@ -34,7 +34,7 @@ public class TrustedIssuerTestHelper {
     @Autowired
     TrustedPartyTestHelper trustedPartyTestHelper;
 
-    public TrustedIssuerEntity createTrustedIssuer(final String country) throws Exception {
+    public TrustedIssuerEntity createTrustedIssuer(final String country, final String domain) throws Exception {
         TrustedIssuerEntity trustedIssuer = new TrustedIssuerEntity();
         trustedIssuer.setUrl("https://trusted.issuer");
         trustedIssuer.setName("tiName");
@@ -43,6 +43,7 @@ public class TrustedIssuerTestHelper {
         trustedIssuer.setSslPublicKey("pubKey");
         trustedIssuer.setThumbprint("thumbprint");
         trustedIssuer.setKeyStorageType("JWKS");
+        trustedIssuer.setDomain(domain);
         final String signature = trustedPartyTestHelper.signString(getHashData(trustedIssuer));
         trustedIssuer.setSignature(signature);
 
@@ -50,7 +51,8 @@ public class TrustedIssuerTestHelper {
     }
 
     private String getHashData(TrustedIssuerEntity entity) {
-        return entity.getCountry() + ";"
+        return entity.getUuid() + ";"
+            + entity.getCountry() + ";"
             + entity.getName() + ";"
             + entity.getUrl() + ";"
             + entity.getUrlType().name() + ";";

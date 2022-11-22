@@ -20,12 +20,13 @@ spring:
       pool:
         size: 5
 management:
-  endpoints:
-    web:
-      exposure:
-        exclude: "*"
+  health:
+    probes:
+      enabled: true
   server:
-    port: -1
+    ssl:
+      enabled: false
+    port: 8091
 dgc:
   jrc:
     url: https://covid-19-diagnostics.jrc.ec.europa.eu/devices/hsc-common-recognition-rat

@@ -22,26 +22,24 @@ package eu.europa.ec.dgc.gateway.restapi.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 
 @Schema(description = "Trusted reference representation.")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrustedReferenceDto {
+public class TrustedReferenceDto extends FederatedDto {
 
-    @Schema(description = "Unique Identifier of the Trusted Reference", format = "UUID")
-    @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
-    private String uuid;
-
-    @Schema(description = "Version of the Trusted Reference")
+    @Schema(description = "(HTTP) Url to the Trusted Reference Document", format = "URL")
+    @Length(min = 1, max = 100)
     @NotNull
-    private String version;
+    private String url;
 
     @Schema(description = "ISO 3166 2-Digit Country Code")
     @Length(min = 2, max = 2)

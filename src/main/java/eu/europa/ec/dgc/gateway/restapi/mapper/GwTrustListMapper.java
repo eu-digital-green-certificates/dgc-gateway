@@ -22,6 +22,7 @@ package eu.europa.ec.dgc.gateway.restapi.mapper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.model.TrustList;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
@@ -40,6 +41,10 @@ import org.mapstruct.Mapping;
 @Slf4j
 public abstract class GwTrustListMapper {
 
+    @Mapping(source = "certificateType", target = "domain")
+    @Mapping(target = "sourceGateway", ignore = true)
+    @Mapping(target = "uuid", ignore = true)
+    @Mapping(target = "version", ignore = true)
     public abstract TrustListDto trustListToTrustListDto(TrustList trustList);
 
     public abstract List<TrustListDto> trustListToTrustListDto(List<TrustList> trustList);
@@ -56,6 +61,17 @@ public abstract class GwTrustListMapper {
     @Mapping(source = "rawData", target = "certificate")
     public abstract TrustedCertificateTrustListDto map(
         SignerInformationEntity entity, @Context ObjectMapper objectMapper);
+
+    /**
+     * Map Federation Gateway Entity to String.
+     */
+    public String map(FederationGatewayEntity gatewayEntity) {
+        if (gatewayEntity == null) {
+            return null;
+        } else {
+            return gatewayEntity.getGatewayId();
+        }
+    }
 
     /**
      * Map JSON String to properties Map.

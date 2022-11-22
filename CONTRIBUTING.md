@@ -75,10 +75,10 @@ The following rule governs documentation contributions:
   via [email](mailto:opensource@telekom.de).
 
 * Post review:
-  * If a review requires you to change your commit(s), please test the changes again.
-  * Amend the affected commit(s) and force push onto your branch.
-  * Set respective comments in your GitHub review to resolved.
-  * Create a general PR comment to notify the reviewers that your amendments are ready for another round of review.
+    * If a review requires you to change your commit(s), please test the changes again.
+    * Amend the affected commit(s) and force push onto your branch.
+    * Set respective comments in your GitHub review to resolved.
+    * Create a general PR comment to notify the reviewers that your amendments are ready for another round of review.
 
 ## Issues and Planning
 

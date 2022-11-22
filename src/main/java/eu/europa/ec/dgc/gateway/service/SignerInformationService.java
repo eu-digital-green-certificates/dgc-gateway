@@ -27,21 +27,16 @@ import eu.europa.ec.dgc.gateway.entity.FederationGatewayEntity;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
-import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
-import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
-import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +48,6 @@ import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.RuntimeOperatorException;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -122,6 +116,14 @@ public class SignerInformationService {
                     types.add(SignerInformationEntity.CertificateType.valueOf(group));
                 }
             });
+
+            if (!groups.isEmpty() && types.isEmpty()) {
+                /*
+                  No group has matched --> All groups are invalid or user has searched for TrustedParty
+                  -> Skipping Search for SignerInformation
+                 */
+                return Collections.emptyList();
+            }
         }
 
         if (withFederation) {
@@ -306,6 +308,9 @@ public class SignerInformationService {
         String signature,
         String countryCode,
         String kid,
+        String domain,
+        String uuid,
+        Integer version,
         FederationGatewayEntity sourceGateway
     ) throws SignerCertCheckException {
 
@@ -329,6 +334,14 @@ public class SignerInformationService {
         newSignerInformation.setThumbprint(certificateUtils.getCertThumbprint(certificate));
         newSignerInformation.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         newSignerInformation.setSignature(signature);
+
+        if (uuid != null) {
+            newSignerInformation.setUuid(uuid);
+        }
+        if (version != null) {
+            newSignerInformation.setVersion(version);
+        }
+        newSignerInformation.setDomain(domain == null ? "DCC" : domain);
 
         log.info("Saving Federated SignerInformation Entity");
 
@@ -402,34 +415,6 @@ public class SignerInformationService {
                 String.format("Property Key or Value %s is not allowed. Allowed Values are: %s",
                     value, String.join(", ", allowedValues)));
         }
-    }
-
-    /**
-     * Get CMS packages for country.
-     *
-     * @param country The country
-     * @return A list of all CMS Packages.
-     */
-    public List<CmsPackageDto> getCmsPackage(String country) {
-        return signerInformationRepository
-            .getByCertificateTypeAndCountry(SignerInformationEntity.CertificateType.DSC, country)
-            .stream()
-            .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
-            .collect(Collectors.toList());
-    }
-
-    private SignerInformationEntity addCertificateToSignaturePayload(SignerInformationEntity entity) {
-        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(
-            entity.getSignature(), entity.getRawData());
-
-        if (parser.getParserState() == SignedMessageParser.ParserState.SUCCESS) {
-            entity.setSignature(parser.getEmbeddedSignature());
-        } else {
-            log.error("Failed to repack CMS for DSC {}, Parser State: {}",
-                entity.getThumbprint(), parser.getParserState());
-        }
-
-        return entity;
     }
 
     private void contentCheckUploaderCertificate(
@@ -511,16 +496,15 @@ public class SignerInformationService {
 
     private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate, String customKid)
         throws SignerCertCheckException {
-
+        String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         String kid = customKid;
         if (customKid == null) {
             // Custom Kid not provided, using the first 8 byte of hash as fallback.
-            String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
             kid = uploadedCertificateThumbprint.substring(0, 16);
         }
 
-        Optional<SignerInformationEntity> signerInformationEntity =
-            signerInformationRepository.getFirstByThumbprintStartsWith(kid);
+        Optional<SignerInformationEntity> signerInformationEntity = signerInformationRepository
+            .getFirstByThumbprintStartsWithAndThumbprintIsNot(kid, uploadedCertificateThumbprint);
 
         if (signerInformationEntity.isPresent()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,

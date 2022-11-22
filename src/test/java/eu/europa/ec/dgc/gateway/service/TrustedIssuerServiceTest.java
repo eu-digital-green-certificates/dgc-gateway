@@ -54,9 +54,9 @@ class TrustedIssuerServiceTest {
         trustedIssuerRepository.deleteAll();
 
         trustedIssuerRepository.saveAll(List.of(
-            trustedIssuerTestHelper.createTrustedIssuer("EU"),
-            trustedIssuerTestHelper.createTrustedIssuer("DE"),
-            trustedIssuerTestHelper.createTrustedIssuer("AT")
+            trustedIssuerTestHelper.createTrustedIssuer("EU", "DCC"),
+            trustedIssuerTestHelper.createTrustedIssuer("DE", "DCC"),
+            trustedIssuerTestHelper.createTrustedIssuer("AT", "DCC")
         ));
     }
 
@@ -68,7 +68,7 @@ class TrustedIssuerServiceTest {
     @Test
     void testEmptySignature() throws Exception {
         int originalSize = underTest.getAllIssuers().size();
-        TrustedIssuerEntity data = trustedIssuerTestHelper.createTrustedIssuer("BE");
+        TrustedIssuerEntity data = trustedIssuerTestHelper.createTrustedIssuer("BE", "DCC");
         data.setSignature("");
         trustedIssuerRepository.save(data);
         assertThat(underTest.getAllIssuers(), hasSize(originalSize));
@@ -77,7 +77,7 @@ class TrustedIssuerServiceTest {
     @Test
     void testParsingSignatureError() throws Exception {
         int originalSize = underTest.getAllIssuers().size();
-        TrustedIssuerEntity data = trustedIssuerTestHelper.createTrustedIssuer("BE");
+        TrustedIssuerEntity data = trustedIssuerTestHelper.createTrustedIssuer("BE", "DCC");
         data.setSignature("WRONG");
         trustedIssuerRepository.save(data);
         assertThat(underTest.getAllIssuers(), hasSize(originalSize));
@@ -86,7 +86,7 @@ class TrustedIssuerServiceTest {
     @Test
     void testWrongSignatureError() throws Exception {
         int originalSize = underTest.getAllIssuers().size();
-        TrustedIssuerEntity data = trustedIssuerTestHelper.createTrustedIssuer("BE");
+        TrustedIssuerEntity data = trustedIssuerTestHelper.createTrustedIssuer("BE", "DCC");
         data.setSignature(trustedPartyTestHelper.signString("WRONG"));
         trustedIssuerRepository.save(data);
         assertThat(underTest.getAllIssuers(), hasSize(originalSize));
