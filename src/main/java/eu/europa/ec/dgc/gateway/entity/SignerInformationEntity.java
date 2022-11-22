@@ -78,7 +78,7 @@ public class SignerInformationEntity extends FederatedEntity {
     /**
      * Signature of the Upload Certificate.
      */
-    @Column(name = "signature", nullable = false, length = 6000)
+    @Column(name = "signature", length = 6000)
     String signature;
 
     /**

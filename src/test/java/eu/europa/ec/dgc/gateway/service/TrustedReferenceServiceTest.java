@@ -198,9 +198,7 @@ class TrustedReferenceServiceTest {
     @Test
     void testAddTrustedReference() throws Exception {
         TrustedReferenceDto dto = new TrustedReferenceDto(
-            null,
             "https://example.org",
-            1L,
             countryCode,
             TrustedReferenceDto.ReferenceTypeDto.DCC,
             "service",
@@ -238,9 +236,7 @@ class TrustedReferenceServiceTest {
     @Test
     void testAddTrustedReferenceInvalidJsonValues() {
         TrustedReferenceDto dto = new TrustedReferenceDto(
-            null,
             "a".repeat(101), // too long
-            1L,
             countryCode,
             TrustedReferenceDto.ReferenceTypeDto.DCC,
             "service",
@@ -265,9 +261,7 @@ class TrustedReferenceServiceTest {
     @Test
     void testAddTrustedReferenceInvalidUploadCertificate() {
         TrustedReferenceDto dto = new TrustedReferenceDto(
-            null,
             "a",
-            1L,
             countryCode,
             TrustedReferenceDto.ReferenceTypeDto.DCC,
             "service",
@@ -292,9 +286,7 @@ class TrustedReferenceServiceTest {
     @Test
     void testAddTrustedReferenceInvalidCountry() {
         TrustedReferenceDto dto = new TrustedReferenceDto(
-            null,
             "a",
-            1L,
             countryCode,
             TrustedReferenceDto.ReferenceTypeDto.DCC,
             "service",

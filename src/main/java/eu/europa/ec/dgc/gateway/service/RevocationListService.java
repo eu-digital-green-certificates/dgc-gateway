@@ -20,6 +20,8 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
+import static eu.europa.ec.dgc.gateway.utils.CmsUtils.getSignedString;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +31,8 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.model.RevocationBatchDownload;
 import eu.europa.ec.dgc.gateway.model.RevocationBatchList;
 import eu.europa.ec.dgc.gateway.repository.RevocationBatchRepository;
+import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDeleteRequestDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
@@ -236,12 +240,79 @@ public class RevocationListService {
                 RevocationBatchServiceException.Reason.GONE, "Batch already deleted.");
         }
 
-        return new RevocationBatchDownload(entity.get().getBatchId(), entity.get().getSignedBatch());
+        return new RevocationBatchDownload(
+            entity.get().getBatchId(), entity.get().getSignedBatch(), entity.get().getCountry());
+    }
+
+    /**
+     * Get CMS packages for country.
+     *
+     * @param country The country
+     * @return A list of all CMS Packages.
+     */
+    public List<CmsPackageDto> getCmsPackage(String country) {
+        List<RevocationBatchEntity> revocationBatchEntities = revocationBatchRepository.getAllByCountry(country);
+        return revocationBatchEntities.stream()
+            .filter(it -> !it.getDeleted())
+            .map(it -> new CmsPackageDto(it.getSignedBatch(), it.getId(),
+                CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Update Revocation Batch with new cms in db.
+     *
+     * @param id                       the id of the entity.
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param cms                      the cms containing the JSON
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @throws RevocationBatchServiceException if validation check has failed. The exception contains a reason property
+     *                                         with detailed information why the validation has failed.
+     */
+    public RevocationBatchEntity updateRevocationBatchCertificate(
+        Long id,
+        String payloadRevocationBatch,
+        X509CertificateHolder signerCertificate,
+        String cms,
+        String authenticatedCountryCode
+    ) throws RevocationBatchServiceException {
+
+        final RevocationBatchEntity revocationBatchEntity = revocationBatchRepository.findById(id).orElseThrow(
+            () -> new RevocationBatchServiceException(RevocationBatchServiceException.Reason.NOT_FOUND,
+                "RevocationBatch not present."));
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheckUploaderCountry(revocationBatchEntity.getCountry(), authenticatedCountryCode);
+        contentCheckMigrateCms(payloadRevocationBatch, revocationBatchEntity.getSignedBatch());
+
+        revocationBatchEntity.setSignedBatch(cms);
+        revocationBatchEntity.setChanged(ZonedDateTime.now());
+
+        log.info("Updating cms of Revocation Batch Entity with id {}", revocationBatchEntity.getBatchId());
+
+        auditService.addAuditEvent(
+            authenticatedCountryCode,
+            signerCertificate,
+            authenticatedCountryCode,
+            "UPDATED",
+            String.format("Updated Revocation Batch (%s)", revocationBatchEntity.getBatchId())
+        );
+
+        RevocationBatchEntity updatedEntity = revocationBatchRepository.save(revocationBatchEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+
+        return updatedEntity;
     }
 
     private void contentCheckUploaderCountry(RevocationBatchDto parsedBatch, String countryCode)
         throws RevocationBatchServiceException {
-        if (!parsedBatch.getCountry().equals(countryCode)) {
+        contentCheckUploaderCountry(parsedBatch.getCountry(), countryCode);
+    }
+
+    private void contentCheckUploaderCountry(String batchCountryCode, String countryCode)
+        throws RevocationBatchServiceException {
+        if (!batchCountryCode.equals(countryCode)) {
             throw new RevocationBatchServiceException(
                 RevocationBatchServiceException.Reason.INVALID_COUNTRY,
                 "Country does not match your authentication.");
@@ -316,6 +387,17 @@ public class RevocationListService {
             throw new RevocationBatchServiceException(
                 RevocationBatchServiceException.Reason.INVALID_JSON_VALUES,
                 String.join(", ", errorMessages)
+            );
+        }
+    }
+
+    private void contentCheckMigrateCms(String payload, String entityCms)
+        throws RevocationBatchServiceException {
+        SignedStringDto signedStringDto = getSignedString(entityCms);
+        if (!payload.equals(signedStringDto.getPayloadString())) {
+            throw new RevocationBatchServiceException(
+                RevocationBatchServiceException.Reason.INVALID_JSON_VALUES,
+                "New cms payload does not match present payload."
             );
         }
     }

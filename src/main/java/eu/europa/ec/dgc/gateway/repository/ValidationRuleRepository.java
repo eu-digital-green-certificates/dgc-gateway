@@ -57,4 +57,6 @@ public interface ValidationRuleRepository extends JpaRepository<ValidationRuleEn
 
     Optional<ValidationRuleEntity> getByRuleIdAndVersion(String ruleId, String version);
 
+    List<ValidationRuleEntity> getAllByCountry(String country);
+
 }

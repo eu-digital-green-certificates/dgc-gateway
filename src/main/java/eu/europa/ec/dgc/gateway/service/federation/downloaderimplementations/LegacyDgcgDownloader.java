@@ -136,7 +136,7 @@ public class LegacyDgcgDownloader implements FederationDownloader {
                 "Failed to get Gateway Client Certificate from KeyStore: " + e.getMessage());
         }
 
-        builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper, trustedIssuerMapper,
+        builder = new DgcGatewayDownloadConnectorBuilder(applicationContext, trustListMapper,
             trustedReferenceMapper, trustedCertificateMapper)
             .withUrl(gateway.getGatewayEndpoint())
             .withMtlsAuthCert(clientCertificate, clientCertifikateKey)

@@ -59,7 +59,8 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
 
     Optional<SignerInformationEntity> getFirstByThumbprint(String thumbprint);
 
-    Optional<SignerInformationEntity> getFirstByThumbprintStartsWith(String thumbprintStart);
+    Optional<SignerInformationEntity> getFirstByThumbprintStartsWithAndThumbprintIsNot(
+        String thumbprintStart, String thumbprint);
 
     Optional<SignerInformationEntity> getFirstByKid(String kid);
 
@@ -71,8 +72,6 @@ public interface SignerInformationRepository extends JpaRepository<SignerInforma
 
     List<SignerInformationEntity> getByCertificateTypeAndCountryAndSourceGatewayIsNull(
         SignerInformationEntity.CertificateType type, String countryCode);
-
-    List<SignerInformationEntity> getBySourceGatewayGatewayId(String gatewayId);
 
     @Transactional
     Long deleteBySourceGatewayGatewayId(String gatewayId);

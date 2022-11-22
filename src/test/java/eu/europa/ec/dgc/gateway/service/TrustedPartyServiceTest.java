@@ -22,7 +22,6 @@ package eu.europa.ec.dgc.gateway.service;
 
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
-import eu.europa.ec.dgc.gateway.testdata.DgcTestKeyStore;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import java.util.Optional;
@@ -45,9 +44,6 @@ class TrustedPartyServiceTest {
     @Autowired
     TrustedPartyTestHelper trustedPartyTestHelper;
 
-    @Autowired
-    DgcTestKeyStore dgcTestKeyStore;
-
     private static final String countryCode = "EU";
 
     @AfterEach
@@ -59,7 +55,8 @@ class TrustedPartyServiceTest {
     @Test
     void trustedPartyServiceShouldReturnCertificate() throws Exception {
         String hash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.UPLOAD);
+        Optional<TrustedPartyEntity> certOptional =
+            trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.UPLOAD);
         Assertions.assertTrue(certOptional.isPresent());
         Assertions.assertEquals(hash, certOptional.get().getThumbprint());
 
@@ -69,7 +66,8 @@ class TrustedPartyServiceTest {
         Assertions.assertEquals(hash, certOptional.get().getThumbprint());
 
         hash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
-        certOptional = trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
+        certOptional =
+            trustedPartyService.getCertificate(hash, countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
         Assertions.assertTrue(certOptional.isPresent());
         Assertions.assertEquals(hash, certOptional.get().getThumbprint());
     }
@@ -77,10 +75,12 @@ class TrustedPartyServiceTest {
     @Test
     void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfRawDataIsViolated() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
 
         Optional<TrustedPartyEntity> anotherCertOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.AUTHENTICATION);
 
         Assertions.assertTrue(certOptional.isPresent());
         Assertions.assertTrue(anotherCertOptional.isPresent());
@@ -91,17 +91,20 @@ class TrustedPartyServiceTest {
         trustedPartyRepository.save(cert);
 
         certOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
         Assertions.assertTrue(certOptional.isEmpty());
     }
 
     @Test
     void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfSignatureIsViolated() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
 
         Optional<TrustedPartyEntity> anotherCertOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.AUTHENTICATION);
 
         Assertions.assertTrue(certOptional.isPresent());
         Assertions.assertTrue(anotherCertOptional.isPresent());
@@ -112,17 +115,20 @@ class TrustedPartyServiceTest {
         trustedPartyRepository.save(cert);
 
         certOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
         Assertions.assertTrue(certOptional.isEmpty());
     }
 
     @Test
     void trustedPartyServiceShouldNotReturnCertificateIfIntegrityOfThumbprintIsViolated() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
 
         Optional<TrustedPartyEntity> anotherCertOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode, TrustedPartyEntity.CertificateType.AUTHENTICATION);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.AUTHENTICATION);
 
         Assertions.assertTrue(certOptional.isPresent());
         Assertions.assertTrue(anotherCertOptional.isPresent());
@@ -142,12 +148,16 @@ class TrustedPartyServiceTest {
     @Test
     void trustedPartyServiceShouldNotReturnCertificateIfSignatureIsFromUnknownTrustAnchor() throws Exception {
         Optional<TrustedPartyEntity> certOptional = trustedPartyService.getCertificate(
-            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.CSCA, countryCode), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
 
         // Create new signature with a random non TrustAnchor certificate
         String newSignature = new SignedCertificateMessageBuilder()
-            .withSigningCertificate(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX").getEncoded()), trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX"))
-            .withPayload(new X509CertificateHolder(trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode).getEncoded()))
+            .withSigningCertificate(new X509CertificateHolder(
+                    trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX").getEncoded()),
+                trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX"))
+            .withPayload(new X509CertificateHolder(
+                trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode).getEncoded()))
             .buildAsString(true);
 
         Assertions.assertTrue(certOptional.isPresent());
@@ -156,7 +166,9 @@ class TrustedPartyServiceTest {
         trustedPartyEntity.setSignature(newSignature);
         trustedPartyRepository.save(trustedPartyEntity);
 
-        certOptional = trustedPartyService.getCertificate(trustedPartyEntity.getThumbprint(), countryCode, TrustedPartyEntity.CertificateType.CSCA);
+        certOptional = trustedPartyService.getCertificate(trustedPartyEntity.getThumbprint(), countryCode,
+            TrustedPartyEntity.CertificateType.CSCA);
         Assertions.assertTrue(certOptional.isEmpty());
     }
+
 }

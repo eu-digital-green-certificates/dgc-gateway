@@ -280,26 +280,26 @@ public class TrustListController {
                 examples = {@ExampleObject("AUTHENTICATION"), @ExampleObject("AUTHENTICATION_FEDERATION"),
                     @ExampleObject("UPLOAD"), @ExampleObject("CSCA"), @ExampleObject("TRUSTANCHOR"),
                     @ExampleObject("DSC"), @ExampleObject("SIGN"), @ExampleObject("AUTH"), @ExampleObject("CUSTOM")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "country",
                 description = "Two-Digit Country Code",
                 examples = {@ExampleObject("EU"), @ExampleObject("DE")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "domain",
                 description = "Value for Domain to search for",
                 examples = {@ExampleObject("DCC"), @ExampleObject("ICAO")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "withFederation",
                 description = "Switch if federated entities should be included",
                 allowEmptyValue = true,
                 schema = @Schema(implementation = Boolean.class)
-            )
+                )
         },
         responses = {
             @ApiResponse(
@@ -314,15 +314,15 @@ public class TrustListController {
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ProblemReportDto.class)
-                )),
+                    )),
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized. No Access to the system. (Client Certificate not present or whitelisted)",
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ProblemReportDto.class)
-                ))
-        })
+                    ))
+            })
     public ResponseEntity<List<TrustedCertificateTrustListDto>> downloadTrustListCertificate(
         @RequestParam(value = "group", required = false) List<String> searchGroup,
         @RequestParam(value = "country", required = false) List<String> searchCountry,
@@ -357,20 +357,20 @@ public class TrustListController {
                 name = "country",
                 description = "Two-Digit Country Code",
                 examples = {@ExampleObject("EU"), @ExampleObject("DE")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "domain",
                 description = "Value for Domain to search for",
                 examples = {@ExampleObject("DCC"), @ExampleObject("ICAO")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "withFederation",
                 description = "Switch if federated entities should be included",
                 allowEmptyValue = true,
                 schema = @Schema(implementation = Boolean.class)
-            )
+                )
         },
         responses = {
             @ApiResponse(
@@ -386,7 +386,7 @@ public class TrustListController {
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ProblemReportDto.class)
-                ))
+                    ))
         })
     public ResponseEntity<List<TrustedIssuerDto>> getTrustedIssuersByCountry(
         @RequestParam(value = "country", required = false) List<String> searchCountry,
@@ -418,32 +418,32 @@ public class TrustListController {
                 name = "country",
                 description = "Two-Digit Country Code",
                 examples = {@ExampleObject("EU"), @ExampleObject("DE")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "domain",
                 description = "Value for Domain to search for",
                 examples = {@ExampleObject("DCC"), @ExampleObject("ICAO")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "referenceType",
                 description = "Value for Reference Type to search for",
                 examples = {@ExampleObject("DCC"), @ExampleObject("FHIR")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "signatureType",
                 description = "Value for Signature Type to search for",
                 examples = {@ExampleObject("CMS"), @ExampleObject("JWS"), @ExampleObject("NONE")}
-            ),
+                ),
             @Parameter(
                 in = ParameterIn.QUERY,
                 name = "withFederation",
                 description = "Switch if federated entities should be included",
                 allowEmptyValue = true,
                 schema = @Schema(implementation = Boolean.class)
-            )
+                )
         },
         responses = {
             @ApiResponse(
@@ -459,7 +459,7 @@ public class TrustListController {
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ProblemReportDto.class)
-                ))
+                    ))
         })
     public ResponseEntity<List<TrustedReferenceDto>> getTrustedReferencesTrustList(
         @RequestParam(value = "country", required = false) List<String> searchCountry,

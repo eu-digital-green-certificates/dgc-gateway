@@ -41,6 +41,7 @@ public class FederatedDto {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Globally Unique identifier for this entity.")
+    @Pattern(regexp = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$")
     private String uuid;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -49,6 +50,6 @@ public class FederatedDto {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Version of this entity.")
-    private Long version;
+    private Long version = 1L;
 
 }

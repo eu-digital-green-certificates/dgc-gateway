@@ -46,6 +46,8 @@ dgc:
       distinguished-name: X-SSL-Client-DN
   revocation:
     delete-threshold: 14
+  signer-information:
+    delete-threshold: 14
   trustedCertificates:
     allowedProperties:
       - purpose
@@ -66,6 +68,3 @@ dgc:
 springdoc:
   api-docs:
     enabled: false
-logging:
-  level:
-    "eu.europa.ec.dgc.gateway": DEBUG

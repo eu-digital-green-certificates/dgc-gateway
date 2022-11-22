@@ -216,6 +216,55 @@ public class SignerInformationService {
     }
 
     /**
+     * Update a CMS package.
+     *
+     * @param id                       The entity to update
+     * @param uploadedCertificate      the certificate to add
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param signature                the detached signature of cms message
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @throws SignerCertCheckException if validation check has failed. The exception contains
+     *                                  a reason property with detailed information why the validation has failed.
+     */
+    public SignerInformationEntity updateSignerCertificate(
+        Long id,
+        X509CertificateHolder uploadedCertificate,
+        X509CertificateHolder signerCertificate,
+        String signature,
+        String authenticatedCountryCode
+    ) throws SignerCertCheckException {
+
+        final SignerInformationEntity signerInformationEntity = signerInformationRepository.findById(id).orElseThrow(
+            () -> new SignerCertCheckException(SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
+                "Uploaded certificate does not exists"));
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheckCountryOfOrigin(uploadedCertificate, authenticatedCountryCode);
+        contentCheckCsca(uploadedCertificate, authenticatedCountryCode);
+
+        byte[] certRawData;
+        try {
+            certRawData = uploadedCertificate.getEncoded();
+        } catch (IOException e) {
+            throw new SignerCertCheckException(SignerCertCheckException.Reason.UPLOAD_FAILED, "Internal Server Error");
+        }
+
+        signerInformationEntity.setRawData(Base64.getEncoder().encodeToString(certRawData));
+        signerInformationEntity.setThumbprint(certificateUtils.getCertThumbprint(uploadedCertificate));
+        signerInformationEntity.setCertificateType(SignerInformationEntity.CertificateType.DSC);
+        signerInformationEntity.setSignature(signature);
+
+        log.info("Updating SignerInformation Entity");
+
+        SignerInformationEntity updatedEntity = signerInformationRepository.save(signerInformationEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+        DgcMdc.remove(MDC_PROP_CSCA_CERT_THUMBPRINT);
+
+        return updatedEntity;
+    }
+
+    /**
      * Adds a new Trusted Signer Certificate to TrustStore DB.
      *
      * @param uploadedCertificate      the certificate to add
@@ -447,16 +496,15 @@ public class SignerInformationService {
 
     private void contentCheckKidAlreadyExists(X509CertificateHolder uploadedCertificate, String customKid)
         throws SignerCertCheckException {
-
+        String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
         String kid = customKid;
         if (customKid == null) {
             // Custom Kid not provided, using the first 8 byte of hash as fallback.
-            String uploadedCertificateThumbprint = certificateUtils.getCertThumbprint(uploadedCertificate);
             kid = uploadedCertificateThumbprint.substring(0, 16);
         }
 
-        Optional<SignerInformationEntity> signerInformationEntity =
-            signerInformationRepository.getFirstByThumbprintStartsWith(kid);
+        Optional<SignerInformationEntity> signerInformationEntity = signerInformationRepository
+            .getFirstByThumbprintStartsWithAndThumbprintIsNot(kid, uploadedCertificateThumbprint);
 
         if (signerInformationEntity.isPresent()) {
             throw new SignerCertCheckException(SignerCertCheckException.Reason.KID_CHECK_FAILED,

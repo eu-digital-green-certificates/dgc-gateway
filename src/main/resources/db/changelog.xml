@@ -18,4 +18,5 @@
     <include file="db/changelog/add-federation.xml"/>
     <include file="db/changelog/fix-charset.xml"/>
     <include file="db/changelog/add-trusted-reference-url-column.xml"/>
+    <include file="db/changelog/increase-column-size-for-validation-rule-signature.xml"/>
 </databaseChangeLog>

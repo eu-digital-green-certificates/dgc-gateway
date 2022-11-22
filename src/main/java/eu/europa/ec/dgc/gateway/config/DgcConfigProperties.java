@@ -32,13 +32,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DgcConfigProperties {
 
     private final CertAuth certAuth = new CertAuth();
-    private final TrustAnchor trustAnchor = new TrustAnchor();
+    private final KeyStoreWithAlias trustAnchor = new KeyStoreWithAlias();
 
     private String validationRuleSchema;
 
     private JrcConfig jrc = new JrcConfig();
 
     private Revocation revocation = new Revocation();
+
+    private SignerInformation signerInformation = new SignerInformation();
 
     private Federation federation = new Federation();
 
@@ -71,7 +73,7 @@ public class DgcConfigProperties {
 
     @Getter
     @Setter
-    public static class TrustAnchor {
+    public static class KeyStoreWithAlias {
         private String keyStorePath;
         private String keyStorePass;
         private String certificateAlias;
@@ -110,5 +112,11 @@ public class DgcConfigProperties {
         private String keystorePath;
         private String keystorePassword;
         private String keystoreKeyPassword;
+    }
+
+    @Getter
+    @Setter
+    public static class SignerInformation {
+        private int deleteThreshold = 14;
     }
 }

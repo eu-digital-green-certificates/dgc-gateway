@@ -79,14 +79,20 @@ class SignerCertificateIntegrationTest {
     void testSuccessfulUpload() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
@@ -96,14 +102,15 @@ class SignerCertificateIntegrationTest {
         // immediately parse the message to get the signature from the signed message
         String signature = new SignedCertificateMessageParser(payload).getSignature();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isCreated());
 
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
@@ -112,11 +119,13 @@ class SignerCertificateIntegrationTest {
 
         Assertions.assertTrue(createdSignerInformationEntity.isPresent());
 
-        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
-        Assertions.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
+        Assertions.assertEquals(SignerInformationEntity.CertificateType.DSC,
+            createdSignerInformationEntity.get().getCertificateType());
         Assertions.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
         Assertions.assertEquals(signature, createdSignerInformationEntity.get().getSignature());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()), createdSignerInformationEntity.get().getRawData());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()),
+            createdSignerInformationEntity.get().getRawData());
     }
 
     @Test
@@ -124,38 +133,45 @@ class SignerCertificateIntegrationTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
             .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isCreated());
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isConflict());
-        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
     }
 
@@ -164,31 +180,36 @@ class SignerCertificateIntegrationTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         // sign with TrustAnchor
         X509Certificate cscaCertificate = dgcTestKeyStore.getTrustAnchor();
         PrivateKey cscaPrivateKey = dgcTestKeyStore.getTrustAnchorPrivateKey();
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
             .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
-        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
@@ -197,8 +218,10 @@ class SignerCertificateIntegrationTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         // sign with CSCA from another country
         X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, "XX");
@@ -206,23 +229,26 @@ class SignerCertificateIntegrationTest {
 
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
             .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
-        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
@@ -231,30 +257,37 @@ class SignerCertificateIntegrationTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, "XX", "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, "XX", "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
             .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
-        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
@@ -263,30 +296,37 @@ class SignerCertificateIntegrationTest {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
         long auditEventEntitiesInDb = auditEventRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
             .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
             .buildAsString();
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
-        Assertions.assertEquals(auditEventEntitiesInDb+1, auditEventRepository.count());
+        Assertions.assertEquals(auditEventEntitiesInDb + 1, auditEventRepository.count());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }
 
@@ -294,14 +334,20 @@ class SignerCertificateIntegrationTest {
     void testUploadFailedInvalidCmsMessage() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         String payload = new SignedCertificateMessageBuilder()
             .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
@@ -311,14 +357,15 @@ class SignerCertificateIntegrationTest {
         // randomly play a little bit inside the base64 string
         payload = payload.replace(payload.substring(10, 50), payload.substring(80, 120));
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
-            .content(payload)
-            .contentType("application/cms")
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
     }

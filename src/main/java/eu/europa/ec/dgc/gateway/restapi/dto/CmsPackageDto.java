@@ -18,24 +18,31 @@
  * ---license-end
  */
 
-package eu.europa.ec.dgc.gateway.model;
+package eu.europa.ec.dgc.gateway.restapi.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.ZonedDateTime;
-import java.util.List;
-import javax.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Schema(name = "CmsPackage")
 @Data
-public class JrcRatValuesetResponse {
+@AllArgsConstructor
+@NoArgsConstructor
+public class CmsPackageDto {
 
-    @JsonProperty("extracted_on")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z")
-    @NotNull
-    ZonedDateTime extractedOn;
+    @Schema(description = "CMS containing the signed String or certificate")
+    private String cms;
 
-    @JsonProperty("deviceList")
-    @NotNull
-    List<JrcRatValueset> deviceList;
+    @Schema(description = "Internal ID of the package")
+    private Long entityId;
+
+    @Schema(description = "Type of the CMS package")
+    private CmsPackageTypeDto type;
+
+    public enum CmsPackageTypeDto {
+        DSC,
+        REVOCATION_LIST,
+        VALIDATION_RULE
+    }
 }

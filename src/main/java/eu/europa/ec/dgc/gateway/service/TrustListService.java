@@ -79,7 +79,7 @@ public class TrustListService {
     }
 
     /**
-     * Get a TrustList with TrustList Entries filtered by countriy and type.
+     * Get a TrustList with TrustList Entries filtered by country and type.
      *
      * @param type        the type to filter for.
      * @param countryCode the 2-Digit country code to filter for.

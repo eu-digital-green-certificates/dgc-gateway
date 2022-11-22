@@ -20,7 +20,6 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
-import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
@@ -32,7 +31,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
 import java.util.Optional;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.jupiter.api.AfterEach;
@@ -43,9 +41,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class SignerInformationServiceTest {
-
-    @Autowired
-    DgcConfigProperties dgcConfigProperties;
 
     @Autowired
     CertificateUtils certificateUtils;
@@ -71,59 +66,21 @@ class SignerInformationServiceTest {
     }
 
     @Test
-    void testSuccessfulAddingNewSignerInformationAndDelete() throws Exception {
-        long signerInformationEntitiesInDb = signerInformationRepository.count();
-
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-
-        KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
-
-        signerInformationService.addSignerCertificate(
-            new X509CertificateHolder(payloadCertificate.getEncoded()),
-            new X509CertificateHolder(signerCertificate.getEncoded()),
-            dummySignature,
-            countryCode
-        );
-
-        Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
-        Optional<SignerInformationEntity> createdSignerInformationEntity =
-            signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
-
-        Assertions.assertTrue(createdSignerInformationEntity.isPresent());
-
-        Assertions.assertEquals(SignerInformationEntity.CertificateType.DSC, createdSignerInformationEntity.get().getCertificateType());
-        Assertions.assertEquals(countryCode, createdSignerInformationEntity.get().getCountry());
-        Assertions.assertEquals(dummySignature, createdSignerInformationEntity.get().getSignature());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificate.getEncoded()), createdSignerInformationEntity.get().getRawData());
-
-        signerInformationService.deleteSignerCertificate(
-            new X509CertificateHolder(payloadCertificate.getEncoded()),
-            new X509CertificateHolder(signerCertificate.getEncoded()),
-            countryCode
-        );
-
-        Optional<SignerInformationEntity> deletedSignerInformationEntity =
-            signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
-
-        Assertions.assertTrue(deletedSignerInformationEntity.isEmpty());
-        Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
-    }
-
-    @Test
     void testAddingFailedConflict() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         signerInformationService.addSignerCertificate(
             new X509CertificateHolder(payloadCertificate.getEncoded()),
@@ -140,7 +97,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.ALREADY_EXIST_CHECK_FAILED,
+                e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
@@ -150,13 +108,18 @@ class SignerInformationServiceTest {
     void testAddingFailedKidConflict() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         signerInformationService.addSignerCertificate(
             new X509CertificateHolder(payloadCertificate.getEncoded()),
@@ -165,12 +128,14 @@ class SignerInformationServiceTest {
             countryCode
         );
 
-        Optional<SignerInformationEntity> certInDbOptional = signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
+        Optional<SignerInformationEntity> certInDbOptional =
+            signerInformationRepository.getFirstByThumbprint(certificateUtils.getCertThumbprint(payloadCertificate));
 
         Assertions.assertTrue(certInDbOptional.isPresent());
 
         SignerInformationEntity certInDb = certInDbOptional.get();
-        certInDb.setThumbprint(certInDb.getThumbprint().substring(0, 40) + "x".repeat(24)); // Generate new Hash with first 40 chars from ogirinal hash and add 24 x
+        certInDb.setThumbprint(certInDb.getThumbprint().substring(0, 40) +
+            "x".repeat(24)); // Generate new Hash with first 40 chars from ogirinal hash and add 24 x
 
         signerInformationRepository.save(certInDb);
 
@@ -182,7 +147,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.KID_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.KID_CHECK_FAILED,
+                e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb + 1, signerInformationRepository.count());
@@ -192,14 +158,17 @@ class SignerInformationServiceTest {
     void testUploadFailedInvalidCSCA() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         // sign with TrustAnchor
         X509Certificate cscaCertificate = dgcTestKeyStore.getTrustAnchor();
         PrivateKey cscaPrivateKey = dgcTestKeyStore.getTrustAnchorPrivateKey();
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.addSignerCertificate(
@@ -209,7 +178,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED,
+                e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
@@ -219,7 +189,8 @@ class SignerInformationServiceTest {
     void testUploadFailedInvalidCSCAWrongCountryCode() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
         // sign with CSCA from another country
         X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, "XX");
@@ -227,7 +198,9 @@ class SignerInformationServiceTest {
 
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.addSignerCertificate(
@@ -237,7 +210,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.CSCA_CHECK_FAILED,
+                e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
@@ -247,13 +221,18 @@ class SignerInformationServiceTest {
     void testUploadFailedPayloadCertCountryWrong() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, "XX", "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, "XX", "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.addSignerCertificate(
@@ -263,7 +242,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(
+                SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
@@ -273,13 +253,18 @@ class SignerInformationServiceTest {
     void testUploadFailedWrongSignerCertificate() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.addSignerCertificate(
@@ -289,7 +274,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED,
+                e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
@@ -297,12 +283,17 @@ class SignerInformationServiceTest {
 
     @Test
     void testDeleteFailedNotExists() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.deleteSignerCertificate(
@@ -311,7 +302,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.EXIST_CHECK_FAILED,
+                e.getReason());
         }
     }
 
@@ -319,12 +311,17 @@ class SignerInformationServiceTest {
     void testDeleteFailedPayloadCertCountryWrong() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, "XX", "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, "XX", "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.deleteSignerCertificate(
@@ -333,7 +330,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(
+                SignerInformationService.SignerCertCheckException.Reason.COUNTRY_OF_ORIGIN_CHECK_FAILED, e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());
@@ -343,13 +341,18 @@ class SignerInformationServiceTest {
     void testDeleteFailedWrongSignerCertificate() throws Exception {
         long signerInformationEntitiesInDb = signerInformationRepository.count();
 
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "XX");
 
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate cscaCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+            CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+                cscaPrivateKey);
 
         try {
             signerInformationService.deleteSignerCertificate(
@@ -358,7 +361,8 @@ class SignerInformationServiceTest {
                 countryCode
             );
         } catch (SignerInformationService.SignerCertCheckException e) {
-            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED, e.getReason());
+            Assertions.assertEquals(SignerInformationService.SignerCertCheckException.Reason.UPLOADER_CERT_CHECK_FAILED,
+                e.getReason());
         }
 
         Assertions.assertEquals(signerInformationEntitiesInDb, signerInformationRepository.count());

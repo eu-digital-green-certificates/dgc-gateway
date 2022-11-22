@@ -21,6 +21,7 @@
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import eu.europa.ec.dgc.gateway.config.OpenApiConfig;
+import eu.europa.ec.dgc.gateway.entity.RevocationBatchEntity;
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.model.RevocationBatchDownload;
 import eu.europa.ec.dgc.gateway.restapi.converter.CmsStringMessageConverter;
@@ -30,8 +31,10 @@ import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchDto;
 import eu.europa.ec.dgc.gateway.restapi.dto.revocation.RevocationBatchListDto;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationFilter;
 import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRequired;
+import eu.europa.ec.dgc.gateway.restapi.filter.CertificateAuthenticationRole;
 import eu.europa.ec.dgc.gateway.restapi.mapper.RevocationBatchMapper;
 import eu.europa.ec.dgc.gateway.service.RevocationListService;
+import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -75,10 +78,14 @@ public class CertificateRevocationListController {
     public static final String UUID_REGEX =
         "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
 
+    private static final String MDC_DOWNLOADER_COUNTRY = "downloaderCountry";
+    private static final String MDC_DOWNLOADED_COUNTRY = "downloadedCountry";
+    private static final String MDC_DOWNLOADED_BATCH_ID = "downloadedBatchId";
+
     /**
      * Endpoint to download Revocation Batch List.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationListReader)
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         security = {
@@ -128,7 +135,7 @@ public class CertificateRevocationListController {
     /**
      * Endpoint to download Revocation Batch.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationListReader)
     @GetMapping(value = "/{batchId}", produces = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
@@ -162,10 +169,18 @@ public class CertificateRevocationListController {
         }
     )
     public ResponseEntity<String> downloadBatch(
-        @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId) {
+        @Valid @PathVariable("batchId") @Pattern(regexp = UUID_REGEX) String batchId,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String downloaderCountry) {
 
         try {
             RevocationBatchDownload download = revocationListService.getRevocationBatch(batchId);
+
+
+            DgcMdc.put(MDC_DOWNLOADED_COUNTRY, download.getCountry());
+            DgcMdc.put(MDC_DOWNLOADER_COUNTRY, downloaderCountry);
+            DgcMdc.put(MDC_DOWNLOADED_BATCH_ID, batchId);
+
+            log.info("Revocation Batch downloaded.");
 
             return ResponseEntity
                 .ok()
@@ -191,7 +206,7 @@ public class CertificateRevocationListController {
     /**
      * Endpoint to upload Revocation Batch.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationUploader)
     @PostMapping(value = "", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
@@ -209,7 +224,8 @@ public class CertificateRevocationListController {
         responses = {
             @ApiResponse(
                 responseCode = "201",
-                description = "Batch created."),
+                description = "Batch created.",
+                headers = @Header(name = HttpHeaders.ETAG, description = "Batch ID of created Batch")),
             @ApiResponse(
                 responseCode = "409",
                 description = "Batch already exists.")
@@ -224,13 +240,17 @@ public class CertificateRevocationListController {
                 "Submitted string needs to be signed by a valid upload certificate");
         }
 
+        String batchId;
+
         try {
-            revocationListService.addRevocationBatch(
+            RevocationBatchEntity entity = revocationListService.addRevocationBatch(
                 batch.getPayloadString(),
                 batch.getSignerCertificate(),
                 batch.getRawMessage(),
                 countryCode
             );
+
+            batchId = entity.getBatchId();
         } catch (RevocationListService.RevocationBatchServiceException e) {
             log.error("Upload of Revocation Batch failed: {}, {}", e.getReason(), e.getMessage());
 
@@ -254,13 +274,16 @@ public class CertificateRevocationListController {
             }
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .header(HttpHeaders.ETAG, batchId)
+            .build();
     }
 
     /**
      * Endpoint to delete Revocation Batch.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationDeleter)
     @DeleteMapping(value = "", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
@@ -335,7 +358,7 @@ public class CertificateRevocationListController {
     /**
      * Alternative endpoint to delete revocation batches.
      */
-    @CertificateAuthenticationRequired
+    @CertificateAuthenticationRequired(requiredRoles = CertificateAuthenticationRole.RevocationDeleter)
     @PostMapping(value = "/delete", consumes = {
         CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     public ResponseEntity<Void> deleteBatchAlternativeEndpoint(

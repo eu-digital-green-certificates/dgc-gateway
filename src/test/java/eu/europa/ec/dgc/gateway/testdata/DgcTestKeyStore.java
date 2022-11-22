@@ -55,7 +55,6 @@ public class DgcTestKeyStore {
 
         KeyPair keyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
         trustAnchorPrivateKey = keyPair.getPrivate();
-
         trustAnchor = CertificateTestUtils.generateCertificate(keyPair, "DE", "DGCG Test TrustAnchor");
 
     }

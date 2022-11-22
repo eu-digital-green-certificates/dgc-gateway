@@ -32,6 +32,8 @@ public interface TrustedIssuerRepository extends JpaRepository<TrustedIssuerEnti
 
     List<TrustedIssuerEntity> getAllByCountry(String country);
 
+    List<TrustedIssuerEntity> getAllByCountryIn(List<String> country);
+
     @Query("SELECT t FROM TrustedIssuerEntity t WHERE "
         + "(:ignoreCountry = true OR t.country IN (:country)) AND "
         + "(:ignoreDomain = true OR t.domain IN (:domain)) AND "

@@ -51,9 +51,13 @@ public class TrustedPartyService {
 
     private static final String MDC_PROP_CERT_THUMBPRINT = "certVerifyThumbprint";
     private static final String MDC_PROP_PARSER_STATE = "parserState";
+
     private final TrustedPartyRepository trustedPartyRepository;
+
     private final KeyStore trustAnchorKeyStore;
+
     private final DgcConfigProperties dgcConfigProperties;
+
     private final CertificateUtils certificateUtils;
 
     /**
@@ -141,6 +145,7 @@ public class TrustedPartyService {
             .filter(this::validateCertificateIntegrity)
             .collect(Collectors.toList());
     }
+
 
     /**
      * Method to query the db for a certificate.

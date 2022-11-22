@@ -68,21 +68,24 @@ public class CertificateTestUtils {
         return validationRule;
     }
 
-    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName) throws Exception {
+    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName)
+        throws Exception {
         Date validFrom = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
         Date validTo = Date.from(Instant.now().plus(365, ChronoUnit.DAYS));
 
         return generateCertificate(keyPair, country, commonName, validFrom, validTo);
     }
 
-    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName, X509Certificate ca, PrivateKey caKey) throws Exception {
+    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName,
+                                                      X509Certificate ca, PrivateKey caKey) throws Exception {
         Date validFrom = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
         Date validTo = Date.from(Instant.now().plus(365, ChronoUnit.DAYS));
 
         return generateCertificate(keyPair, country, commonName, validFrom, validTo, ca, caKey);
     }
 
-    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName, Date validFrom, Date validTo) throws Exception {
+    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName,
+                                                      Date validFrom, Date validTo) throws Exception {
         X500Name subject = new X500NameBuilder()
             .addRDN(X509ObjectIdentifiers.countryName, country)
             .addRDN(X509ObjectIdentifiers.commonName, commonName)
@@ -101,7 +104,9 @@ public class CertificateTestUtils {
         return new JcaX509CertificateConverter().getCertificate(certBuilder.build(contentSigner));
     }
 
-    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName, Date validFrom, Date validTo, X509Certificate ca, PrivateKey caKey) throws Exception {
+    public static X509Certificate generateCertificate(KeyPair keyPair, String country, String commonName,
+                                                      Date validFrom, Date validTo, X509Certificate ca,
+                                                      PrivateKey caKey) throws Exception {
         X500Name subject = new X500NameBuilder()
             .addRDN(X509ObjectIdentifiers.countryName, country)
             .addRDN(X509ObjectIdentifiers.commonName, commonName)

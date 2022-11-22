@@ -60,11 +60,11 @@ public class TrustedIssuerDto {
     @Schema(example = "Example Service")
     private String name;
 
-    @Schema(example = "e4d04ee1-2bfe-4e8c-ab82-0d2b1d223712")
-    private String uuid;
-
     @Schema(example = "DCC")
     private String domain;
+
+    @Schema(example = "e4d04ee1-2bfe-4e8c-ab82-0d2b1d223712")
+    private String uuid;
 
     public enum UrlTypeDto {
         HTTP,

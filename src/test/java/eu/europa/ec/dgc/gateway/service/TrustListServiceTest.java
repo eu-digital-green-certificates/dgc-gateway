@@ -68,7 +68,8 @@ class TrustListServiceTest {
     @Autowired
     CertificateUtils certificateUtils;
 
-    X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu, federatedCertDscEx;
+    X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu,
+        federatedCertDscEx;
 
     FederationGatewayEntity federationGateway;
 
@@ -78,7 +79,10 @@ class TrustListServiceTest {
         signerInformationRepository.deleteAll();
         federationGatewayRepository.deleteAll();
 
-        federationGateway = new FederationGatewayEntity(null, ZonedDateTime.now(), "gw-id", "endpoint", "kid", "pk", "impl", FederationGatewayEntity.DownloadTarget.FEDERATION, FederationGatewayEntity.Mode.APPEND, "sig", -1L, null, null, 0L, null, null);
+        federationGateway =
+            new FederationGatewayEntity(null, ZonedDateTime.now(), "gw-id", "endpoint", "kid", "pk", "impl",
+                FederationGatewayEntity.DownloadTarget.FEDERATION, FederationGatewayEntity.Mode.APPEND, "sig", -1L,
+                null, null, 0L, null, null);
         federationGateway = federationGatewayRepository.save(federationGateway);
 
         certUploadDe = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
@@ -135,7 +139,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListWithoutFilters() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), true);
+            trustListService.getTrustedCertificateTrustList(Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), true);
 
         assertTrustListItem(trustList, certDscDe, "DE", "DSC", "sig1");
         assertTrustListItem(trustList, certDscEu, "EU", "DSC", "sig2");
@@ -152,7 +157,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListFilterByGroup() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(List.of("DSC", "CSCA"), Collections.emptyList(), Collections.emptyList(), true);
+            trustListService.getTrustedCertificateTrustList(List.of("DSC", "CSCA"), Collections.emptyList(),
+                Collections.emptyList(), true);
 
         assertTrustListItem(trustList, certDscDe, "DE", "DSC", "sig1");
         assertTrustListItem(trustList, certDscEu, "EU", "DSC", "sig2");
@@ -165,7 +171,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListFilterByGroupWithoutFederated() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(List.of("DSC", "CSCA"), Collections.emptyList(), Collections.emptyList(), false);
+            trustListService.getTrustedCertificateTrustList(List.of("DSC", "CSCA"), Collections.emptyList(),
+                Collections.emptyList(), false);
 
         assertTrustListItem(trustList, certDscDe, "DE", "DSC", "sig1");
         assertTrustListItem(trustList, certDscEu, "EU", "DSC", "sig2");
@@ -177,7 +184,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListFilterByGroupOnlyTrustedParty() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(Arrays.asList("CSCA", "UPLOAD"), Collections.emptyList(), Collections.emptyList(), true);
+            trustListService.getTrustedCertificateTrustList(Arrays.asList("CSCA", "UPLOAD"), Collections.emptyList(),
+                Collections.emptyList(), true);
 
         assertTrustListItem(trustList, certCscaDe, "DE", "CSCA", null);
         assertTrustListItem(trustList, certCscaEu, "EU", "CSCA", null);
@@ -189,7 +197,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListFilterByGroupOnlySignerInfo() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(List.of("DSC"), Collections.emptyList(), Collections.emptyList(), true);
+            trustListService.getTrustedCertificateTrustList(List.of("DSC"), Collections.emptyList(),
+                Collections.emptyList(), true);
 
         assertTrustListItem(trustList, certDscDe, "DE", "DSC", "sig1");
         assertTrustListItem(trustList, certDscEu, "EU", "DSC", "sig2");
@@ -201,7 +210,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListFilterByCountry() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(Collections.emptyList(), List.of("EX", "DE"), Collections.emptyList(), true);
+            trustListService.getTrustedCertificateTrustList(Collections.emptyList(), List.of("EX", "DE"),
+                Collections.emptyList(), true);
 
         assertTrustListItem(trustList, certDscDe, "DE", "DSC", "sig1");
         assertTrustListItem(trustList, certCscaDe, "DE", "CSCA", null);
@@ -214,7 +224,8 @@ class TrustListServiceTest {
     @Test
     void testTrustedCertificateTrustListFilterByCountryWithoutFederation() throws CertificateEncodingException {
         List<TrustedCertificateTrustList> trustList =
-            trustListService.getTrustedCertificateTrustList(Collections.emptyList(), List.of("EX", "DE"), Collections.emptyList(), false);
+            trustListService.getTrustedCertificateTrustList(Collections.emptyList(), List.of("EX", "DE"),
+                Collections.emptyList(), false);
 
         assertTrustListItem(trustList, certDscDe, "DE", "DSC", "sig1");
         assertTrustListItem(trustList, certCscaDe, "DE", "CSCA", null);
@@ -302,7 +313,9 @@ class TrustListServiceTest {
         assertTrustListItem(trustList, certAuthEu, "EU", TrustListType.AUTHENTICATION, null);
     }
 
-    private void assertTrustListItem(List<TrustList> trustList, X509Certificate certificate, String country, TrustListType trustListType, String signature) throws CertificateEncodingException {
+    private void assertTrustListItem(List<TrustList> trustList, X509Certificate certificate, String country,
+                                     TrustListType trustListType, String signature)
+        throws CertificateEncodingException {
         Optional<TrustList> trustListOptional = trustList
             .stream()
             .filter(tl -> tl.getKid().equals(certificateUtils.getCertKid(certificate)))
@@ -316,14 +329,17 @@ class TrustListServiceTest {
         Assertions.assertEquals(country, trustListItem.getCountry());
         Assertions.assertEquals(trustListType, trustListItem.getCertificateType());
         Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()),
+            trustListItem.getRawData());
 
         if (signature != null) {
             Assertions.assertEquals(signature, trustListItem.getSignature());
         }
     }
 
-    private void assertTrustListItem(List<TrustedCertificateTrustList> trustList, X509Certificate certificate, String country, String group, String signature) throws CertificateEncodingException {
+    private void assertTrustListItem(List<TrustedCertificateTrustList> trustList, X509Certificate certificate,
+                                     String country, String group, String signature)
+        throws CertificateEncodingException {
         Optional<TrustedCertificateTrustList> trustListOptional = trustList
             .stream()
             .filter(tl -> tl.getKid().equals(certificateUtils.getCertKid(certificate)))
@@ -337,7 +353,8 @@ class TrustListServiceTest {
         Assertions.assertEquals(country, trustListItem.getCountry());
         Assertions.assertEquals(group, trustListItem.getGroup());
         Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getCertificate());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()),
+            trustListItem.getCertificate());
 
         if (signature != null) {
             Assertions.assertEquals(signature, trustListItem.getSignature());

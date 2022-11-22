@@ -20,6 +20,8 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
+import static eu.europa.ec.dgc.gateway.utils.CmsUtils.getSignedString;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +31,8 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.entity.ValidationRuleEntity;
 import eu.europa.ec.dgc.gateway.model.ParsedValidationRule;
 import eu.europa.ec.dgc.gateway.repository.ValidationRuleRepository;
+import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
+import eu.europa.ec.dgc.gateway.restapi.dto.SignedStringDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.time.ZonedDateTime;
@@ -195,6 +199,56 @@ public class ValidationRuleService {
         return newValidationRule;
     }
 
+    /**
+     * Get CMS packages for country.
+     *
+     * @param country The country
+     * @return A list of all CMS Packages.
+     */
+    public List<CmsPackageDto> getCmsPackage(String country) {
+        List<ValidationRuleEntity> validationRuleEntities = validationRuleRepository.getAllByCountry(country);
+        return validationRuleEntities.stream()
+            .map(it -> new CmsPackageDto(it.getCms(), it.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Update the cms of a Validation Rule DB.
+     *
+     * @param id                       the id of the entity.
+     * @param signerCertificate        the certificate which was used to sign the message
+     * @param cms                      the cms containing the JSON
+     * @param authenticatedCountryCode the country code of the uploader country from cert authentication
+     * @throws ValidationRuleCheckException if validation check has failed. The exception contains
+     *                                      a reason property with detailed information why the validation has failed.
+     */
+    public ValidationRuleEntity updateValidationRuleCertificate(
+        Long id,
+        String payloadValidationRule,
+        X509CertificateHolder signerCertificate,
+        String cms,
+        String authenticatedCountryCode
+    ) throws ValidationRuleCheckException {
+
+        ValidationRuleEntity validationRuleEntity = validationRuleRepository.findById(id).orElseThrow(
+            () -> new ValidationRuleCheckException(ValidationRuleCheckException.Reason.NOT_FOUND,
+                "Validation rule not found."));
+
+        contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
+        contentCheckUploaderCountry(validationRuleEntity.getCountry(), authenticatedCountryCode);
+        contentCheckMigrateCms(payloadValidationRule, validationRuleEntity.getCms());
+
+        validationRuleEntity.setCms(cms);
+
+        log.info("Updating ValidationRule Entity");
+
+        validationRuleEntity = validationRuleRepository.save(validationRuleEntity);
+
+        DgcMdc.remove(MDC_PROP_UPLOAD_CERT_THUMBPRINT);
+
+        return validationRuleEntity;
+    }
+
     private void contentCheckRuleIdPrefixMatchCertificateType(ParsedValidationRule parsedValidationRule)
         throws ValidationRuleCheckException {
 
@@ -315,16 +369,22 @@ public class ValidationRuleService {
 
     private void contentCheckUploaderCountry(ParsedValidationRule parsedValidationRule, String countryCode)
         throws ValidationRuleCheckException {
-        if (!parsedValidationRule.getCountry().equals(countryCode)) {
-            throw new ValidationRuleCheckException(
-                ValidationRuleCheckException.Reason.INVALID_COUNTRY,
-                "Country does not match your authentication.");
-        }
+
+        contentCheckUploaderCountry(parsedValidationRule.getCountry(), countryCode);
 
         if (!getCountryCodeFromIdString(parsedValidationRule.getIdentifier()).equals(countryCode)) {
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_COUNTRY,
                 "Country Code in Identifier does not match country.");
+        }
+    }
+
+    private void contentCheckUploaderCountry(String validationRuleCountryCode, String countryCode)
+        throws ValidationRuleCheckException {
+        if (!validationRuleCountryCode.equals(countryCode)) {
+            throw new ValidationRuleCheckException(
+                ValidationRuleCheckException.Reason.INVALID_COUNTRY,
+                "Country does not match your authentication.");
         }
     }
 
@@ -352,6 +412,16 @@ public class ValidationRuleService {
             throw new ValidationRuleCheckException(
                 ValidationRuleCheckException.Reason.INVALID_JSON,
                 "JSON could not be parsed");
+        }
+    }
+
+    void contentCheckMigrateCms(String payload, String entityCms)
+        throws ValidationRuleCheckException {
+        SignedStringDto signedStringDto = getSignedString(entityCms);
+        if (!payload.equals(signedStringDto.getPayloadString())) {
+            throw new ValidationRuleCheckException(ValidationRuleCheckException.Reason.INVALID_JSON,
+                "New cms payload does not match present payload."
+            );
         }
     }
 
@@ -398,6 +468,7 @@ public class ValidationRuleService {
             INVALID_TIMESTAMP,
             INVALID_VERSION,
             INVALID_RULE_ID,
+            NOT_FOUND,
             UPLOADER_CERT_CHECK_FAILED,
         }
     }

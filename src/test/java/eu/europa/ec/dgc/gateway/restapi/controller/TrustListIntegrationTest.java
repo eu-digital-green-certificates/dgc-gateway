@@ -22,8 +22,9 @@ package eu.europa.ec.dgc.gateway.restapi.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -59,9 +60,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class TrustListIntegrationTest {
 
     @Autowired
@@ -146,13 +149,14 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadNoFilter() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscDe, "DE", CertificateTypeDto.DSC, "sig1"))
@@ -168,13 +172,14 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByType() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certAuthDe, "DE", CertificateTypeDto.AUTHENTICATION, null))
@@ -182,10 +187,10 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListLength(c, 2));
 
         mockMvc.perform(get("/trustList/UPLOAD")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
@@ -193,10 +198,10 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListLength(c, 2));
 
         mockMvc.perform(get("/trustList/CSCA")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
@@ -204,10 +209,10 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListLength(c, 2));
 
         mockMvc.perform(get("/trustList/DSC")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscDe, "DE", CertificateTypeDto.DSC, "sig1"))
@@ -217,13 +222,14 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByTypeCaseInsensitive() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/aUtHeNtiCaTiOn")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certAuthDe, "DE", CertificateTypeDto.AUTHENTICATION, null))
@@ -231,10 +237,10 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListLength(c, 2));
 
         mockMvc.perform(get("/trustList/uploAd")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
@@ -242,10 +248,10 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListLength(c, 2));
 
         mockMvc.perform(get("/trustList/csCA")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
@@ -253,10 +259,10 @@ class TrustListIntegrationTest {
             .andExpect(c -> assertTrustListLength(c, 2));
 
         mockMvc.perform(get("/trustList/dsc")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscDe, "DE", CertificateTypeDto.DSC, "sig1"))
@@ -266,83 +272,84 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByTypeAndCountry() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/DE")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certAuthDe, "DE", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/EU")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certAuthEu, "EU", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/UPLOAD/DE")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/UPLOAD/EU")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certUploadEu, "EU", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/CSCA/DE")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/CSCA/EU")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certCscaEu, "EU", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/DSC/DE")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscDe, "DE", CertificateTypeDto.DSC, "sig1"))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/DSC/EU")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscEu, "EU", CertificateTypeDto.DSC, "sig2"))
@@ -351,83 +358,84 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadFilterByTypeAndCountryLowercase() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/de")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certAuthDe, "DE", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/AUTHENTICATION/eu")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certAuthEu, "EU", CertificateTypeDto.AUTHENTICATION, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/UPLOAD/de")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certUploadDe, "DE", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/UPLOAD/eu")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certUploadEu, "EU", CertificateTypeDto.UPLOAD, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/CSCA/de")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certCscaDe, "DE", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/CSCA/eu")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certCscaEu, "EU", CertificateTypeDto.CSCA, null))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/DSC/de")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscDe, "DE", CertificateTypeDto.DSC, "sig1"))
             .andExpect(c -> assertTrustListLength(c, 1));
 
         mockMvc.perform(get("/trustList/DSC/eu")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(c -> assertTrustListItem(c, certDscEu, "EU", CertificateTypeDto.DSC, "sig2"))
@@ -436,15 +444,16 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListDownloadEmptyList() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         signerInformationRepository.deleteAll();
 
         mockMvc.perform(get("/trustList/DSC")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(content().json("[]"));
@@ -452,29 +461,29 @@ class TrustListIntegrationTest {
 
     @Test
     void testTrustListWrongType() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/XXX")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void testTrustListWrongCountryCode() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/trustList/DSC/XXX")
-            .accept(MediaType.APPLICATION_JSON_VALUE)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
             .andExpect(status().isBadRequest());
     }
-
-
 
     @Test
     void testTrustedIssuerNoFilter() throws Exception {
@@ -541,11 +550,14 @@ class TrustListIntegrationTest {
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country, CertificateTypeDto certificateTypeDto, String signature) throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
+    private void assertTrustListItem(MvcResult result, X509Certificate certificate, String country,
+                                     CertificateTypeDto certificateTypeDto, String signature)
+        throws CertificateEncodingException, UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
-        List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-        });
+        List<TrustListDto> trustList =
+            objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
 
         Optional<TrustListDto> trustListOptional = trustList
             .stream()
@@ -560,18 +572,21 @@ class TrustListIntegrationTest {
         Assertions.assertEquals(country, trustListItem.getCountry());
         Assertions.assertEquals(certificateTypeDto, trustListItem.getCertificateType());
         Assertions.assertEquals(certificateUtils.getCertThumbprint(certificate), trustListItem.getThumbprint());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()), trustListItem.getRawData());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(certificate.getEncoded()),
+            trustListItem.getRawData());
 
         if (signature != null) {
             Assertions.assertEquals(signature, trustListItem.getSignature());
         }
     }
 
-    private void assertTrustListLength(MvcResult result, int expectedLength) throws UnsupportedEncodingException, JsonProcessingException {
+    private void assertTrustListLength(MvcResult result, int expectedLength)
+        throws UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
-        List<TrustListDto> trustList = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-        });
+        List<TrustListDto> trustList =
+            objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
         Assertions.assertEquals(expectedLength, trustList.size());
     }
 }

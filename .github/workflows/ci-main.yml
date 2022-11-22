@@ -1,11 +1,12 @@
 name: ci-main
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
   workflow_dispatch:
-  
-jobs: 
+
+jobs:
   build:
     runs-on: ubuntu-20.04
     steps:

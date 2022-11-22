@@ -51,12 +51,19 @@ import org.springframework.stereotype.Service;
 public class TrustedIssuerService {
 
     private static final String MDC_PROP_ISSUER_UUID = "issuerUuid";
+
     private static final String MDC_PROP_PARSER_STATE = "parserState";
+
     private static final String HASH_SEPARATOR = ";";
+
     private final TrustedIssuerRepository trustedIssuerRepository;
+
     private final TrustedPartyService trustedPartyService;
+
     private final KeyStore trustAnchorKeyStore;
+
     private final DgcConfigProperties dgcConfigProperties;
+
     private final CertificateUtils certificateUtils;
 
     /**
