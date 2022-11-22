@@ -65,46 +65,46 @@ public class TrustedReferenceController {
     private final GwTrustedReferenceMapper trustedReferenceMapper;
 
     public static final String UUID_REGEX =
-            "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
+        "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
 
     /**
      * Upload a new trusted reference.
      */
     @CertificateAuthenticationRequired
     @PostMapping(value = "", consumes = {
-            CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-            },
-            tags = {"Trusted Reference"},
-            summary = "Upload a new trusted reference",
-            description = "Endpoint to upload a new trusted reference.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = TrustedReferenceDto.class))
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            description = "trusted reference created.")
-            }
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        tags = {"Trusted Reference"},
+        summary = "Upload a new trusted reference",
+        description = "Endpoint to upload a new trusted reference.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(schema = @Schema(implementation = TrustedReferenceDto.class))
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "201",
+                description = "trusted reference created.")
+        }
     )
     public ResponseEntity<Void> uploadTrustedReference(
-            @RequestBody SignedStringDto trustedReference,
-            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
+        @RequestBody SignedStringDto trustedReference,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
 
         if (!trustedReference.isVerified()) {
             throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
-                    "Submitted string needs to be signed by a valid upload certificate");
+                "Submitted string needs to be signed by a valid upload certificate");
         }
 
         try {
             trustedReferenceService.addTrustedReference(
-                    trustedReference.getPayloadString(),
-                    trustedReference.getSignerCertificate(),
-                    countryCode
+                trustedReference.getPayloadString(),
+                trustedReference.getSignerCertificate(),
+                countryCode
             );
         } catch (TrustedReferenceService.TrustedReferenceServiceException e) {
             log.error("Upload of TrustedRefernece failed: {}, {}", e.getReason(), e.getMessage());
@@ -112,24 +112,24 @@ public class TrustedReferenceController {
             switch (e.getReason()) {
                 case INVALID_JSON:
                     throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "JSON Could not be parsed", "",
-                            e.getMessage());
+                        e.getMessage());
                 case INVALID_JSON_VALUES:
                     throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000",
-                            "Uploaded data has invalid values.", "", e.getMessage());
+                        "Uploaded data has invalid values.", "", e.getMessage());
                 case INVALID_COUNTRY:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
-                            e.getMessage());
+                        e.getMessage());
                 case NOT_FOUND:
                     throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Trusted Reference does not exists.",
-                            "", e.getMessage());
+                        "", e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
-                            trustedReference.getSignerCertificate().getSubject().toString(),
-                            "Certificate used to sign the Trusted Reference is not a valid/ allowed upload certificate "
-                                    + "for your country.");
+                        trustedReference.getSignerCertificate().getSubject().toString(),
+                        "Certificate used to sign the Trusted Reference is not a valid/ allowed upload certificate "
+                            + "for your country.");
                 default:
                     throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
-                            "", "");
+                        "", "");
             }
         }
 
@@ -142,40 +142,40 @@ public class TrustedReferenceController {
     @CertificateAuthenticationRequired
     @GetMapping(path = "/{uuid}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-            },
-            tags = {"Trusted Reference"},
-            summary = "Get a single trusted references",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Response contains the trusted reference.",
-                            content = @Content(schema = @Schema(implementation = TrustedReferenceDto.class))),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Not found if no data is available.")
-            }
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        tags = {"Trusted Reference"},
+        summary = "Get a single trusted references",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Response contains the trusted reference.",
+                content = @Content(schema = @Schema(implementation = TrustedReferenceDto.class))),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Not found if no data is available.")
+        }
     )
     public ResponseEntity<TrustedReferenceDto> getTrustedReference(
-            @Valid @PathVariable("uuid") @Pattern(regexp = UUID_REGEX) String uuid
+        @Valid @PathVariable("uuid") @Pattern(regexp = UUID_REGEX) String uuid
     ) {
 
         try {
             TrustedReferenceDto trustedReferenceDto =
-                    trustedReferenceMapper.trustedReferenceEntityToTrustedReferenceDto(
-                            trustedReferenceService.getReference(uuid));
+                trustedReferenceMapper.trustedReferenceEntityToTrustedReferenceDto(
+                    trustedReferenceService.getReference(uuid));
 
             return ResponseEntity.ok(trustedReferenceDto);
         } catch (TrustedReferenceService.TrustedReferenceServiceException e) {
             log.warn("Get of TrustedReference failed: {}, {}", e.getReason(), e.getMessage());
             if (e.getReason() == TrustedReferenceService.TrustedReferenceServiceException.Reason.NOT_FOUND) {
                 throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000",
-                        "Requested Entity could not be found", "", e.getMessage());
+                    "Requested Entity could not be found", "", e.getMessage());
             }
             throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
-                    "", "");
+                "", "");
         }
     }
 
@@ -184,61 +184,61 @@ public class TrustedReferenceController {
      */
     @CertificateAuthenticationRequired
     @DeleteMapping(value = "", consumes = {
-            CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
+        CmsStringMessageConverter.CONTENT_TYPE_CMS_TEXT_VALUE, CmsStringMessageConverter.CONTENT_TYPE_CMS_VALUE})
     @Operation(
-            security = {
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
-                    @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
-            },
-            tags = {"Trusted Reference"},
-            summary = "Delete a Trusted Reference",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    description = "The Trusted Reference UUID as signed CMS.",
-                    content = @Content(schema = @Schema(implementation = TrustedReferenceDeleteRequestDto.class))
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "204",
-                            description = "Trusted Reference deleted."),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Trusted Reference does not exist.")
-            }
+        security = {
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_HASH),
+            @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEMA_DISTINGUISH_NAME)
+        },
+        tags = {"Trusted Reference"},
+        summary = "Delete a Trusted Reference",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            description = "The Trusted Reference UUID as signed CMS.",
+            content = @Content(schema = @Schema(implementation = TrustedReferenceDeleteRequestDto.class))
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "204",
+                description = "Trusted Reference deleted."),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Trusted Reference does not exist.")
+        }
     )
     public ResponseEntity<Void> deleteTrustedReference(
-            @RequestBody SignedStringDto trustedReferenceDeleteRequest,
-            @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
+        @RequestBody SignedStringDto trustedReferenceDeleteRequest,
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String countryCode) {
 
         if (!trustedReferenceDeleteRequest.isVerified()) {
             throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x260", "CMS signature is invalid", "",
-                    "Submitted string needs to be signed by a valid upload certificate");
+                "Submitted string needs to be signed by a valid upload certificate");
         }
 
         try {
             trustedReferenceService.deleteTrustedReference(
-                    trustedReferenceDeleteRequest.getPayloadString(),
-                    trustedReferenceDeleteRequest.getSignerCertificate(),
-                    countryCode);
+                trustedReferenceDeleteRequest.getPayloadString(),
+                trustedReferenceDeleteRequest.getSignerCertificate(),
+                countryCode);
         } catch (TrustedReferenceService.TrustedReferenceServiceException e) {
             switch (e.getReason()) {
                 case INVALID_JSON:
                     throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "JSON Could not be parsed", "",
-                            e.getMessage());
+                        e.getMessage());
                 case INVALID_COUNTRY:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
-                            e.getMessage());
+                        e.getMessage());
                 case NOT_FOUND:
                     throw new DgcgResponseException(HttpStatus.NOT_FOUND, "0x000", "Trusted Reference does not exists.",
-                            "", e.getMessage());
+                        "", e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
-                            trustedReferenceDeleteRequest.getSignerCertificate().getSubject().toString(),
-                            "Certificate used to sign the Trusted Reference is not a valid/ allowed"
-                                    + " upload certificate for your country.");
+                        trustedReferenceDeleteRequest.getSignerCertificate().getSubject().toString(),
+                        "Certificate used to sign the Trusted Reference is not a valid/ allowed"
+                            + " upload certificate for your country.");
                 default:
                     throw new DgcgResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "0x000", "Unexpected Error",
-                            "", "");
+                        "", "");
             }
         }
 
