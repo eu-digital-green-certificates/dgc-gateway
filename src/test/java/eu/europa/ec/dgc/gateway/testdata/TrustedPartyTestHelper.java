@@ -23,6 +23,7 @@ package eu.europa.ec.dgc.gateway.testdata;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
+import eu.europa.ec.dgc.signing.SignedStringMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -122,5 +123,12 @@ public class TrustedPartyTestHelper {
         trustedPartyEntity.setThumbprint(hashMap.get(type).get(countryCode));
 
         trustedPartyRepository.save(trustedPartyEntity);
+    }
+
+    public String signString(final String hashdata) throws Exception {
+        return new SignedStringMessageBuilder()
+                .withPayload(hashdata)
+                .withSigningCertificate(new X509CertificateHolder(testKeyStore.getTrustAnchor().getEncoded()), testKeyStore.getTrustAnchorPrivateKey())
+                .buildAsString();
     }
 }

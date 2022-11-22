@@ -24,6 +24,7 @@ import eu.europa.ec.dgc.gateway.entity.TrustedReferenceEntity;
 import eu.europa.ec.dgc.gateway.restapi.dto.TrustedReferenceDto;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 
 @Mapper(componentModel = "spring", uses = GwTrustListMapper.class)
@@ -32,5 +33,8 @@ public interface GwTrustedReferenceMapper {
     TrustedReferenceDto trustedReferenceEntityToTrustedReferenceDto(TrustedReferenceEntity trustedReference);
 
     List<TrustedReferenceDto> trustedReferenceEntityToTrustedReferenceDto(
-            List<TrustedReferenceEntity> trustedReference);
+        List<TrustedReferenceEntity> trustedReference);
+
+    @Mapping(source = "sourceGateway", target = "sourceGateway.gatewayId")
+    TrustedReferenceEntity map(TrustedReferenceDto dto);
 }

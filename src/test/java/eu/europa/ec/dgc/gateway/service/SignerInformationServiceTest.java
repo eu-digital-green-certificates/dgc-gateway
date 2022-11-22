@@ -35,6 +35,7 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Optional;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,11 @@ class SignerInformationServiceTest {
 
     private static final String countryCode = "EU";
     private static final String dummySignature = "randomStringAsSignatureWhichIsNotValidatedInServiceLevel";
+
+    @AfterEach
+    void cleanUp() {
+        signerInformationRepository.deleteAll();
+    }
 
     @Test
     void testSuccessfulAddingNewSignerInformationAndDelete() throws Exception {
