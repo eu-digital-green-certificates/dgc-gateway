@@ -104,8 +104,7 @@ public class ValidationRuleController {
                 content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(ref = "#/components/schemas/ValidationRuleDownloadResponse")
-                )
-            )
+                ))
         }
     )
     public ResponseEntity<Map<String, List<ValidationRuleDto>>> downloadValidationRules(
@@ -152,18 +151,15 @@ public class ValidationRuleController {
         responses = {
             @ApiResponse(
                 responseCode = "201",
-                description = "Created successful."
-            ),
+                description = "Created successful."),
             @ApiResponse(
                 responseCode = "400",
                 description = "Bad data submitted. See ProblemReport for more details.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            ),
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "403",
                 description = "You are not allowed to create this validation rules.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            )
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class)))
         }
     )
     public ResponseEntity<Void> uploadValidationRule(
@@ -251,30 +247,25 @@ public class ValidationRuleController {
         responses = {
             @ApiResponse(
                 responseCode = "204",
-                description = "Delete successful."
-            ),
+                description = "Delete successful."),
             @ApiResponse(
                 responseCode = "400",
                 description = "Bad data submitted. See ProblemReport for more details.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            ),
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "403",
                 description = "You are not allowed to delete these validation rules.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            ),
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "404",
                 description = "Validation rule not found.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            )
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class)))
         }
     )
     public ResponseEntity<Void> deleteValidationRules(
         @org.springframework.web.bind.annotation.RequestBody SignedStringDto signedString,
         @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY) String authenticatedCountryCode,
-        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String thumbprint
-    ) {
+        @RequestAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT) String thumbprint) {
 
         log.info("Rule Delete Request");
 
@@ -349,23 +340,19 @@ public class ValidationRuleController {
         responses = {
             @ApiResponse(
                 responseCode = "204",
-                description = "Delete successful."
-            ),
+                description = "Delete successful."),
             @ApiResponse(
                 responseCode = "400",
                 description = "Bad data submitted. See ProblemReport for more details.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            ),
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "403",
                 description = "You are not allowed to delete these validation rules.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            ),
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))),
             @ApiResponse(
                 responseCode = "404",
                 description = "Validation rule not found.",
-                content = @Content(schema = @Schema(implementation = ProblemReportDto.class))
-            )
+                content = @Content(schema = @Schema(implementation = ProblemReportDto.class)))
         }
     )
     public ResponseEntity<Void> deleteValidationRulesAliasEndpoint(

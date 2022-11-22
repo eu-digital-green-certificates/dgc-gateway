@@ -76,39 +76,41 @@ class ValuesetIntegrationTest {
 
     @Test
     void testGetValuesetIds() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/valuesets")
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.length()").value(equalTo(3)))
-            .andExpect(jsonPath("$[0]").value(equalTo(valuesetEntity1.getId())))
+          )
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.length()").value(equalTo(3)))
+          .andExpect(jsonPath("$[0]").value(equalTo(valuesetEntity1.getId())))
             .andExpect(jsonPath("$[1]").value(equalTo(valuesetEntity2.getId())))
             .andExpect(jsonPath("$[2]").value(equalTo(valuesetEntity3.getId())));
     }
 
     @Test
     void testGetValueset() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/valuesets/" + valuesetEntity1.getId())
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.key1").value(equalTo("content1")));
+          )
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.key1").value(equalTo("content1")));
 
         mockMvc.perform(get("/valuesets/" + valuesetEntity2.getId())
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.key2").value(equalTo("content2")));
@@ -117,7 +119,7 @@ class ValuesetIntegrationTest {
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
+          )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.key3").value(equalTo("content3")));
@@ -125,13 +127,14 @@ class ValuesetIntegrationTest {
 
     @Test
     void testGetValuesetNotFound() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/valuesets/randomId")
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isNotFound());
+          )
+          .andExpect(status().isNotFound());
     }
 }

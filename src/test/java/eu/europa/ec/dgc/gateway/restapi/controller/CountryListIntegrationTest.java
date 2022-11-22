@@ -69,17 +69,18 @@ class CountryListIntegrationTest {
         trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, "AC");
         trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, "AD");
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/countrylist")
             .accept(MediaType.APPLICATION_JSON_VALUE)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
             .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-        )
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.length()").value(5))
-            .andExpect(jsonPath("$[0]").value("AA"))
+          )
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.length()").value(5))
+          .andExpect(jsonPath("$[0]").value("AA"))
             .andExpect(jsonPath("$[1]").value("AB"))
             .andExpect(jsonPath("$[2]").value("AC"))
             .andExpect(jsonPath("$[3]").value("AD"))

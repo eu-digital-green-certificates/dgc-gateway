@@ -29,9 +29,12 @@ import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.restapi.dto.CmsPackageDto;
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
+import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -50,6 +53,7 @@ import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.RuntimeOperatorException;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -212,7 +216,7 @@ public class SignerInformationService {
     /**
      * Update a CMS package.
      *
-     * @param id                        The entity to update
+     * @param id                       The entity to update
      * @param uploadedCertificate      the certificate to add
      * @param signerCertificate        the certificate which was used to sign the message
      * @param signature                the detached signature of cms message
@@ -412,6 +416,20 @@ public class SignerInformationService {
             .stream()
             .map(it -> new CmsPackageDto(it.getRawData(), it.getId(), CmsPackageDto.CmsPackageTypeDto.DSC))
             .collect(Collectors.toList());
+    }
+
+    private SignerInformationEntity addCertificateToSignaturePayload(SignerInformationEntity entity) {
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(
+            entity.getSignature(), entity.getRawData());
+
+        if (parser.getParserState() == SignedMessageParser.ParserState.SUCCESS) {
+            entity.setSignature(parser.getEmbeddedSignature());
+        } else {
+            log.error("Failed to repack CMS for DSC {}, Parser State: {}",
+                entity.getThumbprint(), parser.getParserState());
+        }
+
+        return entity;
     }
 
     private void contentCheckUploaderCertificate(

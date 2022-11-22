@@ -208,8 +208,8 @@ public class ValidationRuleService {
     public List<CmsPackageDto> getCmsPackage(String country) {
         List<ValidationRuleEntity> validationRuleEntities = validationRuleRepository.getAllByCountry(country);
         return validationRuleEntities.stream()
-                .map(it -> new CmsPackageDto(it.getCms(), it.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE))
-                .collect(Collectors.toList());
+            .map(it -> new CmsPackageDto(it.getCms(), it.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE))
+            .collect(Collectors.toList());
     }
 
     /**
@@ -223,11 +223,11 @@ public class ValidationRuleService {
      *                                      a reason property with detailed information why the validation has failed.
      */
     public ValidationRuleEntity updateValidationRuleCertificate(
-            Long id,
-            String payloadValidationRule,
-            X509CertificateHolder signerCertificate,
-            String cms,
-            String authenticatedCountryCode
+        Long id,
+        String payloadValidationRule,
+        X509CertificateHolder signerCertificate,
+        String cms,
+        String authenticatedCountryCode
     ) throws ValidationRuleCheckException {
 
         ValidationRuleEntity validationRuleEntity = validationRuleRepository.findById(id).orElseThrow(
@@ -380,11 +380,11 @@ public class ValidationRuleService {
     }
 
     private void contentCheckUploaderCountry(String validationRuleCountryCode, String countryCode)
-            throws ValidationRuleCheckException {
+        throws ValidationRuleCheckException {
         if (!validationRuleCountryCode.equals(countryCode)) {
             throw new ValidationRuleCheckException(
-                    ValidationRuleCheckException.Reason.INVALID_COUNTRY,
-                    "Country does not match your authentication.");
+                ValidationRuleCheckException.Reason.INVALID_COUNTRY,
+                "Country does not match your authentication.");
         }
     }
 
@@ -416,11 +416,11 @@ public class ValidationRuleService {
     }
 
     void contentCheckMigrateCms(String payload, String entityCms)
-            throws ValidationRuleCheckException {
+        throws ValidationRuleCheckException {
         SignedStringDto signedStringDto = getSignedString(entityCms);
         if (!payload.equals(signedStringDto.getPayloadString())) {
             throw new ValidationRuleCheckException(ValidationRuleCheckException.Reason.INVALID_JSON,
-                    "New cms payload does not match present payload."
+                "New cms payload does not match present payload."
             );
         }
     }

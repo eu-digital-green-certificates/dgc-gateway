@@ -11,7 +11,9 @@
         <encoder>
             <!-- @formatter:off -->
             <pattern>
-                timestamp="%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC}", level="%level", hostname="${HOSTNAME}", pid="${PID:-}", thread="%thread", class="%logger{40}", message="%replace(%replace(%m){'[\r\n]+', ', '}){'"', '\''}", trace="%X{traceId}", span="%X{spanId}", %X%n
+                timestamp="%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC}", level="%level", hostname="${HOSTNAME}",
+                pid="${PID:-}", thread="%thread", class="%logger{40}", message="%replace(%replace(%m){'[\r\n]+', ',
+                '}){'"', '\''}", trace="%X{traceId}", span="%X{spanId}", %X%n
             </pattern>
             <!-- @formatter:on -->
             <charset>utf8</charset>
@@ -29,7 +31,10 @@
         <encoder>
             <!-- @formatter:off -->
             <pattern>
-                timestamp="%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC}", level="%level", hostname="${HOSTNAME}", pid="${PID:-}", thread="%thread", class="%logger{40}", message="%replace(%replace(%m){'[\r\n]+', ','}){'"', '\''}", exception="%replace(%ex){'[\r\n]+', ', '}", trace="%X{traceId}", span="%X{spanId}", %X%n%nopex
+                timestamp="%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC}", level="%level", hostname="${HOSTNAME}",
+                pid="${PID:-}", thread="%thread", class="%logger{40}", message="%replace(%replace(%m){'[\r\n]+',
+                ','}){'"', '\''}", exception="%replace(%ex){'[\r\n]+', ', '}", trace="%X{traceId}", span="%X{spanId}",
+                %X%n%nopex
             </pattern>
             <!-- @formatter:on -->
             <charset>utf8</charset>

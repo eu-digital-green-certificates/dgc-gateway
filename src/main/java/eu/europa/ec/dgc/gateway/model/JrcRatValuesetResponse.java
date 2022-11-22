@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.ZonedDateTime;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -31,8 +32,10 @@ public class JrcRatValuesetResponse {
 
     @JsonProperty("extracted_on")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss z")
+    @NotNull
     ZonedDateTime extractedOn;
 
     @JsonProperty("deviceList")
+    @NotNull
     List<JrcRatValueset> deviceList;
 }

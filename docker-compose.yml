@@ -7,9 +7,9 @@ services:
       - 3306:3306
     environment:
       - MYSQL_DATABASE=dgc
-      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_ROOT_PASSWORD=admin # do not use this for production deployments
       - MYSQL_USER=dgc_adm
-      - MYSQL_PASSWORD=admin
+      - MYSQL_PASSWORD=admin # do not use this for production deployments
     networks:
       persistence:
 
@@ -25,10 +25,13 @@ services:
       - SPRING_PROFILES_ACTIVE=mysql,docker
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/dgc
       - SPRING_DATASOURCE_USERNAME=dgc_adm
-      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_DATASOURCE_PASSWORD=admin # do not use this for production deployments
       - DGC_TRUSTANCHOR_KEYSTOREPATH=/ec/prod/app/san/dgc/ta.jks
-      - DGC_TRUSTANCHOR_KEYSTOREPASS=dgcg-p4ssw0rd
+      - DGC_TRUSTANCHOR_KEYSTOREPASS=dgcg-p4ssw0rd # do not use this for production deployments
       - DGC_TRUSTANCHOR_CERTIFICATEALIAS=dgcg_trust_anchor
+      - DGC_PUBLICATION_KEYSTORE_KEYSTOREPATH=/ec/prod/app/san/dgc/publication-signer-tst.jks
+      - DGC_PUBLICATION_KEYSTORE_KEYSTOREPASS=dgc-p4ssw0rd # do not use this for production deployments
+      - DGC_PUBLICATION_KEYSTORE_CERTIFICATEALIAS=dgc_tst_publication
     depends_on:
       - mysql
     networks:

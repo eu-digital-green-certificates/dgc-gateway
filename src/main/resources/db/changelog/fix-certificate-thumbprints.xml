@@ -8,11 +8,15 @@
     <changeSet id="fix-thumbprints" author="f11h">
 
         <sql dbms="h2, mysql">
-            UPDATE trusted_party SET thumbprint = concat('00', thumbprint) WHERE length(thumbprint) = 62;
+            UPDATE trusted_party
+            SET thumbprint = concat('00', thumbprint)
+            WHERE length(thumbprint) = 62;
         </sql>
 
         <sql dbms="h2, mysql">
-            UPDATE signer_information SET thumbprint = concat('00', thumbprint) WHERE length(thumbprint) = 62;
+            UPDATE signer_information
+            SET thumbprint = concat('00', thumbprint)
+            WHERE length(thumbprint) = 62;
         </sql>
 
     </changeSet>

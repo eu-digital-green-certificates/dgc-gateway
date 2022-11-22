@@ -20,13 +20,13 @@
 
 package eu.europa.ec.dgc.gateway.service;
 
-import eu.europa.ec.dgc.gateway.entity.SignerInformationEntity;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.model.TrustList;
 import eu.europa.ec.dgc.gateway.model.TrustListType;
 import eu.europa.ec.dgc.gateway.repository.SignerInformationRepository;
 import eu.europa.ec.dgc.gateway.repository.TrustedPartyRepository;
 import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
+import eu.europa.ec.dgc.gateway.testdata.SignerInformationTestHelper;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.utils.CertificateUtils;
 import java.security.KeyPairGenerator;

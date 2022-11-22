@@ -20,6 +20,15 @@
 
 package eu.europa.ec.dgc.gateway.restapi.controller;
 
+import static eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils.getDummyValidationRule;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -40,17 +49,9 @@ import eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils;
 import eu.europa.ec.dgc.gateway.testdata.TrustedPartyTestHelper;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageBuilder;
 import eu.europa.ec.dgc.signing.SignedCertificateMessageParser;
+import eu.europa.ec.dgc.signing.SignedMessageParser;
 import eu.europa.ec.dgc.signing.SignedStringMessageBuilder;
 import eu.europa.ec.dgc.utils.CertificateUtils;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -60,13 +61,15 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-
-import static eu.europa.ec.dgc.gateway.testdata.CertificateTestUtils.getDummyValidationRule;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -109,7 +112,7 @@ class CertificateMigrationControllerTest {
 
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer(
-                new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX").toFormatter()
+            new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX").toFormatter()
         ));
 
         objectMapper.registerModule(javaTimeModule);
@@ -119,178 +122,262 @@ class CertificateMigrationControllerTest {
     @Test
     void testAllCertTypes() throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
-        X509Certificate certDscEu = CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), countryCode, "Test");
+        X509Certificate certDscEu =
+          CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), countryCode, "Test");
         String cmsBase64 = Base64.getEncoder().encodeToString(certDscEu.getEncoded());
 
-        createSignerInfo(cmsBase64, certDscEu);
-        createRevocation(cmsBase64);
+        SignedCertificateMessageBuilder messageBuilder = new SignedCertificateMessageBuilder()
+          .withPayload(certificateUtils.convertCertificate(certDscEu))
+          .withSigningCertificate(
+            certificateUtils.convertCertificate(
+              trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode)),
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode));
+
+        String detachedSignature = messageBuilder.buildAsString(true);
+
+        createSignerInfo(cmsBase64, certDscEu, detachedSignature);
+        createRevocation("id1", cmsBase64, false);
         createValidationEntry(cmsBase64);
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+
+        MvcResult mvcResult = mockMvc.perform(get("/cms-migration")
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
+          .andExpect(jsonPath("$", hasSize(3)))
+          .andExpect(jsonPath("$[0].type", is(CmsPackageDto.CmsPackageTypeDto.DSC.name())))
+          .andExpect(jsonPath("$[1].type", is(CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST.name())))
+          .andExpect(jsonPath("$[1].cms", is(cmsBase64)))
+          .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())))
+          .andExpect(jsonPath("$[2].cms", is(cmsBase64)))
+          .andReturn();
+
+        List<CmsPackageDto> response =
+          objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+          });
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(response.get(0).getCms());
+        Assertions.assertEquals(SignedMessageParser.ParserState.SUCCESS, parser.getParserState());
+        Assertions.assertTrue(parser.isSignatureVerified());
+        Assertions.assertArrayEquals(certDscEu.getEncoded(), parser.getPayload().getEncoded());
+    }
+
+    @Test
+    void testRevocationDeleted() throws Exception {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ec");
+        X509Certificate certDscEu =
+          CertificateTestUtils.generateCertificate(keyPairGenerator.generateKeyPair(), countryCode, "Test");
+        String cmsBase64 = Base64.getEncoder().encodeToString(certDscEu.getEncoded());
+
+        createRevocation("id1", null, true);
+        RevocationBatchEntity entity = createRevocation("id2", cmsBase64, false);
+
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/cms-migration")
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[0].type", is(CmsPackageDto.CmsPackageTypeDto.DSC.name())))
-                .andExpect(jsonPath("$[1].type", is(CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST.name())))
-                .andExpect(jsonPath("$[2].type", is(CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE.name())));
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
+          .andExpect(jsonPath("$", hasSize(1)))
+          .andExpect(jsonPath("$[0].entityId", is(entity.getId()), Long.class))
+          .andExpect(jsonPath("$[0].cms", is(cmsBase64)));
     }
 
     @Test
     void testNoneForCountry() throws Exception {
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(get("/cms-migration")
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
-                .andExpect(jsonPath("$", hasSize(0)));
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject))
+          .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
     void testUpdateDSC() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate cscaCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+          CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+            cscaPrivateKey);
 
         String existingPayload = new SignedCertificateMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
+          .buildAsString();
         SignedCertificateMessageParser parser = new SignedCertificateMessageParser(existingPayload);
-        SignerInformationEntity existingEntity = createSignerInfoEntity(existingPayload, parser.getSignature(), certificateUtils.getCertThumbprint(payloadCertificate));
+        SignerInformationEntity existingEntity = createSignerInfoEntity(existingPayload, parser.getSignature(),
+          certificateUtils.getCertThumbprint(payloadCertificate));
 
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
-        X509Certificate signerCertificateUpdate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKeyUpdate = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate cscaCertificateUpdate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKeyUpdate = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificateUpdate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKeyUpdate =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate cscaCertificateUpdate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKeyUpdate =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPairUpdate = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificateUpdate = CertificateTestUtils.generateCertificate(payloadKeyPairUpdate, countryCode, "Payload Cert", cscaCertificateUpdate, cscaPrivateKeyUpdate);
+        X509Certificate payloadCertificateUpdate =
+          CertificateTestUtils.generateCertificate(payloadKeyPairUpdate, countryCode, "Payload Cert",
+            cscaCertificateUpdate, cscaPrivateKeyUpdate);
 
         String updatePayload = new SignedCertificateMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificateUpdate), signerPrivateKeyUpdate)
-                .withPayload(new X509CertificateHolder(payloadCertificateUpdate.getEncoded()))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificateUpdate),
+            signerPrivateKeyUpdate)
+          .withPayload(new X509CertificateHolder(payloadCertificateUpdate.getEncoded()))
+          .buildAsString();
         String updatedSignature = new SignedCertificateMessageParser(updatePayload).getSignature();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, existingEntity.getId(), CmsPackageDto.CmsPackageTypeDto.DSC);
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, existingEntity.getId(), CmsPackageDto.CmsPackageTypeDto.DSC);
 
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isNoContent());
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isNoContent());
 
         Optional<SignerInformationEntity> updatedCert = signerInformationRepository.findById(existingEntity.getId());
 
         Assertions.assertTrue(updatedCert.isPresent());
-        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificateUpdate.getEncoded()), updatedCert.get().getRawData());
+        Assertions.assertEquals(Base64.getEncoder().encodeToString(payloadCertificateUpdate.getEncoded()),
+          updatedCert.get().getRawData());
         Assertions.assertEquals(updatedSignature, updatedCert.get().getSignature());
     }
 
     @Test
     void testUpdateDSCNotFound() throws Exception {
-        X509Certificate signerCertificateUpdate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKeyUpdate = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate cscaCertificateUpdate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKeyUpdate = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificateUpdate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKeyUpdate =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate cscaCertificateUpdate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKeyUpdate =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPairUpdate = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificateUpdate = CertificateTestUtils.generateCertificate(payloadKeyPairUpdate, countryCode, "Payload Cert", cscaCertificateUpdate, cscaPrivateKeyUpdate);
+        X509Certificate payloadCertificateUpdate =
+          CertificateTestUtils.generateCertificate(payloadKeyPairUpdate, countryCode, "Payload Cert",
+            cscaCertificateUpdate, cscaPrivateKeyUpdate);
 
         String updatePayload = new SignedCertificateMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificateUpdate), signerPrivateKeyUpdate)
-                .withPayload(new X509CertificateHolder(payloadCertificateUpdate.getEncoded()))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificateUpdate),
+            signerPrivateKeyUpdate)
+          .withPayload(new X509CertificateHolder(payloadCertificateUpdate.getEncoded()))
+          .buildAsString();
         CmsPackageDto dto = new CmsPackageDto(updatePayload, 404L, CmsPackageDto.CmsPackageTypeDto.DSC);
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code", is("0x010")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isConflict())
+          .andExpect(jsonPath("$.code", is("0x010")));
     }
 
     @Test
     void testUpdateDSCCMSinvalid() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate cscaCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
-        PrivateKey cscaPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate cscaCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.CSCA, countryCode);
+        PrivateKey cscaPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.CSCA, countryCode);
 
         KeyPair payloadKeyPair = KeyPairGenerator.getInstance("ec").generateKeyPair();
-        X509Certificate payloadCertificate = CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate, cscaPrivateKey);
+        X509Certificate payloadCertificate =
+          CertificateTestUtils.generateCertificate(payloadKeyPair, countryCode, "Payload Cert", cscaCertificate,
+            cscaPrivateKey);
 
         String existingPayload = new SignedCertificateMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(new X509CertificateHolder(payloadCertificate.getEncoded()))
+          .buildAsString();
         SignedCertificateMessageParser parser = new SignedCertificateMessageParser(existingPayload);
-        SignerInformationEntity existingEntity = createSignerInfoEntity(existingPayload, parser.getSignature(), certificateUtils.getCertThumbprint(payloadCertificate));
+        SignerInformationEntity existingEntity = createSignerInfoEntity(existingPayload, parser.getSignature(),
+          certificateUtils.getCertThumbprint(payloadCertificate));
 
-        CmsPackageDto dto = new CmsPackageDto("invalidCMS", existingEntity.getId(), CmsPackageDto.CmsPackageTypeDto.DSC);
+        CmsPackageDto dto =
+          new CmsPackageDto("invalidCMS", existingEntity.getId(), CmsPackageDto.CmsPackageTypeDto.DSC);
 
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x260")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x260")));
     }
 
     @Test
     void testUpdateValidationRule() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate signerCertificate2 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey2 = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate2 =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey2 =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String payload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
         ValidationRuleEntity entity = createValidationEntry(payload);
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isNoContent());
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isNoContent());
 
         Optional<ValidationRuleEntity> updatedRule =
-                validationRuleRepository.findById(entity.getId());
+          validationRuleRepository.findById(entity.getId());
 
         Assertions.assertTrue(updatedRule.isPresent());
         Assertions.assertEquals(updatePayload, updatedRule.get().getCms());
@@ -298,39 +385,45 @@ class CertificateMigrationControllerTest {
 
     @Test
     void testUpdateValidationRulePayloadNotMatching() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate signerCertificate2 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey2 = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate2 =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey2 =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
         ValidationRuleEntity entity = createValidationEntry(existingPayload);
 
         validationRule.setIdentifier("MISMATCH");
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x032")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x032")));
 
         Optional<ValidationRuleEntity> updatedRule =
-                validationRuleRepository.findById(entity.getId());
+          validationRuleRepository.findById(entity.getId());
 
         Assertions.assertTrue(updatedRule.isPresent());
         Assertions.assertEquals(existingPayload, updatedRule.get().getCms());
@@ -338,88 +431,101 @@ class CertificateMigrationControllerTest {
 
     @Test
     void testUpdateValidationRulePayloadNotFound() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         validationRule.setIdentifier("MISMATCH");
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
         CmsPackageDto dto = new CmsPackageDto(updatePayload, 404L, CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code", is("0x030")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isConflict())
+          .andExpect(jsonPath("$.code", is("0x030")));
     }
 
     @Test
     void testUpdateValidationRuleInvalidCMS() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
         ValidationRuleEntity entity = createValidationEntry(existingPayload);
-        CmsPackageDto dto = new CmsPackageDto("invalidCms", entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
+        CmsPackageDto dto =
+          new CmsPackageDto("invalidCms", entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x260")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x260")));
     }
 
     @Test
     void testUpdateValidationRuleWrongCountry() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
-        X509Certificate signerCertificate2 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey2 = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate2 =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey2 =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         ValidationRule validationRule = getDummyValidationRule();
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
         ValidationRuleEntity entity = createValidationEntry(existingPayload, "DE");
 
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
-                .withPayload(objectMapper.writeValueAsString(validationRule))
-                .buildAsString();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
+          .withPayload(objectMapper.writeValueAsString(validationRule))
+          .buildAsString();
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.VALIDATION_RULE);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x031")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x031")));
 
         Optional<ValidationRuleEntity> updatedRule =
-                validationRuleRepository.findById(entity.getId());
+          validationRuleRepository.findById(entity.getId());
 
         Assertions.assertTrue(updatedRule.isPresent());
         Assertions.assertEquals(existingPayload, updatedRule.get().getCms());
@@ -427,38 +533,44 @@ class CertificateMigrationControllerTest {
 
     @Test
     void testUpdateRevocation() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate signerCertificate2 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey2 = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash2 = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate2 =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey2 =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash2 =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         RevocationBatchDto revocationBatch = createRevocationBatch("kid1");
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
         RevocationBatchEntity entity = createRevocationBatchEntity(existingPayload);
 
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
 
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash2)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isNoContent());
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash2)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isNoContent());
 
         Optional<RevocationBatchEntity> updatedBatch =
-                revocationBatchRepository.findById(entity.getId());
+          revocationBatchRepository.findById(entity.getId());
 
         Assertions.assertTrue(updatedBatch.isPresent());
         Assertions.assertEquals(updatePayload, updatedBatch.get().getSignedBatch());
@@ -466,41 +578,47 @@ class CertificateMigrationControllerTest {
 
     @Test
     void testUpdateRevocationPayloadNotMatching() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        X509Certificate signerCertificate2 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey2 = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash2 = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate2 =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey2 =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash2 =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         RevocationBatchDto revocationBatch = createRevocationBatch("kid1");
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
         RevocationBatchEntity entity = createRevocationBatchEntity(existingPayload);
 
         RevocationBatchDto revocationBatchUnmatch = createRevocationBatch("kid2");
 
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
-                .withPayload(objectMapper.writeValueAsString(revocationBatchUnmatch))
-                .buildAsString();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
+          .withPayload(objectMapper.writeValueAsString(revocationBatchUnmatch))
+          .buildAsString();
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
 
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash2)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x022")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash2)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x022")));
 
         Optional<RevocationBatchEntity> updatedBatch =
-                revocationBatchRepository.findById(entity.getId());
+          revocationBatchRepository.findById(entity.getId());
 
         Assertions.assertTrue(updatedBatch.isPresent());
         Assertions.assertEquals(existingPayload, updatedBatch.get().getSignedBatch());
@@ -508,56 +626,63 @@ class CertificateMigrationControllerTest {
 
     @Test
     void testUpdateRevocationPayloadNotFound() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         RevocationBatchDto revocationBatch = createRevocationBatch("kid1");
 
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
         CmsPackageDto dto = new CmsPackageDto(updatePayload, 404L, CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
 
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code", is("0x020")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isConflict())
+          .andExpect(jsonPath("$.code", is("0x020")));
     }
 
     @Test
     void testUpdateRevocationInvalidCMS() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         RevocationBatchDto revocationBatch = createRevocationBatch("kid1");
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
         RevocationBatchEntity entity = createRevocationBatchEntity(existingPayload);
 
-        CmsPackageDto dto = new CmsPackageDto("invalidCms", entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
+        CmsPackageDto dto =
+          new CmsPackageDto("invalidCms", entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x260")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x260")));
 
         Optional<RevocationBatchEntity> updatedBatch =
-                revocationBatchRepository.findById(entity.getId());
+          revocationBatchRepository.findById(entity.getId());
 
         Assertions.assertTrue(updatedBatch.isPresent());
         Assertions.assertEquals(existingPayload, updatedBatch.get().getSignedBatch());
@@ -565,53 +690,60 @@ class CertificateMigrationControllerTest {
 
     @Test
     void testUpdateRevocationWrongCountry() throws Exception {
-        X509Certificate signerCertificate = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
-        PrivateKey signerPrivateKey = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
+        X509Certificate signerCertificate =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
+        PrivateKey signerPrivateKey =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
         trustedPartyTestHelper.clear(TrustedPartyEntity.CertificateType.UPLOAD, "DE");
-        X509Certificate signerCertificate2 = trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        PrivateKey signerPrivateKey2 = trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
-        String authCertHash2 = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        X509Certificate signerCertificate2 =
+          trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey2 =
+          trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        String authCertHash2 =
+          trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         RevocationBatchDto revocationBatch = createRevocationBatch("kid1");
         revocationBatch.setCountry("DE");
 
         String existingPayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
         RevocationBatchEntity entity = createRevocationBatchEntity(existingPayload, "DE");
 
         String updatePayload = new SignedStringMessageBuilder()
-                .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
-                .withPayload(objectMapper.writeValueAsString(revocationBatch))
-                .buildAsString();
-        CmsPackageDto dto = new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
+          .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate2), signerPrivateKey2)
+          .withPayload(objectMapper.writeValueAsString(revocationBatch))
+          .buildAsString();
+        CmsPackageDto dto =
+          new CmsPackageDto(updatePayload, entity.getId(), CmsPackageDto.CmsPackageTypeDto.REVOCATION_LIST);
 
         mockMvc.perform(post("/cms-migration")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto))
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash2)
-                        .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code", is("0x021")));
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(dto))
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash2)
+            .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+          )
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.code", is("0x021")));
     }
 
-    private void createSignerInfo(final String cmsBase64, final X509Certificate certDscEu) {
+    private void createSignerInfo(final String cmsBase64, final X509Certificate certDscEu, final String signature) {
         signerInformationRepository.save(new SignerInformationEntity(
-                null, ZonedDateTime.now(), countryCode, certificateUtils.getCertThumbprint(certDscEu),
-                cmsBase64, "sig1", SignerInformationEntity.CertificateType.DSC
+          null, ZonedDateTime.now(), null, countryCode, certificateUtils.getCertThumbprint(certDscEu),
+          cmsBase64, signature, SignerInformationEntity.CertificateType.DSC
         ));
     }
 
-    private RevocationBatchEntity createRevocation(final String cmsBase64) {
+    private RevocationBatchEntity createRevocation(final String batchId, final String cmsBase64, boolean deleted) {
         RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity(
-                null, "batchId", countryCode, ZonedDateTime.now(), ZonedDateTime.now().plusDays(2),
-                false, RevocationBatchEntity.RevocationHashType.SIGNATURE, "UNKNOWN_KID", cmsBase64);
+          null, batchId, countryCode, ZonedDateTime.now(), ZonedDateTime.now().plusDays(2),
+          deleted, RevocationBatchEntity.RevocationHashType.SIGNATURE, "UNKNOWN_KID", cmsBase64);
         return revocationBatchRepository.save(revocationBatchEntity);
     }
 
-    private SignerInformationEntity createSignerInfoEntity(final String cms, final String signature, final String thumbprint) {
+    private SignerInformationEntity createSignerInfoEntity(final String cms, final String signature,
+                                                           final String thumbprint) {
         SignerInformationEntity signerInformationEntity = new SignerInformationEntity();
         signerInformationEntity.setCertificateType(SignerInformationEntity.CertificateType.DSC);
         signerInformationEntity.setRawData(cms);
@@ -662,11 +794,11 @@ class CertificateMigrationControllerTest {
         revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
         revocationBatchDto.setKid(kid);
         revocationBatchDto.setEntries(List.of(
-                new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa"),
-                new RevocationBatchDto.BatchEntryDto("bbbbbbbbbbbbbbbbbbbbbbbb"),
-                new RevocationBatchDto.BatchEntryDto("cccccccccccccccccccccccc"),
-                new RevocationBatchDto.BatchEntryDto("dddddddddddddddddddddddd"),
-                new RevocationBatchDto.BatchEntryDto("eeeeeeeeeeeeeeeeeeeeeeee")
+          new RevocationBatchDto.BatchEntryDto("aaaaaaaaaaaaaaaaaaaaaaaa"),
+          new RevocationBatchDto.BatchEntryDto("bbbbbbbbbbbbbbbbbbbbbbbb"),
+          new RevocationBatchDto.BatchEntryDto("cccccccccccccccccccccccc"),
+          new RevocationBatchDto.BatchEntryDto("dddddddddddddddddddddddd"),
+          new RevocationBatchDto.BatchEntryDto("eeeeeeeeeeeeeeeeeeeeeeee")
         ));
         return revocationBatchDto;
     }

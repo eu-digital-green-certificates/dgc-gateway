@@ -31,6 +31,7 @@ import org.mapstruct.Mapping;
 public interface GwTrustedIssuerMapper {
 
     @Mapping(source = "createdAt", target = "timestamp")
+    @Mapping(source = "urlType", target = "type")
     TrustedIssuerDto trustedIssuerEntityToTrustedIssuerDto(TrustedIssuerEntity trustedIssuer);
 
     @Mapping(source = "timestamp", target = "createdAt")

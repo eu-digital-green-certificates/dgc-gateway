@@ -55,7 +55,8 @@ class CertAuthFilterTest {
 
     @Test
     void testRequestShouldFailIfDNHeaderIsMissing() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
@@ -89,14 +90,16 @@ class CertAuthFilterTest {
 
     @Test
     void testFilterShouldAppendCountryAndThumbprintToRequestObject() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
         ).andExpect(mvcResult -> {
-            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals("EU",
+                mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
             Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
@@ -106,16 +109,19 @@ class CertAuthFilterTest {
 
     @Test
     void testFilterShouldDecodeDnString() throws Exception {
-        String encodedDnString = "ST%3dSome-State%2c%20C%3dEU%2c%20O%3dInternet%20Widgits%20Pty%20Ltd%2c%20CN%3dTest%20Cert";
+        String encodedDnString =
+            "ST%3dSome-State%2c%20C%3dEU%2c%20O%3dInternet%20Widgits%20Pty%20Ltd%2c%20CN%3dTest%20Cert";
 
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), encodedDnString)
         ).andExpect(mvcResult -> {
-            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals("EU",
+                mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
             Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
@@ -125,7 +131,8 @@ class CertAuthFilterTest {
 
     @Test
     void testFilterShouldDecodeBase64AndUrlEncodedCertThumbprint() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         byte[] certHashBytes = new BigInteger(certHash, 16).toByteArray();
 
         if (certHashBytes[0] == 0) {
@@ -140,9 +147,11 @@ class CertAuthFilterTest {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), encodedThumbprint)
-            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
+            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
+                "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
         ).andExpect(mvcResult -> {
-            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals("EU",
+                mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
             Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
@@ -152,7 +161,8 @@ class CertAuthFilterTest {
 
     @Test
     void testFilterShouldDecodeBase64EncodedCertThumbprint() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
         byte[] certHashBytes = new BigInteger(certHash, 16).toByteArray();
 
         if (certHashBytes[0] == 0) {
@@ -166,9 +176,11 @@ class CertAuthFilterTest {
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), encodedThumbprint)
-            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
+            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
+                "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
         ).andExpect(mvcResult -> {
-            Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
+            Assertions.assertEquals("EU",
+                mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY));
             Assertions.assertEquals(
                 certHash,
                 mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_THUMBPRINT)
@@ -179,35 +191,43 @@ class CertAuthFilterTest {
 
     @Test
     void testRequestShouldFailIfCountryIsNotPresentInDnString() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
-            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,U=Abteilung XYZ,TR=test")
+            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
+                "O=Test Firma GmbH,U=Abteilung XYZ,TR=test")
         ).andExpect(status().isBadRequest());
     }
 
     @Test
     void testFilterShouldFindCountryEvenOnMalformedDnString() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
-            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
-        ).andExpect(mvcResult -> Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
+            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
+                "O=Test Firma GmbH,C=EU,U=,TR,TT=43")
+        ).andExpect(mvcResult -> Assertions.assertEquals("EU",
+            mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
     }
 
     @Test
     void testRequestShouldNotFailIfDnStringContainsDuplicatedKeys() throws Exception {
-        String certHash = trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        String certHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
         mockMvc.perform(post("/signerCertificate/")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
-            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), "O=Test Firma GmbH,O=XXX,C=EU,U=Abteilung XYZ,TR=test")
-        ).andExpect(mvcResult -> Assertions.assertEquals("EU", mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
+            .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
+                "O=Test Firma GmbH,O=XXX,C=EU,U=Abteilung XYZ,TR=test")
+        ).andExpect(mvcResult -> Assertions.assertEquals("EU",
+            mvcResult.getRequest().getAttribute(CertificateAuthenticationFilter.REQUEST_PROP_COUNTRY)));
     }
 }
 

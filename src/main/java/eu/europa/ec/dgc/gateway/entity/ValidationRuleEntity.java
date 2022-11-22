@@ -60,7 +60,7 @@ public class ValidationRuleEntity {
     /**
      * CMS containing the whole JSON validation rule.
      */
-    @Column(name = "signature", nullable = false, length = 10000)
+    @Column(name = "signature", nullable = false, length = 20000)
     private String cms;
 
     /**

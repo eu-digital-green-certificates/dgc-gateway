@@ -22,17 +22,17 @@ package eu.europa.ec.dgc.gateway.config;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
@@ -48,15 +48,11 @@ public class DgcKeyStore {
      * Creates a KeyStore instance with keys for DGC TrustAnchor.
      *
      * @return KeyStore Instance
-     * @throws KeyStoreException        if no implementation for the specified type found
-     * @throws IOException              if there is an I/O or format problem with the keystore data
-     * @throws CertificateException     if any of the certificates in the keystore could not be loaded
-     * @throws NoSuchAlgorithmException if the algorithm used to check the integrity of the keystore cannot be found
      */
     @Bean
     @Primary
-    public KeyStore trustAnchorKeyStore() throws KeyStoreException, IOException,
-        CertificateException, NoSuchAlgorithmException {
+    @Qualifier("trustAnchor")
+    public KeyStore trustAnchorKeyStore() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("JKS");
 
         loadKeyStore(
@@ -72,8 +68,7 @@ public class DgcKeyStore {
      */
     @Bean
     @Qualifier("federation")
-    public KeyStore federationKeyStore() throws KeyStoreException, IOException,
-        CertificateException, NoSuchAlgorithmException {
+    public KeyStore federationKeyStore() throws Exception {
 
         KeyStore keyStore = KeyStore.getInstance("JKS");
 
@@ -85,35 +80,22 @@ public class DgcKeyStore {
         return keyStore;
     }
 
-    private void loadKeyStore(KeyStore keyStore, String path, char[] password)
-        throws CertificateException, NoSuchAlgorithmException, IOException {
-
-        InputStream fileStream;
-
-        if (path.startsWith("classpath:")) {
-            String resourcePath = path.substring(10);
-            fileStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
-        } else {
-            File file = new File(path);
-            fileStream = file.exists() ? getStream(path) : null;
-        }
-
-        if (fileStream != null && fileStream.available() > 0) {
+    private void loadKeyStore(KeyStore keyStore, String path, char[] password) throws Exception {
+        try (InputStream fileStream = getStream(path)) {
             keyStore.load(fileStream, password);
-            fileStream.close();
-        } else {
-            keyStore.load(null);
-            log.info("Could not find Keystore {}", path);
+        } catch (Exception e) {
+            log.error("Could not load Keystore {}", path);
+            throw e;
         }
-
     }
 
-    private InputStream getStream(String path) {
-        try {
-            return new FileInputStream(path);
-        } catch (IOException e) {
-            log.info("Could not find Keystore {}", path);
+    private InputStream getStream(String path) throws FileNotFoundException {
+        if (path.startsWith("classpath:")) {
+            String resourcePath = path.substring(10);
+            return getClass().getClassLoader().getResourceAsStream(resourcePath);
+        } else {
+            File file = new File(path);
+            return file.exists() ? new FileInputStream(path) : null;
         }
-        return null;
     }
 }
