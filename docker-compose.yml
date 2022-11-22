@@ -29,9 +29,6 @@ services:
       - DGC_TRUSTANCHOR_KEYSTOREPATH=/ec/prod/app/san/dgc/ta.jks
       - DGC_TRUSTANCHOR_KEYSTOREPASS=dgcg-p4ssw0rd # do not use this for production deployments
       - DGC_TRUSTANCHOR_CERTIFICATEALIAS=dgcg_trust_anchor
-      - DGC_PUBLICATION_KEYSTORE_KEYSTOREPATH=/ec/prod/app/san/dgc/publication-signer-tst.jks
-      - DGC_PUBLICATION_KEYSTORE_KEYSTOREPASS=dgc-p4ssw0rd # do not use this for production deployments
-      - DGC_PUBLICATION_KEYSTORE_CERTIFICATEALIAS=dgc_tst_publication
     depends_on:
       - mysql
     networks:
