@@ -36,10 +36,10 @@ public class TrustedIssuerTestHelper {
 
     public TrustedIssuerEntity createTrustedIssuer(final String country, final String domain) throws Exception {
         TrustedIssuerEntity trustedIssuer = new TrustedIssuerEntity();
-        trustedIssuer.setUrl("https://trusted.issuer");
+        trustedIssuer.setUrl("did:trusted:" + country + ":issuer");
         trustedIssuer.setName("tiName");
         trustedIssuer.setCountry(country);
-        trustedIssuer.setUrlType(TrustedIssuerEntity.UrlType.HTTP);
+        trustedIssuer.setUrlType(TrustedIssuerEntity.UrlType.DID);
         trustedIssuer.setSslPublicKey("pubKey");
         trustedIssuer.setThumbprint("thumbprint");
         trustedIssuer.setKeyStorageType("JWKS");
