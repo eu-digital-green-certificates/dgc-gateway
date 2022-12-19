@@ -65,6 +65,8 @@ dgc:
       - DCC
       - SHC
       - CRED
+  did:
+    enableDidGeneration: false
 springdoc:
   api-docs:
     enabled: false
