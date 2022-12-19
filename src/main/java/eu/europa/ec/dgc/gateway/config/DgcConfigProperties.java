@@ -21,7 +21,9 @@
 package eu.europa.ec.dgc.gateway.config;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -45,6 +47,41 @@ public class DgcConfigProperties {
     private Federation federation = new Federation();
 
     private TrustedCertificates trustedCertificates = new TrustedCertificates();
+
+    private DidConfig did = new DidConfig();
+
+    @Getter
+    @Setter
+    public static class DidConfig {
+
+        private String didId;
+        private String didController;
+        private String trustListIdPrefix;
+        private String trustListControllerPrefix;
+        private String ldProofVerificationMethod;
+        private String ldProofDomain;
+        private String ldProofNonce;
+        private String didSigningProvider;
+        private Boolean includeFederated = false;
+
+        private AzureConfig azure;
+
+        private Map<String, String> contextMapping = new HashMap<>();
+
+        @Getter
+        @Setter
+        public static class AzureConfig {
+            private String spId;
+            private String spSecret;
+            private String spTenant;
+            private String secretUrl;
+            private String blobEndpoint;
+            private String blobContainer;
+            private String blobName;
+            private ProxyConfig proxy;
+
+        }
+    }
 
     @Getter
     @Setter

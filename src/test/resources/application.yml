@@ -4,6 +4,7 @@ spring:
   profiles:
     active:
       - test
+      - log2console
     include:
       - dev
   application:
@@ -37,3 +38,18 @@ dgc:
     header-fields:
       thumbprint: X-SSL-Client-SHA256
       distinguished-name: X-SSL-Client-DN
+  did:
+    enableDidGeneration: true
+    didId: a
+    didController: b
+    trustListIdPrefix: c
+    trustListControllerPrefix: d
+    ldProofVerificationMethod: e
+    ldProofDomain: f
+    ldProofNonce: g
+    didSigningProvider: dummy
+    didUploadProvider: dummy
+    includeFederated: true
+    contextMapping:
+      "[https://www.w3.org/ns/did/v1]": did_v1.json
+      "[https://w3id.org/security/suites/jws-2020/v1]": jws-2020_v1.json
