@@ -18,7 +18,7 @@ ThirdParty Licenses
 | com.fasterxml:classmate:1.5.1 | Apache License, Version 2.0 |
 | com.fasterxml.jackson.core:jackson-annotations:2.13.4 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.core:jackson-core:2.13.4 | The Apache Software License, Version 2.0 |
-| com.fasterxml.jackson.core:jackson-databind:2.14.0-rc2 | The Apache Software License, Version 2.0 |
+| com.fasterxml.jackson.core:jackson-databind:2.14.1 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.4 | The Apache Software License, Version 2.0 |
 | com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4 | The Apache Software License, Version 2.0 |
