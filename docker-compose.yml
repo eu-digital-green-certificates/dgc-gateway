@@ -18,6 +18,7 @@ services:
     image: world-health-organization/ddcc-gateway
     volumes:
       - ./certs:/ec/prod/app/san/dgc
+      - ./logs:/logs
     ports:
       - 8080:8080
     environment:
@@ -29,6 +30,8 @@ services:
       - DGC_TRUSTANCHOR_KEYSTOREPATH=/ec/prod/app/san/dgc/ta.jks
       - DGC_TRUSTANCHOR_KEYSTOREPASS=dgcg-p4ssw0rd # do not use this for production deployments
       - DGC_TRUSTANCHOR_CERTIFICATEALIAS=dgcg_trust_anchor
+      - DGC_FEDERATION_KEYSTOREPATH=/ec/prod/app/san/dgc/ta.jks #TODO: change to federation.jks
+      - DGC_FEDERATION_KEYSTOREPASSWORD=dgcg-p4ssw0rd # do not use this for production deployments
     depends_on:
       - mysql
     networks:

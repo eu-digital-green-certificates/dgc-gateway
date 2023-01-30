@@ -9,6 +9,6 @@
         <addColumn tableName="trusted_reference">
             <column name="url" type="varchar(100)"/>
         </addColumn>
-        <addNotNullConstraint tableName="trusted_reference" columnName="url"/>
+        <addNotNullConstraint tableName="trusted_reference" columnName="url" columnDataType="varchar(100)"/>
     </changeSet>
 </databaseChangeLog>
