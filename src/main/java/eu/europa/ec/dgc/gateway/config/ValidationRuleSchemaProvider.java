@@ -20,9 +20,9 @@
 
 package eu.europa.ec.dgc.gateway.config;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.everit.json.schema.Schema;

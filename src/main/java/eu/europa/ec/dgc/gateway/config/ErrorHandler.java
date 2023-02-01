@@ -22,7 +22,7 @@ package eu.europa.ec.dgc.gateway.config;
 
 import eu.europa.ec.dgc.gateway.exception.DgcgResponseException;
 import eu.europa.ec.dgc.gateway.restapi.dto.ProblemReportDto;
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +31,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
@@ -63,12 +62,12 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemReportDto> handleException(Exception e) {
 
-        if (e instanceof DgcgResponseException) {
-            DgcgResponseException de = (DgcgResponseException) e;
+        if (e instanceof DgcgResponseException dgcgException) {
             return ResponseEntity
-                .status(((ResponseStatusException) e).getStatus())
+                .status(dgcgException.getStatus())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ProblemReportDto(de.getCode(), de.getProblem(), de.getSentValues(), de.getDetails()));
+                .body(new ProblemReportDto(dgcgException.getCode(), dgcgException.getProblem(),
+                    dgcgException.getSentValues(), dgcgException.getDetails()));
         } else {
             log.error("Uncaught exception", e);
             return ResponseEntity

@@ -177,7 +177,7 @@ public class RevocationListService {
 
         log.info("Deleting Revocation Batch with Batch ID {} from DB", parsedDeleteRequest.getBatchId());
 
-        revocationBatchRepository.markBatchAsDeleted(parsedDeleteRequest.getBatchId());
+        revocationBatchRepository.markBatchAsDeleted(parsedDeleteRequest.getBatchId(), ZonedDateTime.now());
 
         auditService.addAuditEvent(
             authenticatedCountryCode,
