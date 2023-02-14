@@ -25,7 +25,6 @@ import static eu.europa.ec.dgc.gateway.utils.CmsUtils.getSignedString;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vdurmont.semver4j.Semver;
 import eu.europa.ec.dgc.gateway.config.ValidationRuleSchemaProvider;
 import eu.europa.ec.dgc.gateway.entity.TrustedPartyEntity;
 import eu.europa.ec.dgc.gateway.entity.ValidationRuleEntity;
@@ -51,6 +50,7 @@ import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.semver4j.Semver;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 

@@ -43,23 +43,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- dependencies -->
-        <owasp.version>7.1.2</owasp.version>
-        <spring.security.version>5.7.3</spring.security.version>
-        <lombok.version>1.18.24</lombok.version>
-        <liquibase.version>4.17.0</liquibase.version>
-        <springdoc.version>1.6.11</springdoc.version>
-        <mapstruct.version>1.5.2.Final</mapstruct.version>
-        <bcpkix.version>1.70</bcpkix.version>
-        <semver4j.version>3.1.0</semver4j.version>
+        <dgclib.version>2.0.0</dgclib.version>
+        <owasp.version>8.0.2</owasp.version>
+        <springdoc.version>1.6.14</springdoc.version>
+        <mapstruct.version>1.5.3.Final</mapstruct.version>
+        <bcpkix.version>1.72</bcpkix.version>
+        <semver4j.version>4.1.1</semver4j.version>
         <json-schema.version>1.14.1</json-schema.version>
-        <shedlock.version>4.42.0</shedlock.version>
-        <dgc.lib.version>2.0.0</dgc.lib.version>
+        <shedlock.version>5.1.0</shedlock.version>
         <!-- plugins -->
         <plugin.maven-assembly.version>3.4.2</plugin.maven-assembly.version>
-        <plugin.checkstyle.version>3.2.0</plugin.checkstyle.version>
+        <plugin.checkstyle.version>3.2.1</plugin.checkstyle.version>
         <plugin.sonar.version>3.9.1.2184</plugin.sonar.version>
         <plugin.jacoco.version>0.8.8</plugin.jacoco.version>
-        <plugin.os-maven.version>1.7.0</plugin.os-maven.version>
+        <plugin.os-maven.version>1.7.1</plugin.os-maven.version>
         <!-- license -->
         <license.projectName>EU Digital Green Certificate Gateway Service / dgc-gateway</license.projectName>
         <license.inceptionYear>2021</license.inceptionYear>
@@ -134,10 +131,10 @@
         <dependency>
             <groupId>eu.europa.ec.dgc</groupId>
             <artifactId>dgc-lib</artifactId>
-            <version>${dgc.lib.version}</version>
+            <version>${dgclib.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.vdurmont</groupId>
+            <groupId>org.semver4j</groupId>
             <artifactId>semver4j</artifactId>
             <version>${semver4j.version}</version>
         </dependency>
@@ -151,14 +148,8 @@
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>[1.33,)</version>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>[2.13.4.2,)</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -202,17 +193,6 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-text</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
-            <version>[1.10.0,)</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -227,7 +207,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -237,13 +216,12 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
+            <artifactId>bcpkix-jdk18on</artifactId>
             <version>${bcpkix.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
@@ -260,11 +238,6 @@
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${plugin.checkstyle.version}</version>
-                </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
@@ -310,13 +283,14 @@
                 <configuration>
                     <suppressionFile>./owasp/suppressions.xml</suppressionFile>
                     <failBuildOnAnyVulnerability>true</failBuildOnAnyVulnerability>
+                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <profiles>dev</profiles>
+                    <profiles>dev,log2console</profiles>
                     <wait>5000</wait>
                     <maxAttempts>30</maxAttempts>
                 </configuration>
@@ -344,6 +318,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${plugin.checkstyle.version}</version>
                 <configuration>
                     <configLocation>codestyle/checkstyle.xml</configLocation>
                     <excludes>target/**/*</excludes>
