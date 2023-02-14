@@ -46,7 +46,8 @@ public class RevocationListCleanUpService {
     public void cleanup() {
         log.info("Starting Revocation List Cleanup Job.");
 
-        int affectedRowsMarkAsDeleted = revocationBatchRepository.markExpiredBatchesAsDeleted(ZonedDateTime.now());
+        int affectedRowsMarkAsDeleted = revocationBatchRepository
+            .markExpiredBatchesAsDeleted(ZonedDateTime.now(), ZonedDateTime.now());
         log.info("Marked {} Revocation Batches as deleted.", affectedRowsMarkAsDeleted);
 
         int affectedRowsDeleted = revocationBatchRepository.deleteDeletedBatchesOlderThan(

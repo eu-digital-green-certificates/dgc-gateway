@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <suppress>
-        <notes>Bug only affects not used features of embedded tomcat.</notes>
-        <cve>CVE-2022-23181</cve>
+        <notes>no YAML content from users is parsed within this service</notes>
+        <cve>CVE-2022-1471</cve>
     </suppress>
     <suppress>
-        <notes>False Positive</notes>
-        <cve>CVE-2016-1000027</cve>
+        <notes>Bitcoin CLI is not used by the JSON LD Lib</notes>
+        <cve>CVE-2021-3401</cve>
+        <cve>CVE-2021-31876</cve>
     </suppress>
     <suppress>
-        <notes>False Positive - Updated to newest version</notes>
-        <cve>CVE-2018-14335</cve>
+        <notes>H2 is only used for testing, not production</notes>
+        <cve>CVE-2022-45868</cve>
     </suppress>
     <suppress>
-        <notes>False Positive</notes>
-        <cve>CVE-2020-5408</cve>
+        <notes>False positive. CVE is matching for hutools. OWASP Check matches for json-lib</notes>
+        <cve>CVE-2022-45688</cve>
     </suppress>
     <suppress>
-        <notes>Only affecting example code shipped with tomcat.</notes>
-        <cve>CVE-2022-34305</cve>
+        <notes>Both CVE are matching for eclipse ide</notes>
+        <cve>CVE-2008-7271</cve>
+        <cve>CVE-2010-4647</cve>
     </suppress>
     <suppress>
-        <notes>DGCG is not using YML User Input, Bug is fixed with SnameYAML 1.32, but CVE Matcher is invalid</notes>
-        <cve>CVE-2022-38751</cve>
-        <cve>CVE-2022-38752</cve>
+        <notes>Still WIP</notes>
+        <cve>CVE-2022-41862</cve>
     </suppress>
-
 </suppressions>

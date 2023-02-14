@@ -21,7 +21,7 @@
 package eu.europa.ec.dgc.gateway.restapi.dto.revocation;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -22,9 +22,9 @@ package eu.europa.ec.dgc.gateway.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 import java.util.List;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data

@@ -58,7 +58,7 @@ class CertAuthFilterTest {
         String certHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
         ).andExpect(status().isUnauthorized());
@@ -66,7 +66,7 @@ class CertAuthFilterTest {
 
     @Test
     void testRequestShouldFailIfThumbprintHeaderIsMissing() throws Exception {
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
         ).andExpect(status().isUnauthorized());
@@ -74,14 +74,14 @@ class CertAuthFilterTest {
 
     @Test
     void testRequestShouldFailIfCertHeadersAreMissing() throws Exception {
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
         ).andExpect(status().isUnauthorized());
     }
 
     @Test
     void testRequestShouldFailIfCertIsNotOnWhitelist() throws Exception {
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), "randomString")
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
@@ -93,7 +93,7 @@ class CertAuthFilterTest {
         String certHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), authDn)
@@ -115,7 +115,7 @@ class CertAuthFilterTest {
         String certHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(), encodedDnString)
@@ -144,7 +144,7 @@ class CertAuthFilterTest {
         String encodedThumbprint =
             URLEncoder.encode(Base64.getEncoder().encodeToString(certHashBytes), StandardCharsets.UTF_8);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), encodedThumbprint)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
@@ -173,7 +173,7 @@ class CertAuthFilterTest {
 
         String encodedThumbprint = Base64.getEncoder().encodeToString(certHashBytes);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), encodedThumbprint)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
@@ -194,7 +194,7 @@ class CertAuthFilterTest {
         String certHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
@@ -207,7 +207,7 @@ class CertAuthFilterTest {
         String certHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),
@@ -221,7 +221,7 @@ class CertAuthFilterTest {
         String certHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
             .contentType("application/cms")
             .header(properties.getCertAuth().getHeaderFields().getThumbprint(), certHash)
             .header(properties.getCertAuth().getHeaderFields().getDistinguishedName(),

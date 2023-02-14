@@ -22,15 +22,15 @@ package eu.europa.ec.dgc.gateway.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 @Getter
-public class DgcgResponseException extends ResponseStatusException {
+public class DgcgResponseException extends RuntimeException {
 
     private final String code;
     private final String details;
     private final String sentValues;
     private final String problem;
+    private final HttpStatus status;
 
     /**
      * All Args constructor for DgcgResponseException.
@@ -42,7 +42,7 @@ public class DgcgResponseException extends ResponseStatusException {
      * @param problem    short problem description.
      */
     public DgcgResponseException(HttpStatus status, String code, String problem, String sentValues, String details) {
-        super(status);
+        this.status = status;
         this.code = code;
         this.details = details;
         this.sentValues = sentValues;

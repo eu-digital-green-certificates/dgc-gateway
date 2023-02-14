@@ -21,8 +21,8 @@
 package eu.europa.ec.dgc.gateway.config;
 
 import eu.europa.ec.dgc.gateway.utils.DgcMdc;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class MdcCleanupInterceptor implements HandlerInterceptor {

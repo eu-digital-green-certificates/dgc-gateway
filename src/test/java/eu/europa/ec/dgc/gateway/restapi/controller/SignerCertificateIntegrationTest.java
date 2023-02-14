@@ -106,7 +106,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -157,7 +157,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -165,7 +165,7 @@ class SignerCertificateIntegrationTest {
             )
             .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -203,7 +203,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -242,7 +242,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -281,7 +281,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -320,7 +320,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -361,7 +361,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payload)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -407,7 +407,7 @@ class SignerCertificateIntegrationTest {
         String authCertHash =
             trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
 
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payloadString)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -432,7 +432,7 @@ class SignerCertificateIntegrationTest {
         /*
          * Step 2: Delete DSC
          */
-        mockMvc.perform(delete("/signerCertificate/")
+        mockMvc.perform(delete("/signerCertificate")
                 .content(payloadString)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
@@ -456,7 +456,7 @@ class SignerCertificateIntegrationTest {
         /*
          * Step 3: Reupload DSC
          */
-        mockMvc.perform(post("/signerCertificate/")
+        mockMvc.perform(post("/signerCertificate")
                 .content(payloadString)
                 .contentType("application/cms")
                 .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
