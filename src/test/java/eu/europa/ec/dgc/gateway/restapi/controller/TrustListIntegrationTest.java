@@ -49,6 +49,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -104,9 +105,9 @@ class TrustListIntegrationTest {
     private static final String authCertSubject = "C=" + countryCode;
     private static final String IF_MODIFIED_SINCE_HEADER = "If-Modified-Since";
     private static final ZoneId gmt = ZoneId.of("GMT");
-    private static final ZonedDateTime now = ZonedDateTime.now(gmt);
-    private static final ZonedDateTime nowMinusOneMinute = ZonedDateTime.now(gmt).minusMinutes(1);
-    private static final ZonedDateTime nowMinusOneHour = ZonedDateTime.now(gmt).minusHours(1);
+    private static final ZonedDateTime now = ZonedDateTime.now(gmt).truncatedTo(ChronoUnit.SECONDS);
+    private static final ZonedDateTime nowMinusOneMinute = now.minusMinutes(1);
+    private static final ZonedDateTime nowMinusOneHour = now.minusHours(1);
 
     X509Certificate certUploadDe, certUploadEu, certCscaDe, certCscaEu, certAuthDe, certAuthEu, certDscDe, certDscEu,
             certUploadDe2, certUploadEu2, certCscaDe2, certCscaEu2, certAuthDe2, certAuthEu2, certDscDe2, certDscEu2,
