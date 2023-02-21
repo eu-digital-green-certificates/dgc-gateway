@@ -23,12 +23,13 @@ package eu.europa.ec.dgc.gateway.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.LongVarcharJdbcType;
 
 @Getter
 @Setter
@@ -46,7 +47,7 @@ public class ValuesetEntity {
      * Signature of the TrustAnchor.
      */
     @Column(name = "json", nullable = false, length = 1024000)
-    @Lob
+    @JdbcType(LongVarcharJdbcType.class)
     String json;
 
 }

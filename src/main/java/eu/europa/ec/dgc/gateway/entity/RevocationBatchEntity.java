@@ -28,13 +28,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.LongVarcharJdbcType;
 
 @Getter
 @Setter
@@ -97,7 +98,7 @@ public class RevocationBatchEntity {
      * The Signed CMS with the batch.
      */
     @Column(name = "signed_batch", length = 1_024_000)
-    @Lob
+    @JdbcType(LongVarcharJdbcType.class)
     private String signedBatch;
 
     /**
