@@ -36,7 +36,7 @@ ThirdParty Licenses
 | commons-codec:commons-codec:1.15 | Apache License, Version 2.0 |
 | commons-collections:commons-collections:3.2.2 | Apache License, Version 2.0 |
 | commons-digester:commons-digester:2.1 | The Apache Software License, Version 2.0 |
-| commons-fileupload:commons-fileupload:1.4 | Apache License, Version 2.0 |
+| commons-fileupload:commons-fileupload:1.5 | Apache-2.0 |
 | commons-io:commons-io:2.11.0 | Apache License, Version 2.0 |
 | commons-logging:commons-logging:1.2 | The Apache Software License, Version 2.0 |
 | commons-validator:commons-validator:1.7 | Apache License, Version 2.0 |
