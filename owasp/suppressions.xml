@@ -26,4 +26,8 @@
         <notes>Still WIP</notes>
         <cve>CVE-2022-41862</cve>
     </suppress>
+    <suppress>
+        <notes>False positive</notes>
+        <cve>CVE-2018-14335</cve>
+    </suppress>
 </suppressions>
