@@ -104,6 +104,7 @@ public class RevocationListService {
 
         contentCheckUploaderCertificate(signerCertificate, authenticatedCountryCode);
         RevocationBatchDto parsedBatch = contentCheckValidJson(uploadedRevocationBatch, RevocationBatchDto.class);
+        contentCheckValidDate(parsedBatch);
         contentCheckValidValues(parsedBatch);
         contentCheckUploaderCountry(parsedBatch, authenticatedCountryCode);
 
@@ -331,6 +332,13 @@ public class RevocationListService {
         }
     }
 
+    private void contentCheckValidDate(RevocationBatchDto parsedBatch) throws RevocationBatchServiceException {
+        if (!parsedBatch.getExpires().isAfter(ZonedDateTime.now())) {
+            throw new RevocationBatchServiceException(
+                RevocationBatchServiceException.Reason.INVALID_DATE,
+                "Expiration date must be in future.");
+        }
+    }
 
     private void contentCheckValidValues(RevocationBatchDto parsedBatch) throws RevocationBatchServiceException {
 
@@ -443,6 +451,7 @@ public class RevocationListService {
             INVALID_JSON,
             INVALID_JSON_VALUES,
             INVALID_COUNTRY,
+            INVALID_DATE,
             UPLOADER_CERT_CHECK_FAILED,
             NOT_FOUND,
             GONE

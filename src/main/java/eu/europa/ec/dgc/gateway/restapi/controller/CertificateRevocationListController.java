@@ -264,6 +264,9 @@ public class CertificateRevocationListController {
                 case INVALID_COUNTRY:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Country sent", "",
                         e.getMessage());
+                case INVALID_DATE:
+                    throw new DgcgResponseException(HttpStatus.BAD_REQUEST, "0x000", "Invalid Dates", "",
+                        e.getMessage());
                 case UPLOADER_CERT_CHECK_FAILED:
                     throw new DgcgResponseException(HttpStatus.FORBIDDEN, "0x000", "Invalid Upload Certificate",
                         batch.getSignerCertificate().getSubject().toString(), "Certificate used to sign the batch "

@@ -380,6 +380,56 @@ public class CertificateRevocationListIntegrationTest {
     }
 
     @Test
+    void testUploadFailedInvalidExpirationDate() throws Exception {
+        long revocationBatchesInDb = revocationBatchRepository.count();
+        long auditEventEntitiesInDb = auditEventRepository.count();
+
+        X509Certificate signerCertificate =
+            trustedPartyTestHelper.getCert(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+        PrivateKey signerPrivateKey =
+            trustedPartyTestHelper.getPrivateKey(TrustedPartyEntity.CertificateType.UPLOAD, countryCode);
+
+        RevocationBatchDto revocationBatchDto = new RevocationBatchDto();
+        revocationBatchDto.setCountry(countryCode);
+        revocationBatchDto.setExpires(ZonedDateTime.now().minusSeconds(10));
+        revocationBatchDto.setHashType(RevocationHashTypeDto.SIGNATURE);
+        revocationBatchDto.setKid("UNKNOWN_KID");
+        revocationBatchDto.setEntries(List.of(
+            new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(
+                new byte[] {0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa, 0xa})),
+            new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(
+                new byte[] {0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb, 0xb})),
+            new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(
+                new byte[] {0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc})),
+            new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(
+                new byte[] {0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd, 0xd})),
+            new RevocationBatchDto.BatchEntryDto(Base64.getEncoder().encodeToString(
+                new byte[] {0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe, 0xe}))
+        ));
+
+        String payload = new SignedStringMessageBuilder()
+            .withSigningCertificate(certificateUtils.convertCertificate(signerCertificate), signerPrivateKey)
+            .withPayload(objectMapper.writeValueAsString(revocationBatchDto))
+            .buildAsString();
+
+        String authCertHash =
+            trustedPartyTestHelper.getHash(TrustedPartyEntity.CertificateType.AUTHENTICATION, countryCode);
+        trustedPartyTestHelper.setRoles(countryCode, TrustedPartyEntity.CertificateRoles.REVOCATION_UPLOADER);
+
+        mockMvc.perform(post("/revocation-list")
+                .content(payload)
+                .contentType("application/cms")
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getThumbprint(), authCertHash)
+                .header(dgcConfigProperties.getCertAuth().getHeaderFields().getDistinguishedName(), authCertSubject)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
+
+        Assertions.assertEquals(revocationBatchesInDb, revocationBatchRepository.count());
+        Assertions.assertEquals(auditEventEntitiesInDb, auditEventRepository.count());
+    }
+
+    @Test
     void testDeleteRevocationBatch() throws Exception {
         RevocationBatchEntity entity = new RevocationBatchEntity();
         entity.setType(RevocationBatchEntity.RevocationHashType.SIGNATURE);
