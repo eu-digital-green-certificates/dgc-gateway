@@ -43,19 +43,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- dependencies -->
-        <dgclib.version>2.0.0</dgclib.version>
+        <dgclib.version>2.0.0-046831a</dgclib.version>
         <owasp.version>8.0.2</owasp.version>
         <springdoc.version>1.6.14</springdoc.version>
-        <mapstruct.version>1.5.3.Final</mapstruct.version>
-        <bcpkix.version>1.72</bcpkix.version>
-        <semver4j.version>4.1.1</semver4j.version>
-        <json-schema.version>1.14.1</json-schema.version>
-        <shedlock.version>5.1.0</shedlock.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <bcpkix.version>1.74</bcpkix.version>
+        <semver4j.version>4.3.0</semver4j.version>
+        <json-schema.version>1.14.2</json-schema.version>
+        <shedlock.version>5.4.0</shedlock.version>
         <!-- plugins -->
-        <plugin.maven-assembly.version>3.4.2</plugin.maven-assembly.version>
-        <plugin.checkstyle.version>3.2.1</plugin.checkstyle.version>
+        <plugin.maven-assembly.version>3.6.0</plugin.maven-assembly.version>
+        <plugin.checkstyle.version>3.3.0</plugin.checkstyle.version>
         <plugin.sonar.version>3.9.1.2184</plugin.sonar.version>
-        <plugin.jacoco.version>0.8.8</plugin.jacoco.version>
+        <plugin.jacoco.version>0.8.10</plugin.jacoco.version>
         <plugin.os-maven.version>1.7.1</plugin.os-maven.version>
         <!-- license -->
         <license.projectName>EU Digital Green Certificate Gateway Service / dgc-gateway</license.projectName>
