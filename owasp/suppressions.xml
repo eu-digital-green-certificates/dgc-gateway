@@ -30,4 +30,8 @@
         <notes>False positive</notes>
         <cve>CVE-2018-14335</cve>
     </suppress>
+    <suppress>
+        <notes>No fix available, still analyzed</notes>
+        <cve>CVE-2023-35116</cve>
+    </suppress>
 </suppressions>
