@@ -8,14 +8,14 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: adopt
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.m2/repository
@@ -45,18 +45,18 @@ jobs:
           APP_PACKAGES_USERNAME: ${{ github.actor }}
           APP_PACKAGES_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: openapi.json
           path: target/openapi.json
       - name: Checkout OpenApi Doc Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: openapi-doc
       - name: Delete existing openapi.json
         run: rm -f openapi.json
       - name: Download openapi.json
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: openapi.json
       - name: Commit and Push changes
