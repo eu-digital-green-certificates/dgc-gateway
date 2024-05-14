@@ -48,7 +48,7 @@
         <owasp.version>8.0.2</owasp.version>
         <springdoc.version>2.1.0</springdoc.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <bcpkix.version>1.74</bcpkix.version>
+        <bcpkix.version>1.78</bcpkix.version>
         <semver4j.version>4.3.0</semver4j.version>
         <json-schema.version>1.14.2</json-schema.version>
         <shedlock.version>5.4.0</shedlock.version>
