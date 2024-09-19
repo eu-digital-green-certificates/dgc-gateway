@@ -87,7 +87,7 @@ public class DidTrustListService {
 
     private final ByteSigner byteSigner;
 
-    private final DidUploader didUploader;
+    private final DidUploadInvoker didUploadInvoker;
 
     private final ObjectMapper objectMapper;
 
@@ -108,7 +108,7 @@ public class DidTrustListService {
         }
 
         try {
-            didUploader.uploadDid(trustList.getBytes(StandardCharsets.UTF_8));
+            didUploadInvoker.uploadDid(trustList.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Failed to Upload DID-TrustList: {}", e.getMessage());
             return;
@@ -129,7 +129,8 @@ public class DidTrustListService {
                 }
 
                 try {
-                    didUploader.uploadDid(countryAsSubcontainer, countryTrustList.getBytes(StandardCharsets.UTF_8));
+                    didUploadInvoker
+                    .uploadDid(countryAsSubcontainer, countryTrustList.getBytes(StandardCharsets.UTF_8));
                 } catch (Exception e) {
                     log.error("Failed to Upload DID-TrustList for country {} : {}", country, e.getMessage());
                 }

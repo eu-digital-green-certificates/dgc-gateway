@@ -34,11 +34,11 @@ import eu.europa.ec.dgc.gateway.config.DgcConfigProperties;
 import java.net.InetSocketAddress;
 import java.text.MessageFormat;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-@ConditionalOnProperty(name = "dgc.did.didUploadProvider", havingValue = "azure")
+@ConditionalOnExpression("'${dgc.did.didUploadProvider}'.contains('azure')")
 @Service
 @Slf4j
 public class AzureDidUploader implements DidUploader {

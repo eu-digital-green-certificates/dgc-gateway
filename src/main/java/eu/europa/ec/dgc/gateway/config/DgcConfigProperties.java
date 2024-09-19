@@ -69,6 +69,7 @@ public class DgcConfigProperties {
         private Boolean includeFederated = false;
 
         private AzureConfig azure;
+        private GitConfig git = new GitConfig();
 
         private Map<String, String> contextMapping = new HashMap<>();
 
@@ -178,5 +179,16 @@ public class DgcConfigProperties {
     @Setter
     public static class CountryCodeMap {
         private Map<String, String> virtualCountries = new HashMap<>();
+    }
+
+    @Getter
+    @Setter
+    public static class GitConfig {
+        private String prefix;
+        private String workdir;
+        private String pat;
+        private String url;
+        private String owner;
+        private String branch;
     }
 }
